@@ -1,10 +1,13 @@
 {
-  "version": "0.5.2",
+  "version": "0.6.0",
   "date": "2026-11-25",
-  "title": "Sound On",
+  "title": "Active Combat",
   "notes": [
-    "Sound effects for hits, crits, kills, every power's skills, the Ultimate, crystals, level ups, loot drops, victory and defeat.",
-    "Music: a calm theme in menus and a driving battle track.",
-    "Both can be switched off in the menu (Esc)."
+    "You fight now: press SPACE, tap the screen or hit STRIKE to attack yourself. Your own strikes charge crystals much faster than auto attacks.",
+    "Parry: when an enemy is about to hit you, a red ! appears above it. Press SPACE in that moment to block, counter, stun it and earn a full crystal. Mashing does not parry, timing does.",
+    "Skills come often now (about every 2-3 seconds when you fight actively). Keys: 1/2/3 or Q/W/E for skills, R for the Ultimate.",
+    "The crystal bar is labelled and shows a live hint about what to do next.",
+    "Stuns can no longer lock enemies forever (short immunity after each stun).",
+    "Rebalanced for active play: enemies hit harder and last longer, Arena fights take about 15 seconds. Playing actively is rewarded."
   ]
 }

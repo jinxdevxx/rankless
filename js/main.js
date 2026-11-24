@@ -104,6 +104,8 @@ function boot(){
   setInterval(() => { checkForUpdate(); if(UI.updatePopupPending && UPDATE_INFO && !(UI.screen === 'battle' && BT && !BT.over) && !$('#modal').classList.contains('on')) showUpdatePopup(UPDATE_INFO); }, 30000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
   setTimeout(checkForUpdate, 5000);
+  // tap the battlefield to strike
+  cv.addEventListener('pointerdown', e => { if(UI.screen === 'battle' && BT && !BT.over && !UI.menuOpen && !$('#modal').classList.contains('on')){ heroAction(); } });
   requestAnimationFrame(frame);
 }
 boot();

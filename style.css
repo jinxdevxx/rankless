@@ -396,6 +396,18 @@ select{background:rgba(10,14,32,.8);border:1px solid var(--line);border-radius:6
 textarea{width:100%;background:rgba(5,8,20,.85);border:1px solid var(--line2);border-radius:8px;color:var(--text);font-family:"JetBrains Mono",monospace;font-size:12px;padding:10px;resize:vertical;word-break:break-all;user-select:text;-webkit-user-select:text}
 .pn{text-align:left}
 
+/* ---------- strike / parry ---------- */
+.skb.strike{width:96px;height:96px;border-color:#ffd166;background:radial-gradient(circle at 50% 35%,#5a4214,#120c04 75%);animation:none}
+.skb.strike b{font-family:Teko,sans-serif;font-size:28px;letter-spacing:.08em;color:#fff}
+.skb.strike small{position:absolute;bottom:12px;left:0;right:0;font-size:9px;letter-spacing:.12em;color:#e8d6a8;z-index:2}
+.skb.strike:active{transform:scale(.9)}
+.skb.strike.parry{border-color:#ff3d5e;background:radial-gradient(circle at 50% 35%,#7a1428,#16040a 75%);animation:parryp .3s infinite alternate}
+@keyframes parryp{to{box-shadow:0 0 34px 6px #ff3d5e;transform:scale(1.06)}}
+.crlbl{display:flex;flex-direction:column;justify-content:center;font-size:10px;letter-spacing:.14em;color:var(--muted);margin-right:4px;line-height:1.1}
+.crlbl small{font-family:Teko,sans-serif;font-size:20px;letter-spacing:.04em;color:#fff}
+.sk-hint{font-size:13px;color:#c4cde8;background:rgba(6,10,24,.7);padding:4px 10px;border-radius:8px;align-self:flex-end}
+.sk-hint.warn{color:#fff;background:rgba(122,20,40,.85)}
+
 /* ---------- live patch banner ---------- */
 /* while the banner shows, everything at the top moves down so nothing overlaps */
 body.upd .topbar, body.upd .b-top{top:64px}
@@ -451,6 +463,8 @@ body.upd .slots-panel, body.upd .create-panel{margin-top:32px}
   .b-skills{left:8px;right:8px;justify-content:center;gap:10px}
   .skb{width:68px;height:68px} .skb b{font-size:11px}
   .b-skills{align-items:center} .cr{width:18px;height:23px} .chain{font-size:18px}
+  .skb.strike{width:66px;height:66px} .skb.strike b{font-size:19px} .skb.strike small{display:none} .sk-row{gap:6px} .sk-hint{align-self:center;font-size:12px}
+  .sk-row .skb:not(.strike):not(.ult){width:58px;height:58px} .sk-row .skb b{font-size:10px} .sk-row .skb.ult{width:70px;height:70px} .sk-row .skb.ult b{font-size:22px}
   .skb.ult{width:88px;height:88px} .skb.ult b{font-size:26px}
   .rtitle{font-size:64px}
   #updBanner{top:calc(6px + env(safe-area-inset-top,0px));width:calc(100% - 12px);padding:8px 10px;gap:8px} .upd-txt b{font-size:18px}

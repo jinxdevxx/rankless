@@ -72,8 +72,8 @@ function parseCode(code){
 const xpNeed  = lv => Math.floor(130 * Math.pow(1.21, lv-1) * Math.min(1, .2 + lv*.08));
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
-const enemyHp = L  => 150 * Math.pow(1.16, L-1);
-const enemyAtk= L  => 19 * Math.pow(1.14, L-1);
+const enemyHp = L  => 330 * Math.pow(1.16, L-1);
+const enemyAtk= L  => 40 * Math.pow(1.14, L-1);
 
 function addXP(n){
   S.xp += Math.floor(n);

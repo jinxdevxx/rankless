@@ -337,7 +337,9 @@ function buildBattleHud(){
     (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="fill"></span><b>ULT</b><kbd>R</kbd></button>`
       : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
   $('#bSkills').style.setProperty('--c', a.color);
-  $('#bSkills').innerHTML = `<div class="sk-top"><span class="chain" id="bChain"></span><div class="crys" id="bCrys">${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div><div class="sk-row">${btns}</div>`;
+  $('#bSkills').innerHTML = `<div class="sk-top"><span class="chain" id="bChain"></span><div class="crys" id="bCrys"><span class="crlbl">CRYSTALS<small id="bCrysN">0/5</small></span>${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div>
+    <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}</div>
+    <div class="sk-hint" id="bHint">Strike to charge crystals · skills cost ◆</div>`;
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
   onWaveUI();
@@ -364,9 +366,15 @@ function updateBattleHud(){
   const a = AFF[S.aff];
   $$('#bCrys .cr').forEach((c,i) => { const f = clamp(BT.energy - i, 0, 1); c.style.setProperty('--f', f); c.classList.toggle('full', f >= 1); });
   $('#bCrys').classList.toggle('pop', BT.crystalPop > 0);
+  $('#bCrysN').textContent = `${Math.floor(BT.energy)}/${ENERGY.max}`;
+  const th = threatsOnHero().length > 0, sb = $('#bSkills .strike');
+  if(sb){ sb.classList.toggle('parry', th); sb.querySelector('b').textContent = th ? 'PARRY!' : 'STRIKE'; }
+  const hint = $('#bHint'); if(hint){ const need = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy < SKILL_COST[i]);
+    hint.textContent = th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? 'Strike (Space / tap) to charge crystals' : need >= 0 ? `Skills light up when you have enough ◆` : 'Use a skill! Back-to-back skills = CHAIN bonus'; hint.classList.toggle('warn', th); }
   const ch = $('#bChain'); ch.textContent = BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
-  $$('#bSkills .skb').forEach((b,i) => {
-    if(b.classList.contains('locked')) return;
+  $$('#bSkills .skb').forEach(b => {
+    if(b.classList.contains('locked') || b.classList.contains('strike')) return;
+    const i = +b.dataset.id;
     if(b.classList.contains('ult')){ const p = BT.ult; b.querySelector('.fill').style.height = p + '%'; b.classList.toggle('ready', p >= 100 && !BT.hero.dead); return; }
     const cost = SKILL_COST[i], f = clamp(BT.energy/cost, 0, 1);
     b.querySelector('.fill').style.height = f*100 + '%';
@@ -427,7 +435,7 @@ function showResult(r){
 function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
 function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
-  if(S.record.kills === 0) setTimeout(() => toast('TIP', 'Your champion fights on their own. Tap the glowing skill for extra damage!', 'gold'), 900); }
+  if(S.record.kills === 0 || !S.flags.tipStrike2){ S.flags.tipStrike2 = true; setTimeout(() => toast('HOW TO FIGHT', 'Press SPACE or tap the screen to STRIKE. Strikes charge your crystals, crystals power your skills.', 'gold'), 700); } }
 function leaveBattle(){ cancelAuto(); BT = null; showScreen('home'); renderHome(); }
 
 /* ---------- actions ---------- */
@@ -482,6 +490,7 @@ function act(a, el){
     case 'starUp': { const st = S.comps[id], need = shardNeed(id)*STAR_COST[st];
       if(st < MAX_STARS && (S.shards[id]||0) >= need){ S.shards[id] -= need; S.comps[id]++; toast('STAR UP', `${ENEMY_TYPES[id].name} is now ${S.comps[id]}★`, 'gold'); save(); renderSheet(); renderHome(); } break; }
     case 'skill': useSkill(+id); break;
+    case 'strike': heroAction(); break;
     case 'ult': useUlt(); break;
     case 'speed': S.settings.speed = S.settings.speed >= 3 ? 1 : S.settings.speed + 1; syncFarmUI(); save(); break;
     case 'auto': S.settings.autoSkill = !S.settings.autoSkill; syncFarmUI(); save(); break;
@@ -530,8 +539,12 @@ document.addEventListener('keydown', e => {
     return;
   }
   if(UI.screen !== 'battle' || !BT) return;
+  if(UI.menuOpen || $('#modal').classList.contains('on')) return;
+  const kk = e.key.toLowerCase();
   if(e.key >= '1' && e.key <= '3') useSkill(+e.key - 1);
-  else if(e.key.toLowerCase() === 'r' || e.key === ' '){ e.preventDefault(); useUlt(); }
+  else if(kk === 'q' || kk === 'w' || kk === 'e') useSkill({q:0,w:1,e:2}[kk]);
+  else if(kk === 'r') useUlt();
+  else if(e.key === ' '){ e.preventDefault(); if(!e.repeat) heroAction(); }
 });
 
 function intro(){

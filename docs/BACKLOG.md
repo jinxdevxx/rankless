@@ -11,8 +11,9 @@ Open requests from the player come first. Every development round starts here.
 - [~] Keep improving looks: more detailed anime-style characters and monsters (first pass in v0.5.1)
 
 - [x] Sound effects and music (v0.5.2)
-- [ ] Active combat: attack yourself with Space / tap, parry enemy attacks with good timing, more interactive and creative
-- [ ] Make the crystal / skill display easy to understand (how it charges, why skills are locked)
+- [x] Active combat: strike with Space / tap, parry with timing (v0.6.0)
+- [x] Crystal / skill display explained with label and live hint (v0.6.0)
+- [ ] Skills should come often enough for dopamine but stay balanced (v0.6.0 first pass, keep watching)
 - [ ] New art direction: less "cyber / neon / Star Wars", more appealing light anime look with real colors, faces and outlines
 - [ ] Redesign the UI to match (warmer, cleaner, more professional)
 - [ ] Keep balancing after every gameplay change (bot runs)

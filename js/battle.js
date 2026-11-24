@@ -44,7 +44,7 @@ function enemyUnit(type, L, slot){
 }
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
-  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 2.6*boost, am = 1.55*boost;
+  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 8*boost, am = 1.9*boost;
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
@@ -121,7 +121,36 @@ function pickTarget(u){
   if(u.ranged) return pick(foes);
   return foes.reduce((a,b) => (a.x < b.x ? a : b));
 }
-function frontEnemy(){ const f = alive('e'); return f.length ? f.reduce((a,b) => a.x < b.x ? a : b) : null; }
+function frontEnemy(){ const f = alive('e').filter(u => u.state !== 'enter'); return f.length ? f.reduce((a,b) => a.x < b.x ? a : b) : null; }
+
+/* ---------- active combat: strike & parry (Space / tap) ---------- */
+function threatsOnHero(){ return BT ? alive('e').filter(u => u.tele === BT.hero && u.state === 'idle' && (u.interval - u.timer) <= TELE + .02) : []; }
+function heroAction(){
+  if(!BT || BT.over || BT.cutin || BT.hero.dead) return;
+  const h = BT.hero, k = bk();
+  const threats = threatsOnHero();
+  const spam = (BT.sincePress ?? 9) < .35; BT.sincePress = 0;   // mashing never parries
+  if(threats.length && !spam){
+    for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, .9); addText(u, 'PARRIED', '#9fd8ff', 22); }
+    const t = threats[0];
+    h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
+    BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:140*k, c:'#ffd166', life:.45, max:.45});
+    BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
+    dealDamage(h, t, 1.4, {color:'#ffd166'});
+    gainEnergy(ENERGY.parry); BT.ult = Math.min(100, BT.ult + 8);
+    addText(h, 'PERFECT PARRY', '#ffd166', 30);
+    BT.slowmo = .35; BT.flashT = .06; BT.shake = Math.max(BT.shake, .15); BT.parries = (BT.parries||0) + 1;
+    SFX.parry();
+    return 'parry';
+  }
+  if(BT.strikeCd > 0) return;
+  const t = frontEnemy(); if(!t) return;
+  BT.strikeCd = STRIKE_CD;
+  if(h.state === 'idle' || h.state === 'back'){ h.target = t; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; }
+  else { dealDamage(h, t, .5, {}); gainEnergy(ENERGY.strike*.5); }
+  if(!S.flags.tutStrike){ S.flags.tutStrike = true; }
+  return 'strike';
+}
 
 function dealDamage(att, tgt, mult, opt={}){
   if(!tgt || tgt.dead) return 0;
@@ -145,11 +174,16 @@ function dealDamage(att, tgt, mult, opt={}){
   if(att.side === 'p'){ BT.combo++; BT.comboT = 2; if(att.kind === 'hero' && !opt.skill){ gainEnergy(ENERGY.hit); BT.ult = Math.min(100, BT.ult + 3); } }
   if(tgt.kind === 'hero') gainEnergy(ENERGY.hurt);
   if(opt.burn) tgt.burn = {dps: atk*opt.burn, t:3, src:att};
-  if(opt.stun && !tgt.boss) tgt.stun = Math.max(tgt.stun, opt.stun);
-  if(opt.stun && tgt.boss) tgt.stun = Math.max(tgt.stun, opt.stun*.3);
+  if(opt.stun) stunUnit(tgt, opt.stun);
   if(opt.slow) tgt.slow = Math.max(tgt.slow, opt.slow);
   if(tgt.hp <= 0) killUnit(tgt, att);
   return dmg;
+}
+/* stuns: after a stun ends the target cannot be stunned again for a moment (no stun-locks) */
+function stunUnit(u, dur){
+  if(u.dead || (u.stunImmune||0) > 0) return false;
+  const d = u.boss || u.kind === 'hunter' ? dur*.4 : u.elite ? dur*.7 : dur;
+  u.stun = Math.max(u.stun, d); u.stunImmune = d + 2.5; return true;
 }
 function heal(u, amt){
   if(u.dead) return; const real = Math.min(u.maxHp - u.hp, amt); if(real <= 0) return;
@@ -286,6 +320,7 @@ function stepUnit(u, dt){
     if(u.hp <= 0){ killUnit(u); return; }
     if(u.burn.t <= 0) u.burn = null; }
   if(u.slow > 0) u.slow -= dt;
+  if(u.stunImmune > 0) u.stunImmune -= dt;
   if(u.aiSkill !== undefined){ u.aiSkill -= dt; if(u.aiSkill <= 0 && !u.stun){ u.aiSkill = rand(5,8); aiSkill(u); } }
   u.st += dt;
   const dir = u.side === 'p' ? 1 : -1;
@@ -299,8 +334,14 @@ function stepUnit(u, dt){
       if(u.stun > 0){ u.stun -= dt; break; }
       let rate = 1; if(u.buffs.spd) rate += u.buffs.spd.v; if(u.slow > 0) rate *= .6;
       u.timer += dt*rate;
-      if(u.timer >= u.interval){
-        const t = pickTarget(u); if(!t) break;
+      const iv = u.kind === 'hero' ? u.interval*HERO_AUTO : u.interval;
+      // enemies pick their target early so the player can see the attack coming
+      if(u.side === 'e' && !u.tele && u.timer >= iv - TELE){
+        u.tele = pickTarget(u);
+        if(u.tele && u.tele.kind === 'hero' && !S.flags.tutParry){ S.flags.tutParry = true; BT.slowmo = 1.4; toast('PARRY', 'An enemy is about to hit you! Press SPACE (or tap) while the red ! is shown to block and counter.', 'gold'); }
+      }
+      if(u.timer >= iv){
+        const t = (u.tele && !u.tele.dead) ? u.tele : pickTarget(u); u.tele = null; if(!t) break;
         u.timer = 0; u.target = t; u.st = 0;
         u.state = (u.ranged || u.role === 'healer') ? 'cast' : 'dash';
         u.from = u.x;
@@ -313,7 +354,8 @@ function stepUnit(u, dt){
       if(p >= 1){ u.state = 'strike'; u.st = 0;
         const col = u.side === 'p' ? (u.kind === 'hero' ? AFF[S.aff].color : u.art.rim) : u.art.rim;
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
-        dealDamage(u, t, 1, {});
+        dealDamage(u, t, u.manual ? .85 : 1, {});
+        if(u.manual){ gainEnergy(ENERGY.strike); u.manual = false; }
         if(u.boss) BT.shake = Math.max(BT.shake, .18);
       }
       break; }
@@ -339,6 +381,9 @@ function stepUnit(u, dt){
 function stepBattle(dt){
   if(!BT) return;
   // cut-in slows time
+  if(BT.slowmo > 0){ BT.slowmo -= dt; dt *= .3; }
+  if(BT.strikeCd > 0) BT.strikeCd -= dt;
+  BT.sincePress = (BT.sincePress ?? 9) + dt;
   if(BT.cutin){
     BT.cutin.t += dt;
     if(BT.cutin.t >= BT.cutin.dur){ const f = BT.cutin.after; BT.cutin = null; f(); }
@@ -467,6 +512,15 @@ function renderBattle(t, dt){
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
     drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0, alpha);
     if(!u.dead && !(u.boss || u.kind === 'hunter')) drawHpBar(c, u, k);
+    if(!u.dead && u.tele === BT.hero && u.state === 'idle'){
+      const rem = clamp((u.interval - u.timer)/TELE, 0, 1), cx = u.x, cy = u.y - u.size*k - 40*k;
+      c.save(); c.globalAlpha = .9; c.strokeStyle = '#ff3d5e'; c.lineWidth = 3;
+      c.beginPath(); c.arc(cx, cy, (14 + rem*26)*Math.max(.7,k), 0, 7); c.stroke();
+      c.fillStyle = rem < .5 ? '#ffd166' : '#ff3d5e'; c.beginPath(); c.arc(cx, cy, 13*Math.max(.7,k), 0, 7); c.fill();
+      c.fillStyle = '#1a0a10'; c.font = `700 ${Math.round(22*Math.max(.7,k))}px Teko, sans-serif`; c.textAlign = 'center'; c.fillText('!', cx, cy + 8*Math.max(.7,k));
+      c.restore();
+      const hh = BT.hero; c.save(); c.strokeStyle = 'rgba(255,61,94,.7)'; c.lineWidth = 2; c.beginPath(); c.ellipse(hh.x, hh.y, 46*k*(1+rem*.4), 10*k, 0, 0, 7); c.stroke(); c.restore();
+    }
     if(!u.dead && u.stun > 0){ c.fillStyle = '#ffd166'; c.font = `700 ${16*k}px Teko`; c.textAlign = 'center'; c.fillText('★ ★', u.x + Math.sin(t*8)*6, u.y - h - 18*k); }
   }
   // projectiles

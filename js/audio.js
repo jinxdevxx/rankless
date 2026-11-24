@@ -49,6 +49,7 @@ const SFX = (() => {
       if(crit) tone('square', 1400, 900, .08, .05);
     },
     kill(boss){ if(!ok()) return; tone('sine', boss ? 90 : 160, 35, boss ? .6 : .2, boss ? .5 : .25); noise(boss ? .5 : .15, boss ? .3 : .12, 'lowpass', 900, 100); },
+    parry(){ if(!ok()) return; const t = now(); tone('square', 1500, 900, .18, .1, null, t); tone('triangle', 2400, 1800, .25, .08, null, t); noise(.12, .25, 'highpass', 5000, 3000, t); },
     crystal(){ if(!ok()) return; const t = now(); tone('sine', 1568, null, .25, .07, null, t); tone('sine', 2093, null, .3, .05, null, t + .05); },
     skill(aff){
       if(!ok()) return; const t = now();
