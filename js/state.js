@@ -23,7 +23,8 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:true, farm:'off'},
+    settings:{autoSalvage:-1, speed:1, autoSkill:true, farm:'push', autoEquip:true, autoStats:true},
+    unlocks:{}, pendingUnlocks:[],
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
   };
@@ -36,14 +37,15 @@ function loadSave(){
     if(!raw) return d;
     const s = JSON.parse(raw);
     const out = Object.assign(d, s);
-    for(const k of ['stats','eq','gates','arena','settings','record']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+    for(const k of ['stats','eq','gates','arena','settings','record','unlocks']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
     return out;
   }catch(e){ return d; }
 }
 function save(){ S.lastSeen = Date.now(); try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
 
 /* ---------- XP & economy curves ---------- */
-const xpNeed  = lv => Math.floor(130 * Math.pow(1.21, lv-1));
+// early levels come fast (hook), later levels follow the full curve
+const xpNeed  = lv => Math.floor(130 * Math.pow(1.21, lv-1) * Math.min(1, .2 + lv*.08));
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
 const enemyHp = L  => 150 * Math.pow(1.16, L-1);
@@ -53,6 +55,7 @@ function addXP(n){
   S.xp += Math.floor(n);
   let ups = 0;
   while(S.xp >= xpNeed(S.level)){ S.xp -= xpNeed(S.level); S.level++; S.points += 3; ups++; }
+  if(ups && S.settings.autoStats) autoAssignStats();
   return ups;
 }
 
@@ -126,6 +129,14 @@ function floorPower(L){ return Math.round(enemyAtk(L)*22 + enemyHp(L)*3.2); }
 /* ---------- inventory helpers ---------- */
 function addItem(it){
   S.record.items++; S.record.bestRarity = Math.max(S.record.bestRarity, it.rar);
+  if(S.settings.autoEquip && powerWith(it.slot, it) > powerOf(heroStats())){
+    const old = S.eq[it.slot]; S.eq[it.slot] = it; it.isNew = false;
+    if(old) storeItem(old);
+    return 'equipped';
+  }
+  return storeItem(it);
+}
+function storeItem(it){
   if(S.settings.autoSalvage >= it.rar){ const v = salvageValue(it); S.stones += v.stones; S.gold += v.gold; return 'salvaged'; }
   if(S.inv.length >= MAX_INV){
     // bag full: salvage the weakest unlocked item to make room
@@ -153,4 +164,27 @@ function synthHunter(h){
   for(const sl of SLOTS){ const it = makeItem(sl, lv, h.gear); it.plus = h.gear*2; eq[sl] = it; }
   S.nextId = keep;
   return calcStats({level:lv, stats, eq});
+}
+
+/* ---------- auto stats ---------- */
+const STAT_WEIGHTS = {str:4, vit:3, agi:1, sen:1, wil:1};
+function autoAssignStats(){
+  const order = []; for(const k in STAT_WEIGHTS) for(let i=0;i<STAT_WEIGHTS[k];i++) order.push(k);
+  let i = (S.stats.str + S.stats.vit + S.stats.agi + S.stats.sen + S.stats.wil) % order.length;
+  while(S.points > 0){ S.stats[order[i % order.length]]++; S.points--; i++; }
+}
+
+/* ---------- unlocks ---------- */
+function isUnlocked(k){ return !!S.unlocks[k]; }
+function checkUnlocks(silent){
+  const fresh = [];
+  for(const k of UNLOCK_ORDER){
+    if(S.unlocks[k]) continue;
+    if(UNLOCKS[k].prog() >= 1){ S.unlocks[k] = true; if(!silent){ fresh.push(k); S.pendingUnlocks.push(k); } }
+  }
+  return fresh;
+}
+function nextGoal(){
+  for(const k of UNLOCK_ORDER) if(!S.unlocks[k]) return {kind:'unlock', key:k, name:UNLOCKS[k].name, hint:UNLOCKS[k].hint, p:clamp(UNLOCKS[k].prog(),0,1)};
+  return null;
 }

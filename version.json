@@ -1,10 +1,14 @@
 {
-  "version": "0.3.0",
-  "date": "2026-11-24",
-  "title": "Live Patches",
+  "version": "0.4.0",
+  "date": "2026-11-25",
+  "title": "Fresh Start",
   "notes": [
-    "New patches now show up in-game: a notice appears and stays until you update.",
-    "After updating, a \"What's new\" window lists the changes.",
-    "Patch notes and the game version are now in Settings."
+    "Much simpler start: just pick a name and a power, then jump straight into your first fight.",
+    "Features unlock step by step (Inventory, Champion, Gate Map, Legion, Arena) with a clear 'Next unlock' goal.",
+    "Big FIGHT button on the home screen. Locked menus are hidden until you need them.",
+    "Better gear is equipped automatically and stat points are assigned for you (both can be turned off).",
+    "Skills unlock with your level: skill 2 at Lv 3, skill 3 at Lv 5, Ultimate at Lv 2.",
+    "Battles continue to the next floor automatically. After a defeat you replay one floor lower.",
+    "Faster early levels. Gate D is tougher at floors 8 to 10."
   ]
 }

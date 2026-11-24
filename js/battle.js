@@ -183,7 +183,9 @@ function checkBind(type){
 }
 
 /* ---------- skills ---------- */
-function canUseSkill(i){ return BT && !BT.over && !BT.hero.dead && BT.skillCd[i] <= 0 && alive('e').length && !BT.cutin; }
+function skillUnlocked(i){ return S.level >= SKILL_LV[i]; }
+function ultUnlocked(){ return S.level >= ULT_LV; }
+function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.skillCd[i] <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)) return;
   const sk = AFF[S.aff].skills[i]; BT.skillCd[i] = sk.cd;
@@ -191,7 +193,7 @@ function useSkill(i){
   castEffect(BT.hero, sk, false);
 }
 function useUlt(){
-  if(!BT || BT.over || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
+  if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
   BT.ult = 0;
   const u = AFF[S.aff].ult;
   BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => castEffect(BT.hero, u, true)};
@@ -427,7 +429,8 @@ function finishBattle(win){
   // apply
   S.gold += r.gold; S.stones += r.stones;
   r.levels = addXP(r.xp);
-  for(const it of r.items){ if(addItem(it) === 'salvaged'){ it.salvaged = true; r.salvaged++; } }
+  for(const it of r.items){ const res = addItem(it); if(res === 'salvaged'){ it.salvaged = true; r.salvaged++; } else if(res === 'equipped') it.equipped = true; }
+  r.unlocked = checkUnlocks(false);
   BT.result = r;
   save();
   // loot beams

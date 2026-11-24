@@ -53,28 +53,28 @@ const STAT_INFO = {
 const HAIRS = ['Spiked','Long','Messy'];
 
 const AFF = {
-  flame:{name:'Crimson Flame', color:'#ff5a3c', color2:'#ffb347', title:'Flame Breaker',
+  flame:{name:'Crimson Flame', color:'#ff5a3c', color2:'#ffb347', title:'Flame Breaker', vibe:'Burn everything in your path.',
     skills:[
       {name:'Ember Slash',   cd:5,  type:'hit',  target:'single', mult:2.6, burn:.3, desc:'A blazing slash for 260% DMG. Burns the target.'},
       {name:'Inferno Ring',  cd:9,  type:'hit',  target:'all',    mult:1.6, burn:.15, desc:'A ring of fire hits all enemies for 160% DMG.'},
       {name:'Phoenix Heart', cd:15, type:'buff', heal:.25, atk:.35, dur:6, desc:'Heal 25% HP and gain +35% ATK for 6s.'},
     ],
     ult:{name:'CRIMSON SOVEREIGN', type:'hit', target:'all', mult:1.25, hits:5, burn:.3, desc:'Five waves of hellfire: 125% DMG each to all enemies.'}},
-  storm:{name:'Storm', color:'#4cc9ff', color2:'#c8f4ff', title:'Storm Breaker',
+  storm:{name:'Storm', color:'#4cc9ff', color2:'#c8f4ff', title:'Storm Breaker', vibe:'Strike first. Strike fast.',
     skills:[
       {name:'Thunder Step',  cd:4,  type:'hit',  target:'single', mult:2.3, stun:1.2, desc:'Blink strike for 230% DMG. Stuns for 1.2s.'},
       {name:'Chain Storm',   cd:8,  type:'hit',  target:'chain',  mult:1.5, hits:6, desc:'Lightning jumps 6 times for 150% DMG each.'},
       {name:'Overcharge',    cd:15, type:'buff', spd:.6, dur:6, desc:'+60% attack speed for 6s.'},
     ],
     ult:{name:"HEAVEN'S VERDICT", type:'hit', target:'all', mult:5.0, hits:1, stun:2, desc:'A pillar of lightning: 500% DMG to all enemies and stuns them.'}},
-  void:{name:'Void', color:'#a46bff', color2:'#e2d1ff', title:'Void Breaker',
+  void:{name:'Void', color:'#a46bff', color2:'#e2d1ff', title:'Void Breaker', vibe:'Bend space. Devour all.',
     skills:[
       {name:'Void Pierce',   cd:5,  type:'hit',  target:'single', mult:2.7, pierce:true, desc:'Pierces defense for 270% DMG.'},
       {name:'Gravity Well',  cd:10, type:'hit',  target:'all',    mult:1.4, slow:4, desc:'Crushes all enemies for 140% DMG and slows them for 4s.'},
       {name:'Shadow Veil',   cd:14, type:'buff', shield:.35, dur:0, desc:'Shield the whole party for 35% of your max HP.'},
     ],
     ult:{name:'ABYSS DEVOURS', type:'hit', target:'all', mult:4.2, hits:1, lifesteal:.4, desc:'The abyss swallows all enemies: 420% DMG, heals for 40% of it.'}},
-  blood:{name:'Blood', color:'#ff2d6a', color2:'#ff9fb8', title:'Blood Breaker',
+  blood:{name:'Blood', color:'#ff2d6a', color2:'#ff9fb8', title:'Blood Breaker', vibe:'Your pain is your power.',
     skills:[
       {name:'Crimson Fang',  cd:4,  type:'hit',  target:'single', mult:2.2, lifesteal:.5, desc:'A savage bite for 220% DMG. Heals for 50% of it.'},
       {name:'Blood Rain',    cd:9,  type:'hit',  target:'all',    mult:1.6, desc:'Rain of blood blades: 160% DMG to all enemies.'},
@@ -109,7 +109,7 @@ const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'
 const GATES = [
   {id:'E', rank:'E', name:'Drowned Harbor', baseLv:1,  mult:1,   theme:'harbor', enemies:['husk','hound','spitter'], elite:'brute', boss:'warden',
     desc:'A flooded dock district. The first gate every Breaker fears.'},
-  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:1.8, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
+  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.25, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
     desc:'An abandoned metro line where the last train still runs.'},
   {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.15, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
@@ -145,3 +145,20 @@ const EXAMS = {
   D:{name:'Akane Rho',   title:'C-Rank Examiner', aff:'flame', lv:25, hair:1, gear:2, comps:['golem','wraith'], next:'C', line:"Many have stood where you stand. Few walked out."},
   C:{name:'Seiji Valen', title:'B-Rank Examiner', aff:'blood', lv:37, hair:0, gear:3, comps:['oni','specter','fang'], next:'B', line:"Prove you are no longer rankless."},
 };
+
+/* ---------- progressive unlocks (keeps the start simple) ---------- */
+const SKILL_LV = [1, 3, 5];
+const ULT_LV = 2;
+const UNLOCKS = {
+  bag:   {name:'Inventory',    icon:'bag',    desc:'Your loot lands here. Better gear is equipped for you automatically.',
+          hint:'Find your first item',             prog:() => S.record.items > 0 ? 1 : 0},
+  hero:  {name:'Champion',     icon:'hero',   desc:'See your stats and skills. Stat points are spent for you unless you turn Auto off.',
+          hint:'Reach Level 3',                    prog:() => (S.level-1)/2},
+  gates: {name:'Gate Map',     icon:'gate',   desc:'Pick any cleared floor and farm it for loot.',
+          hint:'Clear Floor 3',                    prog:() => (S.gates.E||0)/3},
+  legion:{name:'Legion',       icon:'legion', desc:'Monsters you bind fight at your side. Collect Soul Shards to bind more.',
+          hint:'Collect 12 Soul Shards of one monster', prog:() => Object.keys(S.comps).length ? 1 : Math.max(0, ...Object.keys(S.shards).map(k => (S.shards[k]||0)/shardNeed(k)))},
+  arena: {name:'Hunter Arena', icon:'arena',  desc:'Beat hunters and pass the Rank Exam to climb to the next rank.',
+          hint:'Defeat the Harbor Warden (Floor 10)', prog:() => (S.gates.E||0)/10},
+};
+const UNLOCK_ORDER = ['bag','hero','gates','legion','arena'];

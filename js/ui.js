@@ -78,13 +78,8 @@ function showScreen(id){
 function renderCreate(){
   $('#affList').innerHTML = Object.entries(AFF).map(([k,a]) => `
     <button class="aff ${UI.createAff===k?'sel':''}" style="--c:${a.color}" data-a="pickAff" data-id="${k}">
-      <b>${a.name}</b><small>${a.skills.map(s=>s.name).join(' · ')}</small>
-      <em>Ultimate: ${a.ult.name}</em>
+      <b>${a.name}</b><small>${a.vibe}</small>
     </button>`).join('');
-  $('#hairList').innerHTML = HAIRS.map((h,i) => `<button class="chip ${UI.createHair===i?'sel':''}" data-a="pickHair" data-id="${i}">${h}</button>`).join('');
-  const a = AFF[UI.createAff];
-  $('#affInfo').innerHTML = a.skills.map(s => `<div class="skl"><b>${s.name}</b> <span>${s.desc}</span></div>`).join('') +
-    `<div class="skl ult"><b>${a.ult.name}</b> <span>${a.ult.desc}</span></div>`;
 }
 
 /* ---------- home ---------- */
@@ -110,23 +105,54 @@ function renderHome(){
     </div>`;
   const g = currentGate(), nf = nextFloor(g), cleared = S.gates[g.id] >= FLOORS;
   const arenaDone = S.arena[S.rank] || 0, list = HUNTERS[S.rank];
+  const goal = nextGoal();
+  let goalHtml = '';
+  if(goal) goalHtml = `<div class="goal"><small>NEXT UNLOCK</small><b>${ICON[UNLOCKS[goal.key].icon]} ${goal.name}</b><span>${goal.hint}</span><div class="bar"><i style="width:${Math.round(goal.p*100)}%"></i></div></div>`;
+  else if(list){ const done = arenaDone >= list.length; goalHtml = `<div class="goal"><small>RANK GOAL</small><b>${done ? 'Pass the Rank Exam' : 'Defeat ' + esc(list[arenaDone].name)}</b><span>Rank up to ${EXAMS[S.rank].next} to open a new gate</span><div class="bar"><i style="width:${Math.round(arenaDone/(list.length+1)*100)}%"></i></div></div>`; }
   $('#homeActions').innerHTML = `
-    <button class="cta gate" data-a="quickGate">
-      <small>${g.rank}-RANK GATE</small><b>${g.name}</b>
-      <span>${cleared ? 'Cleared · farm any floor' : `Floor ${nf} / ${FLOORS}`}</span>
+    <button class="cta gate fight" data-a="quickGate">
+      <small>${g.rank}-RANK GATE · ${cleared ? 'CLEARED' : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
+      <span>${g.name}</span>
     </button>
-    <button class="cta arena" data-a="sheet" data-id="arena">
-      <small>HUNTER ARENA</small><b>${list ? (arenaDone >= list.length ? 'Rank Exam' : list[arenaDone].name) : 'Champion'}</b>
+    ${isUnlocked('arena') ? `<button class="cta arena" data-a="sheet" data-id="arena">
+      <small>HUNTER ARENA</small><b>${list ? (arenaDone >= list.length ? 'Rank Exam' : esc(list[arenaDone].name)) : 'Champion'}</b>
       <span>${list ? `${arenaDone} / ${list.length} defeated` : 'More ranks coming soon'}</span>
-    </button>`;
-  // nav badges
+    </button>` : ''}
+    ${goalHtml}`;
+  // nav: only show what is unlocked
   const pts = S.points > 0, newItems = S.inv.some(i => i.isNew);
+  let shown = 0;
   $$('.nav button').forEach(b => {
-    const id = b.dataset.id;
+    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id);
+    b.hidden = !ok; if(ok && id !== 'home') shown++;
     b.classList.toggle('on', UI.sheet === id || (!UI.sheet && id === 'home'));
-    b.querySelector('.dot')?.remove();
-    if((id === 'hero' && pts) || (id === 'bag' && newItems)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
+    const d = b.querySelector('.dot'); if(d) d.outerHTML = '';
+    if((id === 'hero' && pts) || (id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
   });
+  document.querySelector('.nav').hidden = shown === 0;
+  animatePower(teamPower());
+  if(UI.screen === 'home' && !$('#modal').classList.contains('on')) showNextUnlock();
+}
+
+/* power counter that counts up when it grows */
+function animatePower(target){
+  const el = document.querySelector('.cp b'); if(!el) return;
+  const from = UI.shownPower ?? target; UI.shownPower = target;
+  if(from === target){ el.textContent = fmt(target); return; }
+  const t0 = performance.now(), dur = 900;
+  el.classList.toggle('up', target > from);
+  const step = now => { const p = Math.min(1, (now - t0)/dur), v = from + (target - from)*(1 - Math.pow(1-p, 3));
+    el.textContent = fmt(v); if(p < 1) requestAnimationFrame(step); else setTimeout(() => el.classList.toggle('up', false), 400); };
+  requestAnimationFrame(step);
+}
+
+/* feature unlock popups, one at a time */
+function showNextUnlock(){
+  const k = S.pendingUnlocks[0]; if(!k) return;
+  const u = UNLOCKS[k];
+  showModal(`<div class="unlock"><div class="bt">[ NEW FEATURE UNLOCKED ]</div>
+    <div class="uicon">${ICON[u.icon]}</div><h3>${u.name}</h3><p>${u.desc}</p>
+    <div class="row c"><button class="btn" data-a="unlockLater">Later</button><button class="btn primary" data-a="unlockOpen" data-id="${k}">Open ${u.name}</button></div></div>`);
 }
 
 function drawHomeScene(t, dt){
@@ -212,7 +238,8 @@ function sheetHero(){
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
   const skills = a.skills.map(s => `<div class="skl"><b>${s.name}</b> <i>${s.cd}s</i><span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
-    <div class="box sys"><div class="bt">[ STATUS ] <span class="pts ${S.points?'on':''}">${S.points} points</span></div>${stats}</div>
+    <div class="box sys"><div class="bt">[ STATUS ] <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
+      <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
     <div class="box"><div class="bt">[ COMBAT ] <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
   </div>
   <div class="box"><div class="bt">[ EQUIPMENT ]</div><div class="slots">${slots}</div></div>
@@ -229,6 +256,7 @@ function sheetBag(){
   const filters = ['all',...SLOTS].map(s => `<button class="chip ${f===s?'sel':''}" data-a="bagFilter" data-id="${s}">${s==='all'?'All':SLOT_INFO[s].name}</button>`).join('');
   const as = S.settings.autoSalvage;
   return `<div class="bagbar"><div class="chips">${filters}</div></div>
+    <div class="bagbar"><label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoEquip" ${S.settings.autoEquip?'checked':''}><span></span>Auto-equip better gear</label></div>
     <div class="bagbar"><span class="muted">${S.inv.length} / ${MAX_INV}</span>
       <span class="sp"></span>
       <label class="muted">Auto-salvage <select data-a="autoSalvage">${['Off','Common','Rare & below','Epic & below'].map((n,i)=>`<option value="${i-1}" ${as===i-1?'selected':''}>${n}</option>`).join('')}</select></label>
@@ -301,19 +329,24 @@ function itemDetail(id){
 /* ---------- battle HUD ---------- */
 function buildBattleHud(){
   const a = AFF[S.aff];
-  $('#bSkills').innerHTML = a.skills.map((s,i) => `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="cd"></span><b>${s.name}</b><kbd>${i+1}</kbd></button>`).join('') +
-    `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="cd"></span><b>ULT</b><kbd>R</kbd></button>`;
+  $('#bSkills').innerHTML = a.skills.map((s,i) => skillUnlocked(i)
+      ? `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="cd"></span><b>${s.name}</b><kbd>${i+1}</kbd></button>`
+      : `<button class="skb locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${SKILL_LV[i]}</b></button>`).join('') +
+    (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="cd"></span><b>ULT</b><kbd>R</kbd></button>`
+      : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
   onWaveUI();
   $('#bResult').classList.remove('on');
 }
 function syncFarmUI(){
+  const adv = isUnlocked('gates');
   $('#bSpeed').textContent = `x${S.settings.speed}`;
+  $('#bSpeed').hidden = !adv;
   $('#bAuto').classList.toggle('on', S.settings.autoSkill);
-  $('#bFarm').textContent = {off:'Farm: Off', repeat:'Farm: Repeat', push:'Farm: Push'}[S.settings.farm];
+  $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
   $('#bFarm').classList.toggle('on', S.settings.farm !== 'off');
-  $('#bFarm').style.display = BT && BT.mode === 'gate' ? '' : 'none';
+  $('#bFarm').hidden = !(adv && BT && BT.mode === 'gate');
 }
 function onWaveUI(){
   if(!BT) return;
@@ -325,6 +358,7 @@ function updateBattleHud(){
   if(!BT) return;
   const a = AFF[S.aff];
   $$('#bSkills .skb').forEach((b,i) => {
+    if(b.classList.contains('locked')) return;
     if(b.classList.contains('ult')){ const p = BT.ult; b.querySelector('.cd').style.background = `conic-gradient(transparent ${p*3.6}deg, rgba(0,0,0,.72) 0)`; b.classList.toggle('ready', p >= 100 && !BT.hero.dead); return; }
     const cd = BT.skillCd[i], m = a.skills[i].cd;
     b.querySelector('.cd').style.background = cd > 0 ? `conic-gradient(rgba(0,0,0,.72) ${cd/m*360}deg, transparent 0)` : 'none';
@@ -345,15 +379,18 @@ function showResult(r){
   if(!BT) return;
   const win = r.win, g = BT.gate;
   const loot = r.items.map((it,i) => `<button class="icard drop ${it.salvaged?'salv':''}" style="--r:${RARITY[it.rar].color};animation-delay:${i*.12}s" data-a="${it.salvaged?'':'item'}" data-id="${it.id}">
-    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.salvaged?'<span class="sv">SALVAGED</span>':''}</button>`).join('');
+    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.salvaged?'<span class="sv">SALVAGED</span>':''}${it.equipped?'<span class="sv eqd">EQUIPPED</span>':''}</button>`).join('');
+  const unl = (r.unlocked||[]).map(k => `<div class="rankup unl"><small>[ NEW FEATURE UNLOCKED ]</small><b>${ICON[UNLOCKS[k].icon]} ${UNLOCKS[k].name}</b><span>${UNLOCKS[k].desc}</span>
+    <button class="btn primary small" data-a="unlockOpen" data-id="${k}">Open ${UNLOCKS[k].name}</button></div>`).join('');
   const shards = Object.entries(r.shards||{}).map(([k,v]) => `<span class="shard"><img src="${monsterPortrait(k,false)}" alt="">+${v}</span>`).join('');
   let btns = '';
   if(BT.mode === 'gate'){
     const canNext = win && BT.floor < FLOORS;
-    btns = `<button class="btn" data-a="leave">Leave</button><button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>
-      ${canNext ? `<button class="btn primary" data-a="nextFloor">Next Floor ›</button>` : ''}`;
+    btns = `<button class="btn" data-a="leave">Home</button>${win && !isUnlocked('gates') ? '' : `<button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>`}
+      ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
   } else btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}`;
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
+  const autoOn = BT.mode === 'gate' && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : esc(BT.hunter.name)}</div>
@@ -362,12 +399,13 @@ function showResult(r){
     ${r.levels ? `<div class="lvup">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
-    ${!win ? `<div class="tip">Tip: equip better gear, spend stat points, enhance items and bind companions. Farm earlier floors for loot.</div>` : ''}
+    ${unl}
+    ${!win ? `<div class="tip">Too strong for now. Replay an earlier floor to collect loot and levels. Auto-continue does that for you.</div>` : ''}
     <div class="row c">${btns}</div>
-    <div class="autobar ${S.settings.farm!=='off' && BT.mode==='gate'?'on':''}"><i></i><small>Auto-farm continues…  <a data-a="stopFarm">stop</a></small></div>
+    <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
   $('#bResult').classList.add('on');
-  if(BT.mode === 'gate' && S.settings.farm !== 'off'){
+  if(autoOn){
     let floor = BT.floor;
     if(S.settings.farm === 'push'){ if(win && floor < FLOORS) floor++; else if(!win && floor > 1) floor--; }
     else if(!win && floor > 1) floor--;
@@ -377,7 +415,8 @@ function showResult(r){
 }
 function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
-function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud(); }
+function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
+  if(S.record.kills === 0) setTimeout(() => toast('TIP', 'Your champion fights on their own. Tap the glowing skill for extra damage!', 'gold'), 900); }
 function leaveBattle(){ cancelAuto(); BT = null; showScreen('home'); renderHome(); }
 
 /* ---------- actions ---------- */
@@ -389,12 +428,12 @@ function act(a, el){
     case 'create': {
       const n = $('#cName').value.trim().replace(/[^\w\- ]/g,'').slice(0,14);
       if(!n){ $('#cName').focus(); toast('ERROR','Enter a codename.','red'); return; }
-      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = UI.createAff; S.hair = UI.createHair; S.seenVersion = window.GAME_VERSION;
+      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = UI.createAff; S.hair = randi(0,2); S.seenVersion = window.GAME_VERSION;
       // starter gear
       addItem(makeItem('weapon', 1, 0)); addItem(makeItem('armor', 1, 0));
       S.eq.weapon = S.inv.shift(); S.eq.armor = S.inv.shift();
       save(); showScreen('home'); renderHome(); intro(); break; }
-    case 'introDone': S.intro = true; save(); closeModal(); break;
+    case 'introDone': S.intro = true; save(); closeModal(); startGate('E', 1); break;
     case 'sheet': if(UI.screen !== 'home'){ closeModal(); } if(id === 'home') closeSheet(); else openSheet(id); closeModal(); break;
     case 'closeSheet': closeSheet(); break;
     case 'quickGate': { const g = currentGate(); startGate(g.id, nextFloor(g)); break; }
@@ -450,6 +489,9 @@ function act(a, el){
       <div class="row"><button class="btn" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn danger" data-a="resetYes">Delete everything</button></div>`); break;
     case 'resetYes': try{ localStorage.removeItem(SAVE_KEY); }catch(_){} S = defaultSave(); closeModal(); showScreen('create'); renderCreate(); break;
     case 'collectOffline': closeModal(); renderHome(); break;
+    case 'unlockLater': S.pendingUnlocks.shift(); save(); closeModal(); renderHome(); break;
+    case 'unlockOpen': S.pendingUnlocks = S.pendingUnlocks.filter(x => x !== id); save(); closeModal(); if(UI.screen !== 'home'){ cancelAuto(); BT = null; showScreen('home'); } openSheet(id); break;
+    case 'toggleSetting': S.settings[id] = !S.settings[id]; if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); save(); renderSheet(); renderHome(); break;
     case 'doUpdate': doUpdate(); break;
     case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">[ NEW PATCH ]</div>${patchNotesHtml(UPDATE_INFO)}
       <div class="row"><button class="btn" data-a="closeModal">Later</button><span class="sp"></span><button class="btn primary" data-a="doUpdate">Update now</button></div>`); break;
@@ -475,16 +517,8 @@ function intro(){
   const a = AFF[S.aff];
   showModal(`<div class="bt">[ THE CONTRACT HAS BEEN SIGNED ]</div>
     <div class="story">You were the weakest Breaker in the city.
-<b>Rank E.</b> The one nobody wanted on their team.
+Something gave you a second chance.
 
-You should have died in that gate.
-
-Instead, something answered.
-
-<span class="hl">» Clear gates. Collect their loot.
-» Bind the monsters you defeat.
-» Climb the ranks in the Arena.</span>
-
-Welcome, <b style="color:${a.color}">${esc(S.name)}</b>.</div>
-    <div class="row"><span class="sp"></span><button class="btn primary" data-a="introDone">Accept</button></div>`);
+<span class="hl">Clear gates. Grab loot. Rise.</span></div>
+    <button class="btn primary big" data-a="introDone">ENTER THE GATE</button>`);
 }

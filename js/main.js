@@ -81,6 +81,7 @@ function boot(){
   resizeCanvas();
   document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',bag:'bag',legion:'legion'}[b.dataset.id]]; });
   S = loadSave();
+  if(S.created) checkUnlocks(true);
   if(!S.created){ showScreen('create'); renderCreate(); }
   else {
     showScreen('home'); renderHome();
