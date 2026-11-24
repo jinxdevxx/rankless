@@ -389,7 +389,7 @@ function act(a, el){
     case 'create': {
       const n = $('#cName').value.trim().replace(/[^\w\- ]/g,'').slice(0,14);
       if(!n){ $('#cName').focus(); toast('ERROR','Enter a codename.','red'); return; }
-      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = UI.createAff; S.hair = UI.createHair;
+      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = UI.createAff; S.hair = UI.createHair; S.seenVersion = window.GAME_VERSION;
       // starter gear
       addItem(makeItem('weapon', 1, 0)); addItem(makeItem('armor', 1, 0));
       S.eq.weapon = S.inv.shift(); S.eq.armor = S.inv.shift();
@@ -443,12 +443,16 @@ function act(a, el){
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
     case 'settings': showModal(`<div class="bt">[ SETTINGS ]</div>
-      <p class="muted">Your progress is saved automatically in this browser.</p>
+      <p class="muted">Version <b>${esc(window.GAME_VERSION||'dev')}</b>. Your progress is saved automatically in this browser.</p>
+      ${window.GAME_PATCH && window.GAME_PATCH.notes && window.GAME_PATCH.notes.length ? `<div class="bt" style="margin-top:14px">[ CURRENT PATCH ]</div>${patchNotesHtml(window.GAME_PATCH)}` : ''}
       <div class="row"><button class="btn danger" data-a="resetAsk">Delete save</button><span class="sp"></span><button class="btn" data-a="closeModal">Close</button></div>`); break;
     case 'resetAsk': showModal(`<div class="bt">[ WARNING ]</div><h3 class="bad">Delete all progress?</h3><p class="muted">This cannot be undone.</p>
       <div class="row"><button class="btn" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn danger" data-a="resetYes">Delete everything</button></div>`); break;
     case 'resetYes': try{ localStorage.removeItem(SAVE_KEY); }catch(_){} S = defaultSave(); closeModal(); showScreen('create'); renderCreate(); break;
     case 'collectOffline': closeModal(); renderHome(); break;
+    case 'doUpdate': doUpdate(); break;
+    case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">[ NEW PATCH ]</div>${patchNotesHtml(UPDATE_INFO)}
+      <div class="row"><button class="btn" data-a="closeModal">Later</button><span class="sp"></span><button class="btn primary" data-a="doUpdate">Update now</button></div>`); break;
   }
 }
 document.addEventListener('click', e => {

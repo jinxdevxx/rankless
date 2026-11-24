@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600;700&family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <canvas id="scene"></canvas>
@@ -68,15 +67,22 @@
 <div id="toasts"></div>
 <div id="modal"></div>
 
-<script src="js/data.js"></script>
-<script src="js/state.js"></script>
-<script src="js/art.js"></script>
-<script src="js/battle.js"></script>
-<script src="js/ui.js"></script>
 <script>
-  // nav icons
-  document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',bag:'bag',legion:'legion'}[b.dataset.id]]; });
+/* Loads the newest game files. version.json is fetched fresh every time, and every
+   file is requested with ?v=<version>, so a new patch is picked up on the next reload. */
+(function(){
+  const FILES = ['js/data.js','js/state.js','js/art.js','js/battle.js','js/ui.js','js/main.js'];
+  function boot(info){
+    window.GAME_PATCH = info; window.GAME_VERSION = info.version;
+    const v = encodeURIComponent(info.version);
+    const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = 'style.css?v=' + v; document.head.appendChild(css);
+    FILES.forEach(f => { const s = document.createElement('script'); s.src = f + '?v=' + v; s.async = false; document.body.appendChild(s); });
+  }
+  fetch('version.json?t=' + Date.now(), {cache:'no-store'})
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(boot)
+    .catch(() => boot({version:'dev', title:'', notes:[]}));
+})();
 </script>
-<script src="js/main.js"></script>
 </body>
 </html>

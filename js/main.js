@@ -42,18 +42,57 @@ function offlineRewards(){
     <div class="row"><span class="sp"></span><button class="btn primary" data-a="collectOffline">Collect</button></div>`);
 }
 
+/* ---------- live patches ---------- */
+let UPDATE_INFO = null;
+function patchNotesHtml(info){
+  return `<div class="pn"><div class="pnh"><b>v${esc(info.version)}</b> <span>${esc(info.title||'')}</span><small>${esc(info.date||'')}</small></div>
+    <ul>${(info.notes||[]).map(n => `<li>${esc(n)}</li>`).join('')}</ul></div>`;
+}
+function showUpdateBanner(info){
+  UPDATE_INFO = info;
+  let el = document.getElementById('updBanner');
+  if(!el){ el = document.createElement('div'); el.id = 'updBanner'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="upd-txt"><small>[ NEW PATCH AVAILABLE ]</small><b>v${esc(info.version)} · ${esc(info.title||'Update')}</b></div>
+    <button class="btn small" data-a="patchInfo">What's new</button>
+    <button class="btn primary small" data-a="doUpdate">Update now</button>`;
+  el.classList.add('on');
+}
+async function checkForUpdate(){
+  if(!window.GAME_VERSION || GAME_VERSION === 'dev') return;
+  try{
+    const r = await fetch('version.json?t=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) return;
+    const info = await r.json();
+    if(info.version && info.version !== GAME_VERSION) showUpdateBanner(info);
+  }catch(e){}
+}
+function doUpdate(){ if(S.created) save(); location.reload(); }
+function whatsNew(){
+  const info = window.GAME_PATCH;
+  if(!info || !S.created || info.version === 'dev') return false;
+  if(S.seenVersion === info.version) return false;
+  S.seenVersion = info.version; save();
+  showModal(`<div class="bt">[ PATCH INSTALLED ]</div><h3 class="pn-title">What's new</h3>${patchNotesHtml(info)}
+    <div class="row"><span class="sp"></span><button class="btn primary" data-a="closeModal">Let's go</button></div>`);
+  return true;
+}
+
 function boot(){
   resizeCanvas();
+  document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',bag:'bag',legion:'legion'}[b.dataset.id]]; });
   S = loadSave();
   if(!S.created){ showScreen('create'); renderCreate(); }
   else {
     showScreen('home'); renderHome();
-    if(!S.intro) intro(); else offlineRewards();
+    if(!S.intro) intro(); else if(!whatsNew()) offlineRewards();
   }
   setInterval(() => { if(S.created) save(); }, 5000);
   addEventListener('beforeunload', () => { if(S.created) save(); });
   addEventListener('resize', () => { resizeCanvas(); });
   document.addEventListener('visibilitychange', () => { if(document.hidden && S.created) save(); });
+  setInterval(checkForUpdate, 60000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
+  setTimeout(checkForUpdate, 5000);
   requestAnimationFrame(frame);
 }
 boot();

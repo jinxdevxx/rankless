@@ -1,0 +1,10 @@
+{
+  "version": "0.3.0",
+  "date": "2026-11-24",
+  "title": "Live Patches",
+  "notes": [
+    "New patches now show up in-game: a notice appears and stays until you update.",
+    "After updating, a \"What's new\" window lists the changes.",
+    "Patch notes and the game version are now in Settings."
+  ]
+}
