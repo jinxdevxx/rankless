@@ -267,6 +267,19 @@ const HAIR_SHAPES = [
   [[9,-91],[8,-97],[3,-101],[-1,-97],[-6,-101],[-8,-96],[-14,-97],[-10,-91],[-13,-86],[-5,-85]],
 ];
 
+/* blend two #rrggbb colors */
+function mixHex(a, b, t){
+  if(!/^#[0-9a-f]{6}$/i.test(a) || !/^#[0-9a-f]{6}$/i.test(b)) return a;
+  const pa = [1,3,5].map(i => parseInt(a.slice(i,i+2),16)), pb = [1,3,5].map(i => parseInt(b.slice(i,i+2),16));
+  return '#' + pa.map((v,i) => Math.round(v + (pb[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+/* body shading: dark at the back, lit by the rim color at the front */
+function bodyGrad(c, B, R, x0, y0, x1, y1, amt){
+  const g = c.createLinearGradient(x0, y0, x1, y1);
+  g.addColorStop(0, B); g.addColorStop(.5, B); g.addColorStop(1, mixHex(B, R, amt));
+  return g;
+}
+
 /* anime-style humanoid silhouette with rim glow.  (x,y)=feet, h=height in px */
 function drawHumanoid(c, x, y, h, o){
   const t = o.t || 0, k = h/100, f = o.face || 1, pose = o.pose || 'idle';
@@ -279,6 +292,12 @@ function drawHumanoid(c, x, y, h, o){
     const ag = c.createRadialGradient(0,-50*k,5*k,0,-50*k,75*k);
     ag.addColorStop(0, o.rim+'55'); ag.addColorStop(1, o.rim+'00');
     c.fillStyle = ag; c.fillRect(-80*k,-130*k,160*k,140*k);
+    for(let i=0;i<5;i++){
+      const ph = (t*.55 + i*.2) % 1, wx = (-16 + i*8)*k + Math.sin(t*2.5 + i*1.7)*4*k, wy = -8*k - ph*105*k, ws = (11 - ph*8)*k;
+      c.globalAlpha = (o.alpha ?? 1)*.32*(1-ph);
+      c.fillStyle = o.rim; c.beginPath(); c.moveTo(wx, wy - ws*1.8); c.quadraticCurveTo(wx + ws, wy, wx, wy + ws*.6); c.quadraticCurveTo(wx - ws, wy, wx, wy - ws*1.8); c.fill();
+    }
+    c.globalAlpha = o.alpha ?? 1;
   }
   c.scale(f*k, k); c.translate(0, fy);
   const lean = pose === 'lunge' ? .2 : pose === 'hurt' ? -.14 : pose === 'cast' ? -.05 : 0;
@@ -291,7 +310,10 @@ function drawHumanoid(c, x, y, h, o){
   c.beginPath(); c.moveTo(-3,-81); c.bezierCurveTo(-16,-83+fl, -28,-77+fl2*3, -46,-80+fl*4); c.lineTo(-43,-74+fl*4);
   c.bezierCurveTo(-27,-71+fl2*3, -15,-76, -3,-76); c.closePath(); c.fill();
   c.globalAlpha = o.alpha ?? 1;
-  c.fillStyle = B;
+  const BG = bodyGrad(c, B, R, -22, -100, 20, -10, o.flash ? 0 : .3);
+  c.fillStyle = BG;
+  // second coat tail (behind)
+  if(!o.float){ c.beginPath(); c.moveTo(-9,-58); c.quadraticCurveTo(-16,-34, -29+fl2*3,-12+fl); c.lineTo(-19,-16+fl*.5); c.quadraticCurveTo(-13,-36,-6,-54); c.closePath(); c.fill(); }
   // legs
   if(!o.float){
     const L = pose === 'lunge' ? [[-3,-46],[-12,-23],[-23,-1],[5,-46],[14,-28],[19,0]]
@@ -318,13 +340,22 @@ function drawHumanoid(c, x, y, h, o){
   if(o.hair === 'hat'){
     c.fillRect(-8,-98,17,3); c.fillRect(-5,-112,11,15);
   } else poly(c, HAIR_SHAPES[o.hair || 0], 0, br*.3 + (o.hair === 1 ? fl*.0 : 0));
-  if(o.crown){ c.fillStyle = R; poly(c, [[-6,-97],[-4,-106],[-1,-99],[1,-109],[3,-99],[6,-105],[7,-96]]); c.fillStyle = B; }
+  if(o.crown){ c.fillStyle = R; poly(c, [[-6,-97],[-4,-106],[-1,-99],[1,-109],[3,-99],[6,-105],[7,-96]]); c.fillStyle = BG; }
   // front arm
   const hand = pose === 'lunge' ? [27,-74] : pose === 'cast' ? [20,-92] : pose === 'hurt' ? [12,-62] : [15,-57];
   const elb = [(7 + hand[0])/2 + (pose === 'lunge' ? 0 : 3), (-80 + hand[1])/2 + (pose === 'cast' ? 0 : 2)];
   limb(c, 7,-80, elb[0], elb[1], 3.2, 2.4); limb(c, elb[0], elb[1], hand[0], hand[1], 2.4, 2.7);
-  // belt glow
-  c.save(); c.shadowBlur = 0; c.fillStyle = R; c.globalAlpha = (o.alpha ?? 1)*.7; c.fillRect(-8,-50,18,1.6); c.restore(); c.fillStyle = B;
+  // shoulder plate
+  poly(c, [[-9,-85],[10,-86],[13,-79],[-11,-78]]);
+  // glowing energy lines (coat edge, seams, cuff, hair streak)
+  c.save(); c.shadowColor = R; c.shadowBlur = 8; c.strokeStyle = R; c.lineWidth = .9; c.globalAlpha = (o.alpha ?? 1)*.85;
+  c.beginPath(); c.moveTo(8,-83); c.lineTo(11,-52); if(!o.float) c.quadraticCurveTo(15,-36,13,-24); c.stroke();
+  c.beginPath(); c.moveTo(2,-80); c.lineTo(3,-60); c.lineTo(1,-52); c.stroke();
+  c.beginPath(); c.moveTo(-9,-85); c.lineTo(13,-79); c.stroke();
+  c.beginPath(); c.arc(hand[0], hand[1], 2.6, 0, 7); c.stroke();
+  c.fillRect(-8,-50,18,1.6);
+  if(o.hair !== 'hat'){ const hs = HAIR_SHAPES[o.hair || 0]; c.globalAlpha = (o.alpha ?? 1)*.55; c.beginPath(); c.moveTo(hs[1][0], hs[1][1]+br*.3); c.lineTo(hs[3][0], hs[3][1]+br*.3); c.lineTo(hs[4][0], hs[4][1]+br*.3); c.stroke(); }
+  c.restore(); c.fillStyle = BG;
   // weapon
   const bl = o.bladeLen ?? 1;
   if(bl > 0){
@@ -333,6 +364,8 @@ function drawHumanoid(c, x, y, h, o){
     const dx = tip[0]-hand[0], dy = tip[1]-hand[1], len = Math.hypot(dx,dy);
     c.strokeStyle = '#0a0a10'; c.lineWidth = 2.6; c.shadowBlur = 0;
     c.beginPath(); c.moveTo(hand[0] - dx/len*7, hand[1] - dy/len*7); c.lineTo(hand[0], hand[1]); c.stroke();
+    const px = -dy/len, py = dx/len; c.lineWidth = 2; c.strokeStyle = R;
+    c.beginPath(); c.moveTo(hand[0] + dx/len*1.5 - px*3, hand[1] + dy/len*1.5 - py*3); c.lineTo(hand[0] + dx/len*1.5 + px*3, hand[1] + dy/len*1.5 + py*3); c.stroke();
     c.shadowColor = o.blade || R; c.shadowBlur = 20*Math.min(2,k*1.4);
     c.strokeStyle = o.blade || R; c.lineWidth = 2.2;
     c.beginPath(); c.moveTo(hand[0], hand[1]); c.lineTo(tip[0], tip[1]); c.stroke();
@@ -341,8 +374,13 @@ function drawHumanoid(c, x, y, h, o){
     c.globalAlpha = o.alpha ?? 1;
   }
   // eyes
-  c.shadowColor = o.eye; c.shadowBlur = 10; c.fillStyle = o.eye;
-  c.fillRect(4, -91 + br*.3, 3.4, 1.4);
+  c.shadowColor = o.eye; c.shadowBlur = 12; c.fillStyle = o.eye;
+  c.fillRect(3.6, -91.3 + br*.3, 4, 1.6);
+  if(o.aura || pose === 'lunge'){
+    const tl = pose === 'lunge' ? 16 : 7 + Math.sin(t*3)*2;
+    const eg = c.createLinearGradient(3.6, 0, 3.6 - tl, 0); eg.addColorStop(0, o.eye); eg.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = eg; c.globalAlpha = (o.alpha ?? 1)*.8; c.fillRect(3.6 - tl, -90.9 + br*.3, tl, .9);
+  }
   c.restore();
 }
 
@@ -361,7 +399,7 @@ function drawMonster(c, style, x, y, h, o){
   if(pose === 'hurt') c.rotate(-.08);
   const B = o.flash ? '#ffffff' : o.body, R = o.rim, E = o.eye;
   c.shadowColor = R; c.shadowBlur = 14*Math.min(2,k*1.4);
-  c.fillStyle = B;
+  c.fillStyle = bodyGrad(c, B, R, -40, -10, 40, -120, o.flash ? 0 : .32);
   const eyes = (pts, s=3) => { c.save(); c.shadowColor = E; c.shadowBlur = 12; c.fillStyle = E; for(const [ex,ey] of pts) c.fillRect(ex, ey, s, s*.6); c.restore(); };
 
   if(style === 'husk'){

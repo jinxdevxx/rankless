@@ -44,7 +44,7 @@ function enemyUnit(type, L, slot){
 }
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
-  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 3.4*boost, am = 1.9*boost;
+  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 2.6*boost, am = 1.55*boost;
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,

@@ -56,6 +56,7 @@ function showUpdateBanner(info){
     <button class="btn small" data-a="patchInfo">What's new</button>
     <button class="btn primary small" data-a="doUpdate">Update now</button>`;
   el.classList.add('on');
+  document.body.classList.add('upd');
 }
 async function checkForUpdate(manual){
   if(!window.GAME_VERSION || GAME_VERSION === 'dev'){ if(manual) toast('UPDATE CHECK', 'Not available in this build.'); return; }

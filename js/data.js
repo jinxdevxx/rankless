@@ -109,7 +109,7 @@ const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'
 const GATES = [
   {id:'E', rank:'E', name:'Drowned Harbor', baseLv:1,  mult:1,   theme:'harbor', enemies:['husk','hound','spitter'], elite:'brute', boss:'warden',
     desc:'A flooded dock district. The first gate every Breaker fears.'},
-  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.25, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
+  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:1.95, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
     desc:'An abandoned metro line where the last train still runs.'},
   {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.15, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
@@ -150,7 +150,7 @@ const EXAMS = {
 const SKILL_LV = [1, 3, 5];
 const SKILL_COST = [1, 2, 3];
 // Breaker Crystals: earned by fighting, spent on skills
-const ENERGY = {max:5, start:2, hit:.25, kill:.35, hurt:.08};
+const ENERGY = {max:5, start:2, hit:.3, kill:.45, hurt:.1};
 const ULT_LV = 2;
 const UNLOCKS = {
   bag:   {name:'Inventory',    icon:'bag',    desc:'Your loot lands here. Better gear is equipped for you automatically.',

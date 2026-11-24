@@ -1,15 +1,11 @@
 {
-  "version": "0.5.0",
+  "version": "0.5.1",
   "date": "2026-11-25",
-  "title": "Crystals & Saves",
+  "title": "Sharper Look",
   "notes": [
-    "Save slots: a main menu with 3 saves. Your current progress was moved into Slot 1 automatically.",
-    "Esc menu (or the \u2630 button): resume, save, export and import save codes, settings, check for updates, back to the main menu. It pauses battles.",
-    "Save codes: export copies a code to your clipboard. Paste it on any device to get your save back.",
-    "Everyone who opens the link has their own saves in their own browser.",
-    "Skills are now used by you, not automatically. Auto skills can be switched on in the menu once the Gate Map unlocks.",
-    "New skill system: Breaker Crystals. Hit and defeat enemies to charge up to 5 crystals, then spend 1, 2 or 3 on a skill.",
-    "Use skills back-to-back for a CHAIN bonus of up to +45% damage. Skill buttons charge up visibly and glow when ready.",
-    "New patches now pop up in the middle of the screen and leave a banner until you update. Your version is shown in the corner."
+    "The update notice now sits at the very top in the middle. Everything else moves down while it is shown, so nothing overlaps.",
+    "New character look: shaded bodies lit in your power's color, glowing energy lines, a second coat tail, a katana guard, glowing eye trails and rising aura flames.",
+    "Monsters got the same shading.",
+    "Balancing for Breaker Crystals: crystals charge a bit faster, Arena hunters are weaker, Gate D is slightly easier."
   ]
 }
