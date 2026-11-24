@@ -148,6 +148,9 @@ const EXAMS = {
 
 /* ---------- progressive unlocks (keeps the start simple) ---------- */
 const SKILL_LV = [1, 3, 5];
+const SKILL_COST = [1, 2, 3];
+// Breaker Crystals: earned by fighting, spent on skills
+const ENERGY = {max:5, start:2, hit:.25, kill:.35, hurt:.08};
 const ULT_LV = 2;
 const UNLOCKS = {
   bag:   {name:'Inventory',    icon:'bag',    desc:'Your loot lands here. Better gear is equipped for you automatically.',

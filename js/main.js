@@ -8,7 +8,7 @@ function frame(now){
   const t = now/1000;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   if(UI.screen === 'battle' && BT){
-    const n = S.settings.speed;
+    const n = UI.menuOpen ? 0 : S.settings.speed;
     for(let i=0;i<n;i++) stepBattle(dt);
     renderBattle(t, dt);
     hudT -= dt; if(hudT <= 0){ hudT = .08; updateBattleHud(); }
@@ -57,14 +57,26 @@ function showUpdateBanner(info){
     <button class="btn primary small" data-a="doUpdate">Update now</button>`;
   el.classList.add('on');
 }
-async function checkForUpdate(){
-  if(!window.GAME_VERSION || GAME_VERSION === 'dev') return;
+async function checkForUpdate(manual){
+  if(!window.GAME_VERSION || GAME_VERSION === 'dev'){ if(manual) toast('UPDATE CHECK', 'Not available in this build.'); return; }
   try{
     const r = await fetch('version.json?t=' + Date.now(), {cache:'no-store'});
-    if(!r.ok) return;
+    if(!r.ok) throw 0;
     const info = await r.json();
-    if(info.version && info.version !== GAME_VERSION) showUpdateBanner(info);
-  }catch(e){}
+    if(info.version && info.version !== GAME_VERSION){
+      const firstTime = !UPDATE_INFO || UPDATE_INFO.version !== info.version;
+      showUpdateBanner(info);
+      // pop up once per new version, then keep the banner
+      if(firstTime && !(UI.screen === 'battle' && BT && !BT.over)) showUpdatePopup(info);
+      else if(firstTime) UI.updatePopupPending = true;
+    } else if(manual) toast('UP TO DATE', `You are on the newest version (v${GAME_VERSION}).`);
+  }catch(e){ if(manual) toast('UPDATE CHECK FAILED', 'Could not reach the server. Try again in a moment.', 'red'); }
+}
+function showUpdatePopup(info){
+  UI.updatePopupPending = false;
+  showModal(`<div class="unlock"><div class="bt">[ NEW PATCH AVAILABLE ]</div><div class="uicon">${ICON.gate}</div>
+    <h3>v${esc(info.version)}</h3>${patchNotesHtml(info)}
+    <div class="row c"><button class="btn" data-a="closeModal">Later</button><button class="btn primary" data-a="doUpdate">Update now</button></div></div>`);
 }
 function doUpdate(){ if(S.created) save(); location.reload(); }
 function whatsNew(){
@@ -79,19 +91,16 @@ function whatsNew(){
 
 function boot(){
   resizeCanvas();
+  const vt = document.createElement('div'); vt.id = 'verTag'; vt.textContent = 'v' + (window.GAME_VERSION || 'dev'); document.body.appendChild(vt);
   document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',bag:'bag',legion:'legion'}[b.dataset.id]]; });
-  S = loadSave();
-  if(S.created) checkUnlocks(true);
-  if(!S.created){ showScreen('create'); renderCreate(); }
-  else {
-    showScreen('home'); renderHome();
-    if(!S.intro) intro(); else if(!whatsNew()) offlineRewards();
-  }
+  migrateOldSave();
+  S = defaultSave();
+  showScreen('slots'); renderSlots();
   setInterval(() => { if(S.created) save(); }, 5000);
   addEventListener('beforeunload', () => { if(S.created) save(); });
   addEventListener('resize', () => { resizeCanvas(); });
   document.addEventListener('visibilitychange', () => { if(document.hidden && S.created) save(); });
-  setInterval(checkForUpdate, 60000);
+  setInterval(() => { checkForUpdate(); if(UI.updatePopupPending && UPDATE_INFO && !(UI.screen === 'battle' && BT && !BT.over) && !$('#modal').classList.contains('on')) showUpdatePopup(UPDATE_INFO); }, 30000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
   setTimeout(checkForUpdate, 5000);
   requestAnimationFrame(frame);

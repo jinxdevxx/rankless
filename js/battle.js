@@ -88,7 +88,7 @@ function startArena(rank, idx, exam){
 }
 function newBattle(o){
   const b = Object.assign({units:[], fx:[], texts:[], projs:[], pending:[], time:0, over:false, waveIdx:-1,
-    ult:0, skillCd:[0,0,0], combo:0, comboT:0, shake:0, cutin:null, flashT:0,
+    ult:0, skillCd:[0,0,0], energy:2, chain:0, chainT:0, chainMult:1, gcd:0, combo:0, comboT:0, shake:0, cutin:null, flashT:0,
     gold:0, xp:0, kills:0, shards:{}, drops:[], result:null, boss:null, autoT:0}, o);
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
@@ -141,8 +141,8 @@ function dealDamage(att, tgt, mult, opt={}){
   }
   const ls = (att.lifesteal||0)/100 + (opt.lifesteal||0);
   if(ls > 0 && !att.dead){ att.hp = Math.min(att.maxHp, att.hp + dmg*ls); }
-  if(att.side === 'p'){ BT.combo++; BT.comboT = 2; if(att.kind === 'hero') BT.ult = Math.min(100, BT.ult + (opt.skill ? 4 : 7)); }
-  if(tgt.kind === 'hero') BT.ult = Math.min(100, BT.ult + 2);
+  if(att.side === 'p'){ BT.combo++; BT.comboT = 2; if(att.kind === 'hero' && !opt.skill){ gainEnergy(ENERGY.hit); BT.ult = Math.min(100, BT.ult + 3); } }
+  if(tgt.kind === 'hero') gainEnergy(ENERGY.hurt);
   if(opt.burn) tgt.burn = {dps: atk*opt.burn, t:3, src:att};
   if(opt.stun && !tgt.boss) tgt.stun = Math.max(tgt.stun, opt.stun);
   if(opt.stun && tgt.boss) tgt.stun = Math.max(tgt.stun, opt.stun*.3);
@@ -158,7 +158,7 @@ function killUnit(u){
   u.dead = true; u.hp = 0; u.state = 'dead'; u.deathT = 0;
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
-    BT.kills++;
+    BT.kills++; gainEnergy(ENERGY.kill);
     const hs = heroStats();
     BT.gold += (u.goldVal||0) * (1 + hs.gold/100);
     BT.xp += (u.xpVal||0) * (1 + hs.xp/100);
@@ -185,11 +185,17 @@ function checkBind(type){
 /* ---------- skills ---------- */
 function skillUnlocked(i){ return S.level >= SKILL_LV[i]; }
 function ultUnlocked(){ return S.level >= ULT_LV; }
-function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.skillCd[i] <= 0 && alive('e').length && !BT.cutin; }
+function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before) BT.crystalPop = .35; }
+function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)) return;
-  const sk = AFF[S.aff].skills[i]; BT.skillCd[i] = sk.cd;
-  BT.ult = Math.min(100, BT.ult + 10);
+  const sk = AFF[S.aff].skills[i];
+  BT.energy -= SKILL_COST[i]; BT.gcd = .45;
+  BT.ult = Math.min(100, BT.ult + SKILL_COST[i]*12);
+  // chain: skills used back-to-back hit harder
+  BT.chain = BT.chainT > 0 ? Math.min(4, BT.chain + 1) : 1; BT.chainT = 2.6;
+  BT.chainMult = 1 + (BT.chain - 1)*.15;
+  if(BT.chain > 1) addText(BT.hero, `CHAIN x${BT.chain}`, '#ffd166', 24);
   castEffect(BT.hero, sk, false);
 }
 function useUlt(){
@@ -213,13 +219,14 @@ function castEffect(h, sk, isUlt){
     return;
   }
   const hits = sk.hits || 1;
+  const cm = isUlt ? 1 : (BT.chainMult || 1);
   const opts = {skill:true, burn:sk.burn, stun:sk.stun, slow:sk.slow, pierce:sk.pierce, lifesteal:sk.lifesteal, color:col2};
   if(sk.target === 'single'){
     const t = frontEnemy(); if(!t) return;
     h.x = t.x - 80*k; h.state = 'strike'; h.st = 0; h.target = t;
     BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.4, c:col, life:.35, max:.35});
     BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.45, r:t.size*k*.7, rot:2.4, c:col2, life:.3, max:.3});
-    dealDamage(h, t, sk.mult, opts); BT.shake = Math.max(BT.shake, .15);
+    dealDamage(h, t, sk.mult*cm, opts); BT.shake = Math.max(BT.shake, .15);
     burst(t.x, t.y - t.size*k*.5, col, 18);
   } else if(sk.target === 'chain'){
     let from = {x:h.x + 20*k, y:h.y - 80*k}; const hit = [];
@@ -229,7 +236,7 @@ function castEffect(h, sk, isUlt){
       if(cand.length) hit.push(t); else hit.length = 0;
       const delay = i*.09;
       const f0 = from; const tt = {x:t.x, y:t.y - t.size*k*.55};
-      BT.pending.push({t:delay, fn:() => { if(t.dead) return; BT.fx.push({k:'bolt', x1:f0.x, y1:f0.y, x2:tt.x, y2:tt.y, c:col2, life:.3, max:.3}); dealDamage(h, t, sk.mult, opts); }});
+      BT.pending.push({t:delay, fn:() => { if(t.dead) return; BT.fx.push({k:'bolt', x1:f0.x, y1:f0.y, x2:tt.x, y2:tt.y, c:col2, life:.3, max:.3}); dealDamage(h, t, sk.mult*cm, opts); }});
       from = tt;
     }
   } else { // all
@@ -239,7 +246,7 @@ function castEffect(h, sk, isUlt){
         for(const t of foes){
           if(S.aff === 'storm' || isUlt && S.aff === 'storm') BT.fx.push({k:'pillar', x:t.x, c:col2, w:46*k, life:.45, max:.45});
           else BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.75, rot:rand(-1,1) + (i%2 ? 2.6 : 0), c: i%2 ? col2 : col, life:.3, max:.3});
-          dealDamage(h, t, sk.mult, opts);
+          dealDamage(h, t, sk.mult*cm, opts);
         }
         BT.fx.push({k:'ring', x:VW*.8, y:groundY(), r:20, R:VW*.3, c:col, life:.5, max:.5});
         BT.shake = Math.max(BT.shake, isUlt ? .35 : .2);
@@ -339,8 +346,9 @@ function stepBattle(dt){
   if(BT.shake > 0) BT.shake -= dt;
   if(BT.flashT > 0) BT.flashT -= dt;
   if(BT.comboT > 0){ BT.comboT -= dt; if(BT.comboT <= 0) BT.combo = 0; }
-  for(let i=0;i<3;i++) if(BT.skillCd[i] > 0) BT.skillCd[i] -= dt;
-  BT.ult = Math.min(100, BT.ult + dt*1.5);
+  if(BT.gcd > 0) BT.gcd -= dt; if(BT.crystalPop > 0) BT.crystalPop -= dt;
+  if(BT.chainT > 0){ BT.chainT -= dt; if(BT.chainT <= 0){ BT.chain = 0; BT.chainMult = 1; } }
+  BT.ult = Math.min(100, BT.ult + dt*.6);
 
   for(let i=BT.pending.length-1;i>=0;i--){ const p = BT.pending[i]; p.t -= dt; if(p.t <= 0){ BT.pending.splice(i,1); if(!BT.over) p.fn(); } }
 
@@ -348,7 +356,8 @@ function stepBattle(dt){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
     if(S.settings.autoSkill && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
-      for(let i=0;i<3;i++){
+      // spend crystals when the gauge is nearly full, most expensive skill first
+      if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
         if(sk.type === 'buff' && sk.heal && BT.hero.hp/BT.hero.maxHp > .7 && !sk.atk) continue;
         if(sk.type === 'buff' && sk.shield && BT.hero.hp/BT.hero.maxHp > .85) continue;

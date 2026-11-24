@@ -23,25 +23,49 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:true, farm:'push', autoEquip:true, autoStats:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[],
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
   };
 }
 let S = defaultSave();
-function loadSave(){
-  const d = defaultSave();
-  try{
-    const raw = localStorage.getItem(SAVE_KEY);
-    if(!raw) return d;
-    const s = JSON.parse(raw);
-    const out = Object.assign(d, s);
-    for(const k of ['stats','eq','gates','arena','settings','record','unlocks']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
-    return out;
-  }catch(e){ return d; }
+/* ---------- save slots ---------- */
+const META_KEY = 'rankless_meta_v1';
+const SLOT_COUNT = 3;
+let SLOT = null;                       // active save slot (1..3)
+const slotKey = id => 'rankless_slot_' + id;
+function normalizeSave(s){
+  const out = Object.assign(defaultSave(), s);
+  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+  return out;
 }
-function save(){ S.lastSeen = Date.now(); try{ localStorage.setItem(SAVE_KEY, JSON.stringify(S)); }catch(e){} }
+function readMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY)) || {last:null}; }catch(e){ return {last:null}; } }
+function writeMeta(m){ try{ localStorage.setItem(META_KEY, JSON.stringify(m)); }catch(e){} }
+function readSlot(id){ try{ const raw = localStorage.getItem(slotKey(id)); if(!raw) return null; const s = JSON.parse(raw); return s && s.created ? normalizeSave(s) : null; }catch(e){ return null; } }
+function deleteSlot(id){ try{ localStorage.removeItem(slotKey(id)); }catch(e){} const m = readMeta(); if(m.last === id) m.last = null; writeMeta(m); }
+/* move a pre-slot save into slot 1 (the old key is left untouched as a backup) */
+function migrateOldSave(){
+  try{
+    if(localStorage.getItem(slotKey(1))) return;
+    const raw = localStorage.getItem(SAVE_KEY); if(!raw) return;
+    const s = JSON.parse(raw); if(!s || !s.created) return;
+    localStorage.setItem(slotKey(1), raw); const m = readMeta(); m.last = 1; writeMeta(m);
+  }catch(e){}
+}
+function save(){
+  if(!SLOT || !S.created) return;
+  S.lastSeen = Date.now();
+  try{ localStorage.setItem(slotKey(SLOT), JSON.stringify(S)); }catch(e){}
+  const m = readMeta(); m.last = SLOT; writeMeta(m);
+}
+/* save codes: a portable text version of a save */
+function exportCode(){ return 'RANKLESS1:' + btoa(unescape(encodeURIComponent(JSON.stringify(S)))); }
+function parseCode(code){
+  code = String(code || '').trim();
+  if(!code.startsWith('RANKLESS1:')) return null;
+  try{ const s = JSON.parse(decodeURIComponent(escape(atob(code.slice(10))))); return s && s.created && s.name ? normalizeSave(s) : null; }catch(e){ return null; }
+}
 
 /* ---------- XP & economy curves ---------- */
 // early levels come fast (hook), later levels follow the full curve

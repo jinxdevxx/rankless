@@ -13,6 +13,17 @@
 <body>
 <canvas id="scene"></canvas>
 
+<!-- MAIN MENU / SAVE SLOTS -->
+<section id="scr-slots" class="scr">
+  <div class="slots-panel win sys">
+    <div class="logo">RANKLESS</div>
+    <div class="tagline">From E-Rank to legend</div>
+    <div class="bt">[ SELECT SAVE ]</div>
+    <div id="slotList" class="slotlist"></div>
+    <p class="muted small-note">Saves live in this browser. Use <b>Export save code</b> in the menu (Esc) to back up or move your save to another device.</p>
+  </div>
+</section>
+
 <!-- CREATE -->
 <section id="scr-create" class="scr">
   <div class="create-panel win sys">
@@ -23,6 +34,7 @@
     <label class="lbl">Choose your power</label>
     <div id="affList" class="affs"></div>
     <button class="btn primary big" data-a="create">AWAKEN</button>
+    <button class="btn small back" data-a="menuMain">‹ Back to saves</button>
   </div>
 </section>
 
@@ -48,10 +60,11 @@
 <section id="scr-battle" class="scr">
   <div class="b-top">
     <button class="ibtn" data-a="exit" title="Leave">‹</button>
+    <button class="ibtn" data-a="menu" title="Menu (Esc)">☰</button>
     <div id="bTitle" class="b-title"></div>
     <span class="sp"></span>
     <button id="bFarm" class="tbtn" data-a="farm">Farm: Off</button>
-    <button id="bAuto" class="tbtn" data-a="auto">AUTO</button>
+    <button id="bAuto" class="tbtn" data-a="auto">AUTO SKILLS</button>
     <button id="bSpeed" class="tbtn" data-a="speed">x1</button>
   </div>
   <div id="bBoss" class="b-boss"><b></b><div class="bar"><i></i></div></div>
@@ -67,7 +80,7 @@
 /* Loads the newest game files. version.json is fetched fresh every time, and every
    file is requested with ?v=<version>, so a new patch is picked up on the next reload. */
 (function(){
-  const FILES = ['js/data.js','js/state.js','js/art.js','js/battle.js','js/ui.js','js/main.js'];
+  const FILES = ['js/data.js','js/state.js','js/art.js','js/battle.js','js/ui.js','js/menu.js','js/main.js'];
   function boot(info){
     window.GAME_PATCH = info; window.GAME_VERSION = info.version;
     const v = encodeURIComponent(info.version);

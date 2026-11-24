@@ -99,9 +99,9 @@ function renderHome(){
       <div class="cp"><small>POWER</small><b>${fmt(teamPower())}</b></div>
     </div>
     <div class="curs">
+      <button class="ibtn" data-a="menu" title="Menu (Esc)">☰</button>
       <span class="cur gold">${ICON.gold}<b>${fmt(S.gold)}</b></span>
       <span class="cur stone">${ICON.stone}<b>${fmt(S.stones)}</b></span>
-      <button class="ibtn" data-a="settings" title="Settings">${ICON.gear}</button>
     </div>`;
   const g = currentGate(), nf = nextFloor(g), cleared = S.gates[g.id] >= FLOORS;
   const arenaDone = S.arena[S.rank] || 0, list = HUNTERS[S.rank];
@@ -159,7 +159,7 @@ function drawHomeScene(t, dt){
   const c = ctx, mob = VW < VH;
   c.drawImage(getBg('city'), 0, 0, VW, VH);
   const T = THEMES.city, a = AFF[UI.screen === 'create' ? UI.createAff : S.aff];
-  const hx = mob ? VW*.5 : UI.screen === 'create' ? VW*.3 : VW*.42;
+  const hx = mob ? VW*.5 : (UI.screen === 'create' || UI.screen === 'slots') ? VW*.3 : VW*.42;
   const hh = mob ? Math.min(VH*.42, VW*.95) : VH*.56, fy = mob ? VH*.66 : VH*.86;
   drawPortal(c, hx + hh*.08, fy - hh*.62, hh*.48, t*.7, a.color, T.accent, .95);
   sceneFx('city', t, dt);
@@ -236,7 +236,7 @@ function sheetHero(){
   const slots = SLOTS.map(sl => { const it = S.eq[sl];
     return `<button class="slot ${it?'has':''}" style="--r:${it?RARITY[it.rar].color:'#2a3150'}" data-a="${it?'item':'sheet'}" data-id="${it?it.id:'bag'}">
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
-  const skills = a.skills.map(s => `<div class="skl"><b>${s.name}</b> <i>${s.cd}s</i><span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
+  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i><span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
     <div class="box sys"><div class="bt">[ STATUS ] <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
       <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
@@ -329,11 +329,13 @@ function itemDetail(id){
 /* ---------- battle HUD ---------- */
 function buildBattleHud(){
   const a = AFF[S.aff];
-  $('#bSkills').innerHTML = a.skills.map((s,i) => skillUnlocked(i)
-      ? `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="cd"></span><b>${s.name}</b><kbd>${i+1}</kbd></button>`
+  const btns = a.skills.map((s,i) => skillUnlocked(i)
+      ? `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="fill"></span><b>${s.name}</b><span class="cost">${'<i></i>'.repeat(SKILL_COST[i])}</span><kbd>${i+1}</kbd></button>`
       : `<button class="skb locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${SKILL_LV[i]}</b></button>`).join('') +
-    (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="cd"></span><b>ULT</b><kbd>R</kbd></button>`
+    (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="fill"></span><b>ULT</b><kbd>R</kbd></button>`
       : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
+  $('#bSkills').style.setProperty('--c', a.color);
+  $('#bSkills').innerHTML = `<div class="sk-top"><span class="chain" id="bChain"></span><div class="crys" id="bCrys">${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div><div class="sk-row">${btns}</div>`;
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
   onWaveUI();
@@ -344,6 +346,7 @@ function syncFarmUI(){
   $('#bSpeed').textContent = `x${S.settings.speed}`;
   $('#bSpeed').hidden = !adv;
   $('#bAuto').classList.toggle('on', S.settings.autoSkill);
+  $('#bAuto').hidden = !adv;
   $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
   $('#bFarm').classList.toggle('on', S.settings.farm !== 'off');
   $('#bFarm').hidden = !(adv && BT && BT.mode === 'gate');
@@ -357,12 +360,16 @@ function onWaveUI(){
 function updateBattleHud(){
   if(!BT) return;
   const a = AFF[S.aff];
+  $$('#bCrys .cr').forEach((c,i) => { const f = clamp(BT.energy - i, 0, 1); c.style.setProperty('--f', f); c.classList.toggle('full', f >= 1); });
+  $('#bCrys').classList.toggle('pop', BT.crystalPop > 0);
+  const ch = $('#bChain'); ch.textContent = BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
   $$('#bSkills .skb').forEach((b,i) => {
     if(b.classList.contains('locked')) return;
-    if(b.classList.contains('ult')){ const p = BT.ult; b.querySelector('.cd').style.background = `conic-gradient(transparent ${p*3.6}deg, rgba(0,0,0,.72) 0)`; b.classList.toggle('ready', p >= 100 && !BT.hero.dead); return; }
-    const cd = BT.skillCd[i], m = a.skills[i].cd;
-    b.querySelector('.cd').style.background = cd > 0 ? `conic-gradient(rgba(0,0,0,.72) ${cd/m*360}deg, transparent 0)` : 'none';
-    b.classList.toggle('ready', cd <= 0 && !BT.hero.dead);
+    if(b.classList.contains('ult')){ const p = BT.ult; b.querySelector('.fill').style.height = p + '%'; b.classList.toggle('ready', p >= 100 && !BT.hero.dead); return; }
+    const cost = SKILL_COST[i], f = clamp(BT.energy/cost, 0, 1);
+    b.querySelector('.fill').style.height = f*100 + '%';
+    b.querySelectorAll('.cost i').forEach((pip,j) => pip.classList.toggle('on', BT.energy >= j+1));
+    b.classList.toggle('ready', f >= 1 && !BT.hero.dead);
   });
   const ps = BT.units.filter(u => u.side === 'p');
   $$('#bParty .pc').forEach((el,i) => { const u = ps[i]; if(!u) return;
@@ -421,6 +428,7 @@ function leaveBattle(){ cancelAuto(); BT = null; showScreen('home'); renderHome(
 
 /* ---------- actions ---------- */
 function act(a, el){
+  if(menuAct(a, el)) return;
   const id = el.dataset.id;
   switch(a){
     case 'pickAff': UI.createAff = id; renderCreate(); break;
@@ -481,18 +489,21 @@ function act(a, el){
     case 'retry': { cancelAuto(); if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
-    case 'settings': showModal(`<div class="bt">[ SETTINGS ]</div>
+    case 'settings': openMenu(); break;
+    case 'settingsOld': showModal(`<div class="bt">[ SETTINGS ]</div>
       <p class="muted">Version <b>${esc(window.GAME_VERSION||'dev')}</b>. Your progress is saved automatically in this browser.</p>
+      <div class="row" style="margin-top:0"><button class="btn small" data-a="checkUpdate">Check for updates</button></div>
       ${window.GAME_PATCH && window.GAME_PATCH.notes && window.GAME_PATCH.notes.length ? `<div class="bt" style="margin-top:14px">[ CURRENT PATCH ]</div>${patchNotesHtml(window.GAME_PATCH)}` : ''}
       <div class="row"><button class="btn danger" data-a="resetAsk">Delete save</button><span class="sp"></span><button class="btn" data-a="closeModal">Close</button></div>`); break;
     case 'resetAsk': showModal(`<div class="bt">[ WARNING ]</div><h3 class="bad">Delete all progress?</h3><p class="muted">This cannot be undone.</p>
       <div class="row"><button class="btn" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn danger" data-a="resetYes">Delete everything</button></div>`); break;
-    case 'resetYes': try{ localStorage.removeItem(SAVE_KEY); }catch(_){} S = defaultSave(); closeModal(); showScreen('create'); renderCreate(); break;
+    case 'resetYes': deleteSlot(SLOT); showMainMenu(); break;
     case 'collectOffline': closeModal(); renderHome(); break;
     case 'unlockLater': S.pendingUnlocks.shift(); save(); closeModal(); renderHome(); break;
     case 'unlockOpen': S.pendingUnlocks = S.pendingUnlocks.filter(x => x !== id); save(); closeModal(); if(UI.screen !== 'home'){ cancelAuto(); BT = null; showScreen('home'); } openSheet(id); break;
     case 'toggleSetting': S.settings[id] = !S.settings[id]; if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); save(); renderSheet(); renderHome(); break;
     case 'doUpdate': doUpdate(); break;
+    case 'checkUpdate': checkForUpdate(true); break;
     case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">[ NEW PATCH ]</div>${patchNotesHtml(UPDATE_INFO)}
       <div class="row"><button class="btn" data-a="closeModal">Later</button><span class="sp"></span><button class="btn primary" data-a="doUpdate">Update now</button></div>`); break;
   }
@@ -507,7 +518,12 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('keydown', e => {
   if(e.target.tagName === 'INPUT') { if(e.key === 'Enter' && UI.screen === 'create') act('create', e.target); return; }
-  if(e.key === 'Escape'){ if($('#modal').classList.contains('on')) closeModal(); else if(UI.sheet) closeSheet(); return; }
+  if(e.key === 'Escape'){
+    if($('#modal').classList.contains('on')){ if(UI.menuOpen) closeMenu(); else closeModal(); }
+    else if(UI.sheet) closeSheet();
+    else openMenu();
+    return;
+  }
   if(UI.screen !== 'battle' || !BT) return;
   if(e.key >= '1' && e.key <= '3') useSkill(+e.key - 1);
   else if(e.key.toLowerCase() === 'r' || e.key === ' '){ e.preventDefault(); useUlt(); }
