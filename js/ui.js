@@ -70,6 +70,7 @@ function hunterPortrait(h){
 function showScreen(id){
   UI.screen = id;
   for(const s of $$('.scr')) s.classList.toggle('on', s.id === 'scr-' + id);
+  SFX.music(id === 'battle' ? 'battle' : 'home');
   if(id !== 'home') closeSheet();
   clearParts();
 }
@@ -150,6 +151,7 @@ function animatePower(target){
 function showNextUnlock(){
   const k = S.pendingUnlocks[0]; if(!k) return;
   const u = UNLOCKS[k];
+  SFX.unlockFx();
   showModal(`<div class="unlock"><div class="bt">[ NEW FEATURE UNLOCKED ]</div>
     <div class="uicon">${ICON[u.icon]}</div><h3>${u.name}</h3><p>${u.desc}</p>
     <div class="row c"><button class="btn" data-a="unlockLater">Later</button><button class="btn primary" data-a="unlockOpen" data-id="${k}">Open ${u.name}</button></div></div>`);
@@ -412,6 +414,8 @@ function showResult(r){
     <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
   $('#bResult').classList.add('on');
+  if(best >= 0) setTimeout(() => SFX.loot(best), 350);
+  if(r.levels) setTimeout(() => SFX.levelup(), 700);
   if(autoOn){
     let floor = BT.floor;
     if(S.settings.farm === 'push'){ if(win && floor < FLOORS) floor++; else if(!win && floor > 1) floor--; }
@@ -511,6 +515,7 @@ function act(a, el){
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if(!el || el.disabled) return;
   if(el.tagName === 'SELECT') return;
+  if(el.tagName === 'BUTTON' && el.dataset.a !== 'skill' && el.dataset.a !== 'ult') SFX.click();
   act(el.dataset.a, el);
 });
 document.addEventListener('change', e => {

@@ -80,7 +80,7 @@
 /* Loads the newest game files. version.json is fetched fresh every time, and every
    file is requested with ?v=<version>, so a new patch is picked up on the next reload. */
 (function(){
-  const FILES = ['js/data.js','js/state.js','js/art.js','js/battle.js','js/ui.js','js/menu.js','js/main.js'];
+  const FILES = ['js/data.js','js/state.js','js/art.js','js/battle.js','js/ui.js','js/audio.js','js/menu.js','js/main.js'];
   function boot(info){
     window.GAME_PATCH = info; window.GAME_VERSION = info.version;
     const v = encodeURIComponent(info.version);

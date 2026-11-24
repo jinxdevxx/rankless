@@ -1,11 +1,10 @@
 {
-  "version": "0.5.1",
+  "version": "0.5.2",
   "date": "2026-11-25",
-  "title": "Sharper Look",
+  "title": "Sound On",
   "notes": [
-    "The update notice now sits at the very top in the middle. Everything else moves down while it is shown, so nothing overlaps.",
-    "New character look: shaded bodies lit in your power's color, glowing energy lines, a second coat tail, a katana guard, glowing eye trails and rising aura flames.",
-    "Monsters got the same shading.",
-    "Balancing for Breaker Crystals: crystals charge a bit faster, Arena hunters are weaker, Gate D is slightly easier."
+    "Sound effects for hits, crits, kills, every power's skills, the Ultimate, crystals, level ups, loot drops, victory and defeat.",
+    "Music: a calm theme in menus and a driving battle track.",
+    "Both can be switched off in the menu (Esc)."
   ]
 }

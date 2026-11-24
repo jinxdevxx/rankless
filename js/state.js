@@ -23,7 +23,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[],
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,

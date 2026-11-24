@@ -135,6 +135,7 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
+  if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
   if(dmg > 0){
     const big = opt.skill || crit;
     addText(tgt, fmt(dmg), tgt.side === 'p' ? '#ff6b7a' : crit ? '#ffd166' : opt.color || '#ffffff', big ? (crit ? 34 : 28) : 22, crit);
@@ -158,7 +159,7 @@ function killUnit(u){
   u.dead = true; u.hp = 0; u.state = 'dead'; u.deathT = 0;
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
-    BT.kills++; gainEnergy(ENERGY.kill);
+    BT.kills++; gainEnergy(ENERGY.kill); SFX.kill(u.boss);
     const hs = heroStats();
     BT.gold += (u.goldVal||0) * (1 + hs.gold/100);
     BT.xp += (u.xpVal||0) * (1 + hs.xp/100);
@@ -185,12 +186,12 @@ function checkBind(type){
 /* ---------- skills ---------- */
 function skillUnlocked(i){ return S.level >= SKILL_LV[i]; }
 function ultUnlocked(){ return S.level >= ULT_LV; }
-function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before) BT.crystalPop = .35; }
+function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
 function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)) return;
   const sk = AFF[S.aff].skills[i];
-  BT.energy -= SKILL_COST[i]; BT.gcd = .45;
+  BT.energy -= SKILL_COST[i]; BT.gcd = .45; SFX.skill(S.aff);
   BT.ult = Math.min(100, BT.ult + SKILL_COST[i]*12);
   // chain: skills used back-to-back hit harder
   BT.chain = BT.chainT > 0 ? Math.min(4, BT.chain + 1) : 1; BT.chainT = 2.6;
@@ -202,7 +203,8 @@ function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
   BT.ult = 0;
   const u = AFF[S.aff].ult;
-  BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => castEffect(BT.hero, u, true)};
+  BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => { SFX.ultHit(); castEffect(BT.hero, u, true); }};
+  SFX.ultStart();
 }
 function castEffect(h, sk, isUlt){
   const col = AFF[S.aff].color, col2 = AFF[S.aff].color2, k = bk();
@@ -442,6 +444,7 @@ function finishBattle(win){
   r.unlocked = checkUnlocks(false);
   BT.result = r;
   save();
+  if(win) SFX.victory(); else SFX.defeat();
   // loot beams
   if(win) r.items.forEach((it,i) => BT.fx.push({k:'beam', x:VW*(.55 + i*.08), c:RARITY[it.rar].color, life:2.2, max:2.2, rar:it.rar}));
   setTimeout(() => showResult(r), win ? 650 : 500);
