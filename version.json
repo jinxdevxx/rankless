@@ -1,10 +1,15 @@
 {
-  "version": "0.21.3",
+  "version": "0.22.0",
   "date": "2026-11-25",
-  "title": "No More Suns",
+  "title": "Into the Abyss",
   "notes": [
-    "The sun halo animation is completely gone from the game.",
-    "Master League fights last longer and are fairer: Masters have more HP but hit less hard, no more 5-second deaths.",
-    "Training Tower: big CHOOSE YOUR FLOOR box (-10 / -1 / +1 / +10)."
+    "NEW: Abyss Rift (from Master League). Endless run: HP carries over, pick 1 of 3 boons after every win, Rift Lords drop permanent relics.",
+    "NEW: Master unlocks at Master Lv 1, 10, 20 ... 90, 99: rare and mythic boons, reroll, Blood Pact curses, Second Wind, Deep Dive, up to 4 relic slots, Ascension.",
+    "NEW: Master Gate. Its level follows your Master League level, so its loot keeps up. The Rift drops scaling items too.",
+    "NEW: Spirit Awakening. After Lv 15 spirits gain stars (up to 10): +25% bolt damage each. Costs Gold and Mana Stones.",
+    "Legion: one-click Remove on every slot. Put in slot no longer replaces a random spirit.",
+    "Master League: no more one-shots. Masters have much more HP but hit far less hard, fights last 10-40 s.",
+    "Economy: enhancing costs about 35% less Gold, Mana Stone cost now grows with item level.",
+    "Endgame levels no longer explode: from Lv 70 each level needs XP in line with the rewards."
   ]
 }

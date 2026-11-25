@@ -50,18 +50,21 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'gate' ? (BT.gate.id === 'E' ? (E_EASE[BT.floor] ?? 1) : BT.gate.mult)
     : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)
     : BT.mode === 'tower' ? TOWER.ease*(BT.gate.id === 'E' ? .75 : BT.gate.mult)   // farm fights: a bit softer than your best floor
+    : BT.mode === 'rift' ? TOWER.ease*.95*(1 + .25*(BT.curse||0))   // Abyss Rift: Blood Pact curses make it harder
     : 1;
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && BT.mode === 'tower' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
+/* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
+let MASTER_HM = 9, MASTER_AM = 1.0, MASTER_SLOPE = .3;
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
-    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? 2.2 : 5.5)*boost, am = (h.master ? 2.2 : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
+    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
@@ -116,6 +119,48 @@ function startTower(floor){
 }
 /* Gold Rush: repeatable, no loot, lots of gold. Enemy level = your best floor in the current gate. */
 function rushLevel(){ const g = currentGate(); return g.baseLv + Math.max(1, Math.min(FLOORS, S.gates[g.id]||1)) - 1; }
+/* Abyss Rift: enemies start a bit below your best tower floor and get stronger every depth */
+function riftLevel(d){ return towerLevel(Math.max(1, (S.tower.best||1) - 8)) + Math.floor((d - 1)*.6); }
+function newRiftRun(deep){
+  const run = S.rift.run = {depth:0, hp:1, b:{}, curse:0, picks:[], sw:false, rr:false, choices:null};
+  if(deep && masterHas(80)){ run.depth = 9; for(let i = 0; i < 3; i++) applyBoon(pick(rollBoons().filter(id => !RIFT_BOONS[id].curse))); }
+  return run;
+}
+function rollBoons(){
+  const ids = Object.keys(RIFT_BOONS).filter(id => { const t = RIFT_BOONS[id].tier; return t === 1 || (t === 2 && masterHas(10)) || (t === 3 && masterHas(70)); });
+  const w = id => RIFT_BOONS[id].tier === 1 ? 6 : RIFT_BOONS[id].tier === 2 ? 3 : 1, out = [];
+  while(out.length < 3){ const pool = ids.filter(id => !out.includes(id)); let r = Math.random()*pool.reduce((a, id) => a + w(id), 0);
+    for(const id of pool){ r -= w(id); if(r <= 0){ out.push(id); break; } } }
+  const run = S.rift.run; if(masterHas(40) && run && (run.depth % 3 === 0)) out.push('pact');
+  return out;
+}
+function applyBoon(id){
+  const run = S.rift.run, bn = RIFT_BOONS[id]; if(!run || !bn) return;
+  if(bn.curse) run.curse = (run.curse||0) + 1;
+  else if(bn.heal) run.hp = Math.min(1, run.hp + bn.heal);
+  else for(const k in bn.b) run.b[k] = (run.b[k]||0) + bn.b[k];
+  run.picks.push(id); run.choices = null;
+}
+function dropRelic(){
+  const ids = Object.keys(RELICS).filter(id => (S.relics.owned[id]||0) < RELIC_MAX); if(!ids.length) return null;
+  const id = pick(ids); S.relics.owned[id] = (S.relics.owned[id]||0) + 1;
+  if(!S.relics.active.includes(id) && S.relics.active.length < relicSlots()) S.relics.active.push(id);
+  return {id, lv:S.relics.owned[id], isNew:S.relics.owned[id] === 1};
+}
+function startRift(d){
+  const run = S.rift.run; if(!run) return;
+  const L = riftLevel(d), pool = GATES.flatMap(g => g.enemies), elites = GATES.map(g => g.elite), bosses = GATES.map(g => g.boss);
+  const w1 = [pick(pool), pick(pool), pick(pool)], w2 = d % 10 === 0 ? [pick(bosses), pick(pool)] : [pick(pool), d % 5 === 0 ? pick(elites) : pick(pool), pick(pool)];
+  const theme = TOWER_THEMES[(Math.floor((d - 1)/5) + 4) % TOWER_THEMES.length];
+  BT = newBattle({mode:'rift', depth:d, floor:d*2, L, theme, waves:[w1, w2], curse:run.curse||0});
+  const h = BT.hero, b = run.b;
+  h.atk *= 1 + (b.atkP||0)/100; h.maxHp *= 1 + (b.hpP||0)/100; h.crit = Math.min(75, h.crit + (b.crit||0)); h.critDmg += b.critDmg||0;
+  h.interval /= 1 + (b.spd||0)/100; h.skillP += b.skill||0; h.lifesteal = Math.min(LIFESTEAL_CAP, h.lifesteal + (b.lifesteal||0));
+  h.hp = Math.max(1, h.maxHp*run.hp); BT.energy += b.ki||0;
+  BT.banner = {txt:`ABYSS RIFT · DEPTH ${d}${d % 10 === 0 ? ' · 💀 RIFT LORD' : d % 5 === 0 ? ' · ⭐ ELITE' : ''}`, t:1.8, c:'#c77dff'};
+  spawnWave();
+  enterBattle();
+}
 function startRush(kind = 'gold'){
   const gate = currentGate(), L = rushLevel(), pool = gate.enemies;
   BT = newBattle({mode:'rush', kind, gate, L, theme:gate.theme, waves:[[pick(pool), pick(pool), pick(pool)], [pick(pool), pick(pool), pick(pool)]]});
@@ -177,7 +222,7 @@ function spawnWave(){
   let slot = 0;
   wave.forEach(type => {
     const u = prep(enemyUnit(type, BT.L, ENEMY_TYPES[type].boss ? 0 : slot++));
-    if(BT.mode === 'tower') decorateTowerMob(u);
+    if(BT.mode === 'tower' || BT.mode === 'rift') decorateTowerMob(u);
     if(u.boss){ BT.boss = u; slot = 1; }
     BT.units.push(u);
   });
@@ -634,9 +679,10 @@ function stepBattle(dt){
   // wave / result
   const enemiesLeft = alive('e').length;
   if(!enemiesLeft && !BT.pending.length){
-    if((BT.mode === 'gate' || BT.mode === 'rush' || BT.mode === 'tower') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
+    if((BT.mode === 'gate' || BT.mode === 'rush' || BT.mode === 'tower' || BT.mode === 'rift') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
     else { if(BT.winT === undefined){ if((S.settings.speed||1) === 1){ BT.slowmo = .3; BT.zoom = .04; } BT.koT = 1.4; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
   }
+  if(BT.hero.dead && BT.mode === 'rift' && S.rift.run && !S.rift.run.sw && masterHas(50)){ const h = BT.hero; S.rift.run.sw = true; h.dead = false; h.deathT = 0; h.hp = h.maxHp*.5; h.state = 'idle'; BT.heroDownT = 0; addText(h, 'SECOND WIND', '#7fffd4', 32); BT.flashT = .12; }
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
 }
 
@@ -744,6 +790,19 @@ function finishBattle(win){
       r.gold = Math.round((r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1))*md.gold); r.xp = Math.round((r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1))*md.xp);
       if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += (8 + Math.round(f*1.5))*(f % 10 === 0 ? 2 : 1); r.diamonds += (f % 10 === 0 ? 2 : 1) + Math.floor(f/25); }
     }
+  } else if(BT.mode === 'rift'){
+    const run = S.rift.run, d = BT.depth, b = (run && run.b) || {}, lootM = (1 + (b.loot||0)/100)*(1 + .5*((run && run.curse)||0));
+    if(win && run){
+      r.gold = Math.round((r.gold + goldFor(BT.L)*TOWER.gold*.6*(1 + hs.gold/100))*lootM); r.xp = Math.round((r.xp + xpFor(BT.L)*TOWER.xp*.6*(1 + hs.xp/100))*lootM);
+      r.first = d > (S.rift.best||0); S.rift.best = Math.max(S.rift.best||0, d);
+      if(d % 5 === 0){ r.stones += 10 + d*2; r.diamonds += d % 10 === 0 ? 2 : 1; }
+      if(d % 10 === 0) r.relic = dropRelic() || 'max';
+      const nIt = d % 10 === 0 ? 2 : d % 5 === 0 ? 1 : (Math.random() < .35 ? 1 : 0);   // Rift loot scales with your level
+      for(let i = 0; i < nIt; i++) r.items.push(randomItem(BT.L + (d % 10 === 0 ? 2 : 0), .4 + d*.03 + (d % 10 === 0 ? 1.2 : 0), 'M'));
+      if(r.relic === 'max') r.diamonds += 5;
+      run.depth = d; run.hp = Math.min(1, BT.hero.hp/BT.hero.maxHp + .3);
+      run.choices = rollBoons(); r.riftChoices = run.choices;
+    } else { r.riftOver = d; r.gold = Math.round(r.gold*.5); r.xp = Math.round(r.xp*.5); S.rift.run = null; S.rift.runs = (S.rift.runs||0) + 1; }
   } else if(BT.mode === 'rush'){
     if(win){ if(BT.kind === 'xp'){ r.xp = Math.round(r.xp + xpFor(BT.L)*TRAIN_XP*(1 + hs.xp/100)); r.gold = Math.round(r.gold*.3); }
       else { r.gold = Math.round(r.gold + goldFor(BT.L)*RUSH_GOLD*(1 + hs.gold/100)); r.xp = Math.round(r.xp*.3); } }

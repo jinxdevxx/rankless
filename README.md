@@ -25,6 +25,17 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.22.0 – Into the Abyss
+- Abyss Rift (mode `rift`): run mode from rank M. Enemy level = tower best −8 (+0.6/depth), HP carries over (+30% heal per win), 3 boons per win (common/rare M10/mythic M70, Blood Pact curse M40), Second Wind (M50), reroll (M20), Deep Dive (M80). Rift Lord every 10 depths drops a relic (9 relics, Lv 1–10, slots at M1/30/60/90, M99 Ascension ×1.5). Items drop on depth wins.
+- Master unlock roadmap shown in the Rift card (Arena and Gates tab).
+- Master Gate (gate `M`): baseLv = 66 + 0.75 × Master Lv; drops Uncommon+ items, any set.
+- Spirit Awakening: ★1–★10 after Lv 15, +25% bolt dmg and +2 levels of bonus per star; cap 3 + Master Lv/10. Cost Gold + Stones (stone sink).
+- Legion: Remove buttons on slots and cards; Put in slot only fills a free slot.
+- Master foes: measured with bot snapshots at M0/20/40/60 — single hits were 125–1200 % of hero HP. Now HP ×9, ATK ×1.0 × 1.11^(−0.3 × Master Lv). Result: max hit ~50–80 % (M40 outlier 160 %), fights 10–40 s.
+- Economy: enhance Gold 30 → 20 base, Stones × (1 + ilvl/45). Measured before: a +15 Epic cost ~112 tower fights of Gold at every level but always 480 Stones.
+- XP need from Lv 70 grows ×1.032 more per level (reward/need ratio stays flat, no level runaway).
+- Bot: master snapshots (SNAPDIR), Master Gate farming, gold/stones in master log.
+
 ### v0.21.3 – No More Suns
 - Sun halo FX code deleted entirely (still visible for the player in v0.21.2).
 - Master foes: HP ×1.4 → ×2.2, ATK ×3.2 → ×2.2. Measured before: arena/master fights ended in ~5 s deaths or ~7 s wins (coin flip).

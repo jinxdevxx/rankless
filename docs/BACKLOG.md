@@ -3,9 +3,16 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Legion: no progress after Lv 15 → Spirit Awakening ★1–10 (v0.22.0)
+- [x] Legion: Put in slot replaced random spirit → Remove buttons, fills free slot only (v0.22.0)
+- [x] Master League one-shots (hits up to 12× hero HP) fixed (v0.22.0)
 - [x] Sun animation STILL visible: code deleted completely (v0.21.3)
 - [x] Master/arena fights were 5 s coin flips: masters more HP, less damage (v0.21.3)
-- [ ] NEW MODE from Master Lv 1 (colleague: Master League monotone): Abyss Rift run mode, boons after every fight, permanent relics, unlocks at Master 1/10/20/.../90/99 (in progress)
+- [x] NEW MODE from Master Lv 1 (colleague: Master League monotone): Abyss Rift run mode, boons after every fight, permanent relics, unlocks at Master 1/10/20/.../90/99 (v0.22.0)
+- [x] Too little Gold, too many Mana Stones: enhance gold cost halved, stone cost grows with item level (v0.22.0)
+- [x] Master League needs scaling items: Master Gate (level follows Master Lv) + Rift loot (v0.22.0)
+- [x] Level runaway in the endgame: XP need grows like rewards from Lv 70 (v0.22.0)
+- [ ] RECURRING: report total play time (bot runs, human ≈ 3× bot-min) in live updates after balance changes
 - [x] Tower floor selection must be obvious: big Choose-your-floor box + clickable list (v0.21.2)
 - [x] Goofy sun animation on S-Rank monsters removed (v0.21.2)
 - [x] B-gate 0 floors but A-Rank reached: exam now needs the rank's gate boss (v0.21.2)

@@ -277,14 +277,35 @@ function sheetGates(){
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${rankLabel(RANKS[RANKS.indexOf(g.rank)-1])}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('').replace(/^/, towerCard + daily);
+  }).join('').replace(/^/, (S.rank === 'M' ? riftCard() : '') + towerCard + daily);
 }
 
+/* Abyss Rift card: run status, relics, unlock roadmap (Master League endgame) */
+function boonCard(id, act){ const bn = RIFT_BOONS[id], tr = BOON_TIER[bn.tier];
+  return `<button class="boon t${bn.tier}" style="--c:${tr.c}" data-a="${act}" data-id="${id}"><small>${tr.name}</small><i>${bn.icon}</i><b>${bn.name}</b><span>${bn.desc}</span></button>`; }
+function riftCard(){
+  if(!masterHas(1)) return S.rank === 'SS' ? `<div class="riftcard locked"><b>🌀 ABYSS RIFT</b><span>Pass the Master Trial to open a brand-new endgame mode.</span></div>` : '';
+  const run = S.rift.run, ml = S.master.lv || 0, slots = relicSlots();
+  const boons = run ? Object.entries(run.picks.reduce((m, id) => (m[id] = (m[id]||0) + 1, m), {})).map(([id, n]) => `<span class="bchip" style="--c:${BOON_TIER[RIFT_BOONS[id].tier].c}">${RIFT_BOONS[id].icon} ${RIFT_BOONS[id].name}${n > 1 ? ' ×' + n : ''}</span>`).join('') : '';
+  const relics = Object.keys(RELICS).map(id => { const lv = S.relics.owned[id]||0, on = S.relics.active.includes(id), r = RELICS[id];
+    return `<button class="relic ${lv ? '' : 'none'} ${on ? 'on' : ''}" ${lv ? `data-a="relicToggle" data-id="${id}"` : 'disabled'}><i>${lv ? r.icon : '❔'}</i><b>${lv ? r.name : '???'}</b><span>${lv ? `Lv ${lv}/${RELIC_MAX} · +${+relicValue(id, lv).toFixed(1)}${r.unit}` : 'Drops from Rift Lords'}</span>${on ? '<em>WORN</em>' : ''}</button>`; }).join('');
+  const road = MASTER_UNLOCKS.map(([lv, name, desc]) => `<div class="mu ${masterHas(lv) ? 'ok' : ''}"><b>${lv === 1 ? 'M1' : 'M' + lv}</b><span><strong>${masterHas(lv) ? '✔' : '🔒'} ${name}</strong><small>${desc}</small></span></div>`).join('');
+  return `<div class="riftcard"><div class="rfh"><div><small>ENDGAME · RUN MODE</small><b>🌀 Abyss Rift</b>
+      <span>Fight deeper and deeper. Your HP carries over. After every win pick <b>1 of 3 boons</b>. Every 10 depths a <b>Rift Lord</b> drops a permanent <b>relic</b>.</span></div>
+      <div class="rfbest"><small>BEST DEPTH</small><b>${S.rift.best||0}</b></div></div>
+    ${run ? `<div class="rfrun"><span>Current run: <b>Depth ${run.depth}</b> · HP <b>${Math.round(run.hp*100)}%</b>${run.curse ? ` · 🩸 Pact ×${run.curse}` : ''}</span><div class="bchips">${boons || '<small class="muted">no boons yet</small>'}</div>
+        <div class="row"><button class="btn primary big-next" data-a="riftContinue">▶ CONTINUE · DEPTH ${run.depth + 1}</button><button class="btn" data-a="riftEnd">End run</button></div></div>`
+      : `<div class="row"><button class="btn primary big-next" data-a="riftStart">▶ START RUN · DEPTH 1</button>${masterHas(80) ? '<button class="btn" data-a="riftStart" data-id="deep">Deep Dive · Depth 10</button>' : ''}</div>`}
+    <div class="bt" style="margin-top:12px">RELICS · ${S.relics.active.length}/${slots} worn <small class="muted">(tap to wear / remove)</small></div>
+    <div class="relics">${relics}</div>
+    <div class="bt" style="margin-top:12px">MASTER UNLOCKS <small class="muted">(your Master Lv ${ml})</small></div>
+    <div class="mroad">${road}</div></div>`;
+}
 function sheetMaster(){
   const lv = S.master.lv || 0, nx = Math.min(MASTER_MAX, lv + 1), h = masterFoe(nx), tp = teamPower();
   const p = Math.round(floorPower(h.lv + 3) * REC_MULT.M);
   const ladder = [nx + 2, nx + 1, nx, lv].filter(x => x >= 1 && x <= MASTER_MAX).map(x => `<div class="mlv ${x === nx ? 'next' : x <= lv ? 'done' : ''}"><b>${x}</b><span>${x === nx ? 'NEXT' : x <= lv ? 'CLEARED' : ''}${x % 10 === 0 ? ' · 💀 Wall' : ''}</span></div>`).join('');
-  return `<div class="arena-head"><div class="rank big r-M">M</div><div><h3>Master League</h3>
+  return riftCard() + `<div class="arena-head"><div class="rank big r-M">M</div><div><h3>Master League</h3>
     <p>You conquered every rank. Now climb from Master Lv 1 to <b>${MASTER_MAX}</b>. Every new level pays Gold, XP, Mana Stones, a Rift Diamond and an item. Every 10th level is a wall with 5 Diamonds.</p></div></div>
     <div class="masterbar"><span>Master Lv <b>${lv}</b> / ${MASTER_MAX}</span><div class="bar"><i style="width:${lv/MASTER_MAX*100}%"></i></div></div>
     ${(() => { const cur = lv ? masterTitle(lv) : null, nextM = MASTER_TITLES_BY_LV.slice().reverse().find(([m]) => m > lv), nm = (Math.floor(lv/10) + 1)*10;
@@ -327,7 +348,7 @@ function talentNext(nd, r){
   if(r >= nd.max) return `Maxed · +${+now.toFixed(1)}% ${name}`;
   const sh = TALENT_SHOW[nd.stat], cur = heroStats();
   const t2 = Object.assign({}, S.talents, {[nd.id]: r + 1});
-  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets});
+  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics});
   const d = sh ? nx[sh[0]] - cur[sh[0]] : 0, abs = sh && (sh[0] === 'atk' || sh[0] === 'hp' || sh[0] === 'def');
   const gain = abs ? `+${fmt(d)} ${sh[1]}` : `+${(+d.toFixed(1))}${sh ? sh[1] : ''}`;
   const pw = powerOf(nx) - powerOf(cur);
@@ -467,7 +488,7 @@ function sheetLegion(){
   for(let i = 0; i < PET_SLOT_COST.length - 1; i++){
     const id = P.active[i];
     if(i >= slots) slotHtml += `<div class="pslot locked">${ICON.lock}<small>Slot ${i+1}</small>${i === slots ? `<button class="btn small primary" data-a="buyPetSlot" ${S.gold >= nextSlot ? '' : 'disabled'}>${ICON.gold} ${fmt(nextSlot)}</button>` : '<small class="muted">buy slot ' + i + ' first</small>'}</div>`;
-    else slotHtml += `<div class="pslot ${id ? 'on' : ''}">${id ? `${petIcon(id, 54)}<b>${PETS[id].name}</b><small>Lv ${P.owned[id]} · +${petBonus(id, P.owned[id])}${PETS[id].unit} ${PETS[id].label}</small>` : '<small>Empty slot<br>Buy a spirit below</small>'}</div>`;
+    else slotHtml += `<div class="pslot ${id ? 'on' : ''}">${id ? `${petIcon(id, 54)}<b>${PETS[id].name}</b><small>Lv ${P.owned[id]}${petStar(id) ? ' · ' + '★'.repeat(petStar(id)) : ''} · +${petBonus(id, P.owned[id])}${PETS[id].unit} ${PETS[id].label}</small><button class="btn small pslotx" data-a="unslotPet" data-id="${id}">✕ Remove</button>` : '<small>Empty slot<br>Put a spirit in from below</small>'}</div>`;
   }
   const hs = heroStats();
   const cards = PET_ORDER.map(id => {
@@ -477,10 +498,15 @@ function sheetLegion(){
     if(!lv) action = `${costLine('gold', 'Price', S.gold, p.price)}<button class="btn primary" data-a="buyPet" data-id="${id}" ${S.gold >= p.price ? '' : 'disabled'}>Buy ${p.name}</button>`;
     else if(lv < PET_MAX_LV){ const c = petUpCost(id, lv);
       action = `<div class="muted small">Next level: +${petBonus(id, lv + 1)}${p.unit} ${p.label}, ${Math.round(hs.atk*petDmg(id, lv + 1))} damage per bolt</div>${costLine('gold', 'Level up', S.gold, c)}<button class="btn primary" data-a="upPet" data-id="${id}" ${S.gold >= c ? '' : 'disabled'}>Level up → ${lv + 1}</button>`; }
-    else action = '<div class="tag">MAX LEVEL</div>';
-    const use = lv ? (act ? '<span class="tag">IN SLOT</span>' : `<button class="btn small" data-a="usePet" data-id="${id}">Put in slot</button>`) : '';
+    else { const st = petStar(id), cap = petStarCap();
+      if(st >= PET_STAR_MAX) action = '<div class="tag">MAX LEVEL · ★10 FULLY AWAKENED</div>';
+      else if(st >= cap) action = `<div class="awk"><b>${'★'.repeat(st)}${'☆'.repeat(PET_STAR_MAX - st)}</b><span>Next star unlocks at <b>Master Lv ${(st - 2)*10}</b>.</span></div>`;
+      else { const c = petStarCost(st + 1), ok = S.gold >= c.gold && S.stones >= c.stones;
+        action = `<div class="awk"><b>${'★'.repeat(st)}${'☆'.repeat(PET_STAR_MAX - st)}</b><span>AWAKEN ★${st + 1}: +25% bolt damage, bonus +${petBonus(id, lv, st + 1)}${p.unit}</span></div>${costLine('gold', 'Gold', S.gold, c.gold)}${costLine('stone', 'Stones', S.stones, c.stones)}<button class="btn primary awkbtn" data-a="awakenPet" data-id="${id}" ${ok ? '' : 'disabled'}>✦ Awaken → ★${st + 1}</button>`; } }
+    const full = P.active.length >= slots;
+    const use = lv ? (act ? `<button class="btn small" data-a="unslotPet" data-id="${id}">✕ Remove</button>` : full ? `<span class="muted small">Slots full: remove one above</span>` : `<button class="btn small primary" data-a="usePet" data-id="${id}">+ Put in slot</button>`) : '';
     return `<div class="petcard ${lv ? 'own' : ''} ${act ? 'act' : ''}" style="--c:${p.color}">
-      <div class="ph">${petIcon(id)}<div><b>${p.name}</b><small>${lv ? 'Lv ' + lv + ' / ' + PET_MAX_LV : 'Not owned'}</small></div><span class="sp"></span>${use}</div>
+      <div class="ph">${petIcon(id)}<div><b>${p.name}</b><small>${lv ? 'Lv ' + lv + ' / ' + PET_MAX_LV + (petStar(id) ? ' <b class="stars">' + '★'.repeat(petStar(id)) + '</b>' : '') + (act ? '<br><b class="inslot">IN SLOT</b>' : '') : 'Not owned'}</small></div><span class="sp"></span>${use}</div>
       <div class="pbon"><span class="big">+${nb}${p.unit}</span> ${p.label}<span class="sp"></span><span class="muted">${dmg} dmg / ${p.iv}s</span></div>
       ${action}</div>`;
   }).join('');
@@ -515,7 +541,7 @@ function itemDetail(id){
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
-          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets});
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets, relics:S.relics});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
@@ -567,6 +593,7 @@ function onWaveUI(){
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}${BT.mod ? ' · ' + BT.mod.icon + ' ' + BT.mod.name : ''}</b><span>${THEMES[BT.theme] && THEMES[BT.theme].name ? THEMES[BT.theme].name + ' · ' : ''}Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % 10 === 0 ? ' · BOSS' : BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
+    : BT.mode === 'rift' ? `<small>ABYSS RIFT</small><b>Depth ${BT.depth}${BT.curse ? ' · 🩸×' + BT.curse : ''}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.depth % 10 === 0 ? ' · RIFT LORD' : ''}</span>`
     : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
@@ -639,6 +666,8 @@ function showResult(r){
       ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
   } else if(BT.mode === 'tower'){
     btns = `<button class="btn" data-a="leave">Home</button><button class="btn" data-a="retry">${win ? 'Repeat' : 'Retry'}</button>${win ? `<button class="btn primary big-next" data-a="towerNext">FLOOR ${BT.floor + 1} ›</button>` : ''}`;
+  } else if(BT.mode === 'rift'){
+    btns = win ? `<button class="btn" data-a="riftLeave">Pause run</button>${masterHas(20) && S.rift.run && !S.rift.run.rr ? '<button class="btn" data-a="riftReroll">🎲 Reroll</button>' : ''}` : `<button class="btn" data-a="leave">Home</button><button class="btn primary" data-a="riftStart">New run</button>`;
   } else if(BT.mode === 'rush'){
     btns = `<button class="btn" data-a="leave">Home</button><button class="btn primary" data-a="retry">${win ? 'Farm again' : 'Retry'}</button>`;
   } else if(BT.mode === 'daily'){
@@ -651,7 +680,7 @@ function showResult(r){
   const autoOn = (towerAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
-    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
+    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rift' ? `Abyss Rift · Depth ${BT.depth}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
     ${r.masterUp && MASTER_TITLES_BY_LV.some(([m]) => m === r.masterUp) ? `<div class="rankup" style="border-color:${masterTitle(r.masterUp).color}"><small>NEW TITLE</small><b style="color:${masterTitle(r.masterUp).color}">${masterTitle(r.masterUp).name}</b><span>You earned a new Master title.</span></div>` : ''}
@@ -667,6 +696,9 @@ function showResult(r){
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}
     ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'climb the <b>Training Tower</b> (Gates tab) for Gold + XP, spend talent points in <b>Stats</b>, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}
+    ${r.relic && r.relic !== 'max' ? `<div class="rankup chest"><small>RIFT LORD DEFEATED</small><b>${RELICS[r.relic.id].icon} ${RELICS[r.relic.id].name} ${r.relic.isNew ? '· NEW RELIC!' : '· Lv ' + r.relic.lv}</b><span>+${+relicValue(r.relic.id, r.relic.lv).toFixed(1)}${RELICS[r.relic.id].unit}${S.relics.active.includes(r.relic.id) ? ' · worn' : ' · wear it in the Rift menu'}</span></div>` : ''}
+    ${r.riftOver ? `<div class="rankup"><small>RUN OVER</small><b>Depth ${r.riftOver}</b><span>Best: ${S.rift.best||0}. Boons are gone, relics stay forever.</span></div>` : ''}
+    ${win && r.riftChoices && S.rift.run ? `<div class="boonpick"><div class="bt">PICK A BOON · then Depth ${BT.depth + 1} starts · HP ${Math.round(S.rift.run.hp*100)}%</div><div class="boons">${S.rift.run.choices.map(id => boonCard(id, 'riftBoon')).join('')}</div></div>` : ''}
     <div class="row c">${btns}</div>
     <div class="autobar ${autoOn?'on':''}"><i></i><small><span id="autoTxt">${win ? 'Next fight starts…' : 'Going back one floor…'}</span>  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
@@ -677,6 +709,9 @@ function showResult(r){
   if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; const rep = S.settings.towerRepeat || S.settings.farm === 'repeat'; if(!rep){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
     autoCountdown(!win ? `Back to floor ${tf} in` : tf === BT.floor ? `Repeating floor ${tf} in` : `Floor ${tf} starts in`, 3, tf === BT.floor ? '#bResult [data-a="retry"]' : null);
     UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
+  else if(BT.mode === 'rift' && win && S.rift.run && S.rift.run.choices && (S.settings.autoSkill || S.settings.autoAttack || S.settings.towerRepeat)){
+    autoCountdown('Auto-pick in', 4, null);
+    UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); const run = S.rift.run; if(UI.screen === 'battle' && run && run.choices){ applyBoon(run.choices.find(id => !RIFT_BOONS[id].curse)); startRift(run.depth + 1); } }, 4000); }
   else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = later(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
   else if(autoOn){
     let floor = BT.floor;
@@ -784,7 +819,10 @@ function act(a, el){
       toast('SPIRIT LEVEL UP', `${PETS[id].name} is now Lv ${S.pets.owned[id]}`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'buyPetSlot': { const n = S.pets.slots + 1, c = PET_SLOT_COST[n]; if(!c || S.gold < c) break; S.gold -= c; S.pets.slots = n; fillPetSlots(); UI.shownPower = undefined;
       SFX.unlockFx(); toast('NEW SPIRIT SLOT', `You can now use ${n} spirits at once.`, 'gold'); save(); renderSheet(); renderHome(); break; }
-    case 'usePet': { if(!S.pets.owned[id] || S.pets.active.includes(id)) break; if(S.pets.active.length >= S.pets.slots) S.pets.active.pop(); S.pets.active.unshift(id); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
+    case 'usePet': { if(!S.pets.owned[id] || S.pets.active.includes(id) || S.pets.active.length >= S.pets.slots) break; S.pets.active.push(id); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
+    case 'unslotPet': { const i2 = S.pets.active.indexOf(id); if(i2 >= 0) S.pets.active.splice(i2, 1); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
+    case 'awakenPet': { const lv = S.pets.owned[id], st = petStar(id); if(lv < PET_MAX_LV || st >= petStarCap()) break; const c = petStarCost(st + 1); if(S.gold < c.gold || S.stones < c.stones) break;
+      S.gold -= c.gold; S.stones -= c.stones; S.pets.stars = S.pets.stars || {}; S.pets.stars[id] = st + 1; UI.shownPower = undefined; SFX.unlockFx(); toast('SPIRIT AWAKENED', `${PETS[id].name} ★${st + 1}: +25% bolt damage, more bonus.`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'startTower': UI.sheet = null; startTower(+id); break;
     case 'pickFloor': { const tb = S.tower.best || 0; UI.pickFloor = Math.min(tb + 1, Math.max(1, (UI.pickFloor || tb || 1) + (+el.dataset.d))); renderSheet(); break; }
     case 'startRush': UI.sheet = null; startRush(id || 'gold'); break;
@@ -817,6 +855,13 @@ function act(a, el){
     case 'startMaster': UI.sheet = null; startMaster(); break;
     case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
+    case 'riftStart': { cancelAuto(); UI.sheet = null; closeSheet(); const run = newRiftRun(id === 'deep'); save(); startRift(run.depth + 1); break; }
+    case 'riftContinue': { cancelAuto(); UI.sheet = null; closeSheet(); if(S.rift.run){ S.rift.run.choices = null; startRift(S.rift.run.depth + 1); } break; }
+    case 'riftBoon': { cancelAuto(); const run = S.rift.run; if(run && run.choices && run.choices.includes(id)){ applyBoon(id); save(); startRift(run.depth + 1); } break; }
+    case 'riftReroll': { cancelAuto(); const run = S.rift.run; if(run && !run.rr && masterHas(20)){ run.rr = true; run.choices = rollBoons(); BT.result.riftChoices = run.choices; showResult(BT.result); } break; }
+    case 'riftLeave': { if(S.rift.run && S.rift.run.choices) S.rift.run.choices = null; save(); leaveBattle(); toast('RUN PAUSED', 'Continue it any time in the Abyss Rift (Arena / Gates tab).'); break; }
+    case 'riftEnd': { S.rift.run = null; S.rift.runs = (S.rift.runs||0) + 1; save(); renderSheet(); break; }
+    case 'relicToggle': { const a = S.relics.active, i = a.indexOf(id); if(i >= 0) a.splice(i, 1); else if(a.length < relicSlots()) a.push(id); else { toast('ALL RELIC SLOTS USED', 'Remove a relic first. More slots at Master 30 / 60 / 90.'); break; } save(); renderSheet(); renderHome(); break; }
     case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else if(BT.master) startMaster(); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;

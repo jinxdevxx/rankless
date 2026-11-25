@@ -44,8 +44,9 @@ const { chromium } = require('playwright');
         else { startArena(S.rank, -1, true); const w=run(); log.push(`${(simTime/60).toFixed(0)}m EXAM ${S.rank} ${w?'WIN':'lose'} lv${S.level} P${teamPower()}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
       }
       if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX){ log.push('MASTER 99 DONE'); break; }
-        startMaster(); const w = run(); log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()}`);
-        if(!w){ for(let k=0;k<3;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); if(run()) S.tower.best = Math.max(S.tower.best||0, 0); } manage(); startTower((S.tower.best||0)+1); run(); }
+        if(!window.__snaps) window.__snaps = {}; const mk = 'M' + (S.master.lv||0); if(((S.master.lv||0) % 10 === 0) && !window.__snaps[mk]) window.__snaps[mk] = JSON.stringify(S);
+        startMaster(); const w = run(); log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);
+        if(!w){ { manage(); const mf = Math.min(10, (S.gates.M||0) + 1); startGate('M', mf); const gw = run(); log.push(`${(simTime/60).toFixed(0)}m MGATE F${mf} ${gw ? 'clear' : 'lose'} gateLv${masterGateLv()}`); } for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startTower((S.tower.best||0)+1); run(); }
         continue; }
       if(full && !list){ log.push('ALL DONE'); break; }
       startGate(gate.id, nf); const w = run();
@@ -57,5 +58,6 @@ const { chromium } = require('playwright');
   }, [aff, policy, maxMin]);
   console.log(res);
   console.log('ST', JSON.stringify(await p.evaluate(()=>window.ST))); console.log('LR', JSON.stringify(await p.evaluate(()=>{ const o={}; for(const k in window.LR) o[k]=window.LR[k].n+'x '+Math.round(window.LR[k].t/window.LR[k].n)+'s'; return o; }))); console.log('ERRORS', errs.slice(0,5));
+  const snaps = await p.evaluate(() => window.__snaps || {}); if(process.env.SNAPDIR){ for(const k in snaps) require('fs').writeFileSync(`${process.env.SNAPDIR}/snap_${aff}_${policy}_${k}.json`, snaps[k]); }
   await b.close();
 })();

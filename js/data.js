@@ -195,9 +195,13 @@ const GATES = [
     desc:'A drowned temple where a dead sun still glows.'},
   {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:.95, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
+  /* Master Gate: its level grows with your Master League level, so its loot always keeps up */
+  {id:'M', rank:'M', name:'Master Gate', get baseLv(){ return masterGateLv(); }, mult:.9, theme:'t_storm', enemies:['hunterx','oracle','reaver','stalker'], elite:'colossus', boss:'abyssking',
+    desc:'A gate that grows with you. Its level follows your Master League level, so the loot always keeps up.'},
 ];
+function masterGateLv(){ return 66 + Math.round((((typeof S !== 'undefined' && S.master && S.master.lv) || 0))*.75); }
 const FLOORS = 10;
-const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:null, SS:'eclipse'};   // S: sun halo removed (v0.21.2, looked goofy)
+const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:null, SS:'eclipse', M:'storm'};   // S: sun halo removed (v0.21.2, looked goofy)
 const MOB_FX = {}; for(const g of GATES) for(const t of [...g.enemies, g.elite, g.boss]) if(!MOB_FX[t]) MOB_FX[t] = GATE_FX[g.id];
 
 /* ---------- arena ---------- */
@@ -311,8 +315,14 @@ const PET_ORDER = ['ember','frost','storm','owl','moth'];
 const PET_MAX_LV = 15;
 const PET_SLOT_COST = [0, 0, 5000, 25000];   // slot 1 is free, slot 2 and 3 are bought
 function petUpCost(id, lv){ return Math.round(PETS[id].price * .6 * Math.pow(1.42, lv - 1)); }
-function petBonus(id, lv){ const p = PETS[id]; return +(p.b0 + p.bl*(lv - 1)).toFixed(1); }
-function petDmg(id, lv){ return PETS[id].dmg * (1 + .1*(lv - 1)); }
+/* Spirit Awakening (v0.22.0): after Lv 15 spirits gain stars. Each star: +25% bolt damage, +2 levels worth of bonus.
+   Stars 1-3 are open at once, every 10 Master levels opens one more (max 10). Costs Gold + lots of Mana Stones. */
+const PET_STAR_MAX = 10;
+function petStar(id){ return (typeof S !== 'undefined' && S.pets && S.pets.stars && S.pets.stars[id]) || 0; }
+function petStarCap(){ return Math.min(PET_STAR_MAX, 3 + (S.rank === 'M' ? Math.floor(((S.master && S.master.lv) || 0)/10) : 0)); }
+function petStarCost(st){ return {gold:Math.round(goldFor(Math.max(30, S.level))*40*st), stones:Math.round(350*st*Math.pow(1.35, st - 1))}; }
+function petBonus(id, lv, st = petStar(id)){ const p = PETS[id]; return +(p.b0 + p.bl*(lv - 1 + 2*st)).toFixed(1); }
+function petDmg(id, lv, st = petStar(id)){ return PETS[id].dmg * (1 + .1*(lv - 1)) * (1 + .25*st); }
 /* Gold Rush: repeatable fight with no loot, lots of gold */
 const RUSH_GOLD = 32;
 /* E-Rank is the 'get hooked' phase: enemies are softer so spamming players progress quickly */
@@ -439,3 +449,54 @@ function skillDef(i){
   return sk;
 }
 function specEnergy(k){ const sp = specOf(); return sp && sp.energy && sp.energy[k] || (k === 'kill' ? 0 : 1); }
+
+/* ================= ABYSS RIFT (endgame mode from Master League) =================
+   A run: fight deeper and deeper, HP carries over, after every win pick 1 of 3 boons.
+   Every 10 depths a Rift Lord drops a permanent relic. Master levels unlock new things. */
+const MASTER_UNLOCKS = [
+  [1,  'Abyss Rift',    'New mode: an endless run. HP carries over, pick a boon after every win. 1 relic slot.'],
+  [10, 'Rare Boons',    'Stronger gold boons appear in the Rift.'],
+  [20, 'Reroll',        'Reroll the boon choice once per run.'],
+  [30, 'Relic Slot 2',  'Wear 2 relics at once.'],
+  [40, 'Blood Pact',    'Curse cards: enemies +25% stronger, all Rift rewards +50%. Stacks.'],
+  [50, 'Second Wind',   'Once per run you get back up with 50% HP.'],
+  [60, 'Relic Slot 3',  'Wear 3 relics at once.'],
+  [70, 'Mythic Boons',  'Red mythic boons with huge power.'],
+  [80, 'Deep Dive',     'Start a run at depth 10 with 3 free boons.'],
+  [90, 'Relic Slot 4',  'Wear 4 relics at once.'],
+  [99, 'Ascension',     'All relics are 50% stronger. You are Rankless.'],
+];
+function masterHas(n){ return S.rank === 'M' && (n <= 1 || ((S.master && S.master.lv) || 0) >= n); }
+const RIFT_BOONS = {
+  fury:   {tier:1, icon:'⚔️', name:'Fury',          desc:'+15% ATK',                 b:{atkP:15}},
+  vigor:  {tier:1, icon:'❤️', name:'Vigor',         desc:'+20% Max HP',              b:{hpP:20}},
+  edge:   {tier:1, icon:'🎯', name:'Keen Edge',     desc:'+8% Crit',                 b:{crit:8}},
+  swift:  {tier:1, icon:'💨', name:'Swiftness',     desc:'+12% attack speed',        b:{spd:12}},
+  arcane: {tier:1, icon:'✨', name:'Arcana',        desc:'+25% skill damage',        b:{skill:25}},
+  mend:   {tier:1, icon:'💚', name:'Mend',          desc:'Heal 60% HP now',          heal:.6},
+  greed:  {tier:1, icon:'💰', name:'Greed',         desc:'+30% Gold + XP this run',  b:{loot:30}},
+  focus:  {tier:1, icon:'🔷', name:'Ki Focus',      desc:'Start every fight with +40 Ki', b:{ki:2}},
+  fury2:  {tier:2, icon:'🔥', name:'Wrath',         desc:'+30% ATK',                 b:{atkP:30}},
+  vigor2: {tier:2, icon:'🛡️', name:'Titan Blood',   desc:'+40% Max HP',              b:{hpP:40}},
+  brutal: {tier:2, icon:'💥', name:'Brutality',     desc:'+40% Crit damage',         b:{critDmg:40}},
+  leech:  {tier:2, icon:'🩸', name:'Bloodthirst',   desc:'+4% lifesteal (cap 12%)',  b:{lifesteal:4}},
+  myth1:  {tier:3, icon:'☄️', name:'Abyss Power',   desc:'+60% ATK',                 b:{atkP:60}},
+  myth2:  {tier:3, icon:'🗿', name:'Colossus',      desc:'+80% Max HP',              b:{hpP:80}},
+  myth3:  {tier:3, icon:'⚡', name:'Overdrive',     desc:'+25% speed, +15% Crit',    b:{spd:25, crit:15}},
+  pact:   {tier:0, icon:'🩸', name:'Blood Pact',    desc:'CURSE: enemies +25% stronger, rewards +50%', curse:true},
+};
+const BOON_TIER = {0:{name:'CURSE', c:'#ff3d5e'}, 1:{name:'COMMON', c:'#9fb4d0'}, 2:{name:'RARE', c:'#ffd27a'}, 3:{name:'MYTHIC', c:'#ff5a5a'}};
+const RELICS = {
+  fang:  {icon:'🗡️', name:'Abyss Fang',     stat:'atkP', per:3,   unit:'% ATK'},
+  heart: {icon:'❤️', name:'Rift Heart',     stat:'hpP',  per:4,   unit:'% Max HP'},
+  eye:   {icon:'👁️', name:'Void Eye',       stat:'crit', per:1.2, unit:'% Crit'},
+  wing:  {icon:'🪶', name:'Storm Feather',  stat:'spd',  per:2,   unit:'% speed'},
+  tome:  {icon:'📖', name:'Forbidden Tome', stat:'skill',per:5,   unit:'% skill dmg'},
+  shell: {icon:'🐚', name:'Abyss Shell',    stat:'dr',   per:1,   unit:'% less damage'},
+  bell:  {icon:'🔔', name:'Spirit Bell',    stat:'petP', per:5,   unit:'% spirit dmg'},
+  crown: {icon:'👑', name:'Gilded Crown',   stat:'gold', per:6,   unit:'% Gold'},
+  glass: {icon:'⏳', name:'Sage Hourglass', stat:'xp',   per:6,   unit:'% XP'},
+};
+const RELIC_MAX = 10;
+function relicSlots(){ return masterHas(1) ? 1 + (masterHas(30) ? 1 : 0) + (masterHas(60) ? 1 : 0) + (masterHas(90) ? 1 : 0) : 0; }
+function relicValue(id, lv){ return RELICS[id].per*lv*(masterHas(99) ? 1.5 : 1); }

@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -71,7 +71,7 @@ function parseCode(code){
 
 /* ---------- XP & economy curves ---------- */
 // early levels come fast (hook), later levels follow the full curve
-const xpNeed  = lv => Math.floor(280 * Math.pow(1.21, Math.min(lv, 30)-1) * Math.pow(1.085, Math.max(0, lv-30)) * Math.min(1, .2 + lv*.08));   // flatter after Lv 30 so high ranks stay reachable
+const xpNeed  = lv => Math.floor(280 * Math.pow(1.21, Math.min(lv, 30)-1) * Math.pow(1.085, Math.max(0, lv-30)) * Math.pow(1.032, Math.max(0, lv-70)) * Math.min(1, .2 + lv*.08));   // flatter after Lv 30; from Lv 70 grows like the rewards (no level runaway, v0.22.0)
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
 const enemyHp = L  => 850 * Math.pow(1.16, L-1);
@@ -103,9 +103,10 @@ function makeItem(slot, ilvl, rar, set){
   };
 }
 /* higher gates drop fewer Commons: a Common roll is upgraded to Rare with this chance */
-const COMMON_UPGRADE = {E:0, D:.6, C:.85, B:.95, A:1, S:1, SS:1};
+const COMMON_UPGRADE = {E:0, D:.6, C:.85, B:.95, A:1, S:1, SS:1, M:1};
 function randomItem(ilvl, bonus=0, gateId){
   let rar = rollRarity(bonus);
+  if(gateId === 'M'){ if(rar < 2 && Math.random() < .5) rar = 2; if(rar === 0) rar = 1; gateId = pick(Object.keys(SET_OF_GATE)); }   // Master Gate / Rift: no junk, any set can drop
   if(rar === 0 && Math.random() < (COMMON_UPGRADE[gateId] || 0)) rar = 1;
   const set = gateId && SET_OF_GATE[gateId] && (rar >= 3 || (rar === 2 && Math.random() < .5)) ? SET_OF_GATE[gateId] : undefined;
   return makeItem(pick(SLOTS), ilvl, rar, set);
@@ -121,7 +122,8 @@ function itemBase(it){
   return out;
 }
 function statLine(k, v){ return PCT.has(k) ? `+${(Math.round(v*10)/10)}% ${STAT_LABEL[k]}` : `+${fmt(v)} ${STAT_LABEL[k]}`; }
-function enhanceCost(it){ return {gold: Math.ceil(30 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: (it.plus+1) * (1 + it.rar)}; }
+/* v0.22.0 economy: gold cost about halved, stone cost grows with item level (stones were piling up, gold was the only wall) */
+function enhanceCost(it){ return {gold: Math.ceil(20 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: Math.round((it.plus+1) * (1 + it.rar) * (1 + it.ilvl/45))}; }
 function enhanceRate(it){ if(S.settings && S.settings.simple) return it.plus < MAX_PLUS ? 1 : 0; return ENHANCE_RATE[it.plus] ?? 0; }
 /* salvage gives the base value plus 65% of everything spent on enhancing (35% is lost) */
 const SALVAGE_REFUND = .65;
@@ -142,6 +144,7 @@ function calcStats(src){
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
   if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat) o[nd.stat] += talentValue(nd, r); }
+  if(src.relics) for(const id of src.relics.active || []){ const lv = src.relics.owned[id]; if(lv && RELICS[id]) o[RELICS[id].stat] += relicValue(id, lv); }
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }

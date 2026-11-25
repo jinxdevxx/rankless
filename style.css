@@ -945,3 +945,36 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .tmapw{display:flex;flex-direction:column;gap:6px}
 .tmaph{font:900 13px Nunito,sans-serif;letter-spacing:.06em;color:#ffd27a;text-align:center}
 .fprow{flex-wrap:nowrap} .fpb{flex:1;min-width:0;padding:0 4px} .fpn{flex:1.4;min-width:0}
+
+/* Abyss Rift (v0.22.0) */
+.riftcard{margin-bottom:16px;padding:16px;border-radius:18px;border:2px solid #c77dff;background:linear-gradient(135deg,rgba(80,30,120,.55),rgba(20,10,35,.75));box-shadow:0 0 24px rgba(199,125,255,.25)}
+.riftcard.locked{opacity:.75;display:flex;flex-direction:column;gap:4px} .riftcard.locked b{color:#c77dff;font:900 18px Nunito,sans-serif}
+.rfh{display:flex;gap:14px;justify-content:space-between;align-items:flex-start}
+.rfh small{font:900 11px Nunito,sans-serif;letter-spacing:.12em;color:#c77dff} .rfh>div>b{display:block;font:400 34px 'Bebas Neue',sans-serif;color:#fff;letter-spacing:.04em}
+.rfh span{font:600 14px Nunito,sans-serif;color:#e8e2f0} .rfh span b{color:#e3b8ff}
+.rfbest{text-align:center;padding:8px 14px;border-radius:12px;background:#0006;border:1px solid #c77dff88;flex-shrink:0} .rfbest b{display:block;font:400 34px 'Bebas Neue',sans-serif;color:#fff}
+.riftcard .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.rfrun{margin-top:12px;padding:10px;border-radius:12px;background:#0005;font:700 14px Nunito,sans-serif;color:#e8e2f0}
+.bchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.bchip{padding:4px 10px;border-radius:999px;border:1px solid var(--c);font:800 12px Nunito,sans-serif;color:#fff;background:rgba(0,0,0,.3)}
+.relics{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:6px}
+.relic{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px;border-radius:12px;border:1px solid #ffffff22;background:#1c1528;color:#e8e2f0;text-align:left;cursor:pointer;font:inherit}
+.relic i{font-style:normal;font-size:22px} .relic b{font:900 13px Nunito,sans-serif} .relic span{font:600 11px Nunito,sans-serif;color:#b9b0c9}
+.relic.on{border:2px solid #ffd27a;background:#2b2036;box-shadow:0 0 12px rgba(255,210,122,.3)} .relic.none{opacity:.4;cursor:default}
+.relic em{position:absolute;top:6px;right:8px;font:900 10px Nunito,sans-serif;color:#ffd27a;font-style:normal}
+.mroad{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:6px;margin-top:6px}
+.mu{display:flex;gap:8px;align-items:flex-start;padding:8px;border-radius:10px;background:#0004;opacity:.6}
+.mu.ok{opacity:1;border:1px solid #7fffd466} .mu>b{font:400 20px 'Bebas Neue',sans-serif;color:#c77dff;min-width:34px}
+.mu strong{display:block;font:900 13px Nunito,sans-serif;color:#fff} .mu small{font:600 11px Nunito,sans-serif;color:#b9b0c9}
+.boonpick{margin:12px auto;max-width:640px} .boons{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:8px}
+.boon{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 10px;border-radius:14px;border:2px solid var(--c);background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(0,0,0,.35));color:#fff;cursor:pointer;font:inherit;animation:boonIn .35s ease both}
+.boon:hover{transform:translateY(-3px);box-shadow:0 0 18px var(--c)}
+.boon small{font:900 10px Nunito,sans-serif;letter-spacing:.12em;color:var(--c)} .boon i{font-style:normal;font-size:30px} .boon b{font:900 16px Nunito,sans-serif} .boon span{font:700 12px Nunito,sans-serif;color:#e8e2f0;text-align:center}
+.boon.t3{box-shadow:0 0 16px rgba(255,90,90,.45)} .boon.t0{background:linear-gradient(180deg,rgba(255,61,94,.18),rgba(0,0,0,.4))}
+@keyframes boonIn{from{opacity:0;transform:translateY(12px) scale(.95)}to{opacity:1;transform:none}}
+
+/* Legion: remove buttons + awakening (v0.22.0) */
+.pslot{position:relative} .pslotx{margin-top:6px}
+.awk{display:flex;flex-direction:column;gap:2px;margin:6px 0;font:700 13px Nunito,sans-serif;color:#e8e2f0}
+.awk b{color:#ffd27a;letter-spacing:2px;font-size:16px} .stars{color:#ffd27a} .inslot{color:#7fffd4}
+.awkbtn{background:linear-gradient(90deg,#c77dff,#ffd27a)!important;color:#1a0f24!important}

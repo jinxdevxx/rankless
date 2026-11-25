@@ -10,7 +10,7 @@ Add new player feedback here as a new point, so it is never forgotten.
 3. **Skills always respond**: Ki bar (0–100) visible, every skill shows its Ki cost; pressing a skill either casts it or shows why not ("Need 40 Ki", "unlocks at Lv X"). Test keys 1/2/3/R and button taps.
 4. **Bag stays clean**: items worse than equipped even at +15 are marked ✖, "Salvage useless" removes ALL of them (only locked items kept) and shows Stones/Gold; useless drops are auto-salvaged after fights; few Commons in D/C.
 5. **Gear is always the best**: Equip best and auto-equip compare real Power (enhance level included). A strong +8 item stays equipped over a weaker fresh drop. Sets (2/4 pieces) are counted: run `node tools/equip_best_test.js`, must be 100 % optimal. Bag cards show +/- Power, item details show "beats yours at +N".
-6. **Spirit Legion matters**: spirits are ranged only, can't die, are bought/levelled/slotted with Gold (no drops) and give a clearly useful bonus + damage.
+6. **Spirit Legion matters** (slots: one-click Remove, Put in slot fills a free slot; Awakening ★ after Lv 15 keeps scaling into the Master League): spirits are ranged only, can't die, are bought/levelled/slotted with Gold (no drops) and give a clearly useful bonus + damage.
 6b. **Farming always possible**: Training Tower is unlimited, floors climb gradually, pays Gold + XP, chest every 5 floors; you can always win a lower floor.
 6c. **Early game is fun**: a pure SPACE-spammer without skills clears E-Rank steadily (spam bot: `node tools/bot_balance.js flame spam 60`, no floor with >6 losses in E). Midgame (D/C) is harder but never a wall.
 6d. **Item window**: actions visible without scrolling on phones; enhance shows have / cost / left after for Gold and Stones; salvage refunds 65% of enhance spending.
@@ -27,6 +27,9 @@ Add new player feedback here as a new point, so it is never forgotten.
 9. **Update flow**: version bump, English patch notes, README changelog entry for every change, live-update post (German, short), devlog updated.
 
 10. **Long game**: ranks E→S+ each with gate + arena + exam, Master League 1–99 reachable; long bot (`node tools/bot_balance.js flame spamskill 900`) shows no wall (>10 losses on a floor) in any gate; E→B ≈ 60 bot-min target.
+
+11. **Economy**: Gold and Mana Stones both matter. A +15 Epic costs a similar number of fights in Gold AND Stones at every level; nobody sits on thousands of useless Stones while Gold blocks everything.
+12. **Endgame variety**: from Master Lv 1 the Abyss Rift (run mode, boons, relics) and the Master Gate (loot level follows Master Lv) work; unlocks at Master 1/10/20/…/99 visible in the Rift card.
 
 ## Improve continuously (pick the weakest point each round)
 - RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.
