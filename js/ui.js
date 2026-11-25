@@ -313,6 +313,11 @@ function sheetHero(){
 }
 
 /* a big, readable cost line: what you have vs. what you need */
+/* compact cost chip: what you HAVE / what it COSTS, and what is left afterwards */
+function haveNeed(icon, label, have, need){
+  const ok = have >= need;
+  return `<span class="hn ${ok ? 'ok' : 'no'}"><small>${label}</small><span class="hv">${ICON[icon]}<b>${fmt(have)}</b><i>/ ${fmt(need)}</i></span><em>${ok ? 'left after: ' + fmt(have - need) : 'missing ' + fmt(need - have)}</em></span>`;
+}
 function costLine(icon, label, have, need){
   const ok = have >= need;
   return `<div class="cost ${ok ? 'ok' : 'no'}"><span class="ci">${ICON[icon]}</span><span class="cl">${label}</span><b>${fmt(have)} / ${fmt(need)}</b><span class="cm">${ok ? '✓' : 'need ' + fmt(need - have)}</span></div>`;
@@ -431,7 +436,7 @@ function itemDetail(id){
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
       ${it.plus < MAX_PLUS ? `<div class="upgrade compact"><div class="ut">Enhance <b>+${it.plus} → +${it.plus+1}</b> <small>+8% base stats${er < 1 ? ` · ${Math.round(er*100)}% chance` : ''}</small></div>
-        <div class="urow"><span class="cchip ${S.gold >= ec.gold ? 'ok' : 'no'}">${ICON.gold} ${fmt(ec.gold)}</span><span class="cchip ${S.stones >= ec.stones ? 'ok' : 'no'}">${ICON.stone} ${fmt(ec.stones)}</span><span class="sp"></span>
+        <div class="urow">${haveNeed('gold', 'Gold', S.gold, ec.gold)}${haveNeed('stone', 'Mana Stones', S.stones, ec.stones)}<span class="sp"></span>
         <button class="btn primary" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance</button></div>
         ${it.plus ? `<small class="muted">Salvage returns 65% of what you spent on enhancing.</small>` : ''}</div>` : '<div class="hint">This item is fully enhanced (+15).</div>'}
     </div>`);

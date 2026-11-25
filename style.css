@@ -828,3 +828,17 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 @media (max-width:640px){ .kibar{width:min(340px,92vw);min-width:0} }
 .skb .cost{position:static;transform:none;margin:2px auto 0;display:inline-block;font-size:10px;padding:0 5px}
 .skb:not(.ult):not(.strike) kbd{bottom:auto;top:6px}
+
+/* ---------- have / need chips (v0.17.1) ---------- */
+.hn{display:inline-flex;flex-direction:column;gap:1px;padding:6px 12px;border-radius:12px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);min-width:130px}
+.hn small{font:900 10px Nunito,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.hn .hv{display:flex;align-items:baseline;gap:5px;font:400 24px "Bebas Neue",sans-serif;line-height:1}
+.hn .hv svg{font-size:16px;align-self:center}
+.hn .hv b{font-weight:400;color:#fff} .hn .hv i{font-style:normal;font-size:18px;color:var(--muted)}
+.hn em{font-style:normal;font:700 11px Nunito,sans-serif}
+.hn.ok{border-color:rgba(93,255,155,.45)} .hn.ok em{color:#b9ffcf}
+.hn.no{border-color:rgba(255,120,110,.55)} .hn.no .hv b{color:#ff9b8f} .hn.no em{color:#ff9b8f}
+.upgrade.compact .urow{flex-wrap:wrap}
+@media (max-width:640px){ .hn{min-width:0;flex:1} .upgrade.compact .urow .btn{flex-basis:100%} }
+.hn .hv{white-space:nowrap}
+@media (max-width:640px){ .hn{flex:1 1 40%;padding:6px 9px} .hn .hv{font-size:20px} .hn .hv i{font-size:15px} .hn small{font-size:9px} }

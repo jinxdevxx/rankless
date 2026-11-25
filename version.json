@@ -1,10 +1,9 @@
 {
-  "version": "0.17.0",
+  "version": "0.17.1",
   "date": "2026-11-25",
-  "title": "Ki",
+  "title": "Know Your Wallet",
   "notes": [
-    "Breaker Crystals are gone. Skills now run on Ki, your fighting spirit: a glowing 0-100 Ki bar fills as you hit, block and defeat enemies.",
-    "Every skill shows its Ki cost right on the button (20 / 40 / 60 Ki). If you press a skill too early you see how much Ki is missing.",
-    "Keystone Crystal Heart is now Ki Heart (+40 Ki at the start of every fight)."
+    "Enhancing an item now shows what you HAVE and what it COSTS for Gold and Mana Stones (e.g. 4,200 / 1,050), plus what is left afterwards or how much is missing.",
+    "Same compact design, just clearer: green when you can afford it, red when something is missing."
   ]
 }

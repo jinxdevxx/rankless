@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.17.1 – Know Your Wallet
+- Item enhance row uses haveNeed() chips: have / cost, 'left after' or 'missing', green/red.
+
 ### v0.17.0 – Ki
 - Breaker Crystals replaced by Ki (KI_UNIT = 20, shown 0–100): animated Ki bar with markers every 20, skill buttons show Ki cost, feedback 'Need X Ki', texts/tutorials/jobs/keystone renamed.
 
