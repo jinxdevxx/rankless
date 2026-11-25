@@ -1,9 +1,9 @@
 {
-  "version": "0.17.1",
+  "version": "0.17.2",
   "date": "2026-11-25",
-  "title": "Know Your Wallet",
+  "title": "Keep Climbing",
   "notes": [
-    "Enhancing an item now shows what you HAVE and what it COSTS for Gold and Mana Stones (e.g. 4,200 / 1,050), plus what is left afterwards or how much is missing.",
-    "Same compact design, just clearer: green when you can afford it, red when something is missing."
+    "Training Tower: with AUTO FARM or AUTO ATTACK on, the next floor starts by itself after a win. A 3-second countdown runs on the button, press stop (or any button) to stay.",
+    "After a loss the tower goes back one floor automatically, so auto farming never gets stuck."
   ]
 }

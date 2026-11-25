@@ -545,7 +545,8 @@ function showResult(r){
   } else { const nx = win ? nextArenaFight() : null;
     btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[2] ? 'RANK EXAM' : 'NEXT FIGHT'} › <small>${esc(nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
-  const autoOn = (BT.mode === 'gate' || BT.mode === 'tower' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
+  const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack);
+  const autoOn = (towerAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
@@ -562,14 +563,15 @@ function showResult(r){
     ${unl}
     ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'climb the <b>Training Tower</b> (Gates tab) for Gold + XP, spend talent points in <b>Stats</b>, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}
     <div class="row c">${btns}</div>
-    <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
+    <div class="autobar ${autoOn?'on':''}"><i></i><small><span id="autoTxt">${win ? 'Next fight starts…' : 'Going back one floor…'}</span>  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
   $('#bResult').classList.add('on');
   rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
-  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; if(S.settings.farm === 'push'){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
-    UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startTower(tf); }, 2600); }
+  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; if(S.settings.farm !== 'repeat'){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
+    autoCountdown(win ? `Floor ${tf} starts in` : `Back to floor ${tf} in`, 3);
+    UI.autoNext = setTimeout(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
   else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
   else if(autoOn){
     let floor = BT.floor;
@@ -603,7 +605,13 @@ function rewardAnim(r){
     } else bar.style.width = endPct + '%';
   }, 250);
 }
-function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
+/* visible countdown on the result screen while auto-continue is running */
+function autoCountdown(label, secs){
+  clearInterval(UI.autoCd); let n = secs;
+  const put = () => { const el = document.getElementById('autoTxt'); if(el) el.textContent = `${label} ${n}…`; const nb = document.querySelector('#bResult .big-next'); if(nb && !nb.dataset.base) nb.dataset.base = nb.innerHTML; if(nb) nb.innerHTML = `${nb.dataset.base} <small class="cd">${n}</small>`; };
+  put(); UI.autoCd = setInterval(() => { n = Math.max(0, n - 1); put(); if(n <= 0) clearInterval(UI.autoCd); }, 1000);
+}
+function cancelAuto(){ clearInterval(UI.autoCd); if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
 function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
   if(timingMode()){ if(!S.flags.tipRing){ S.flags.tipRing = true; S.flags.tipStrike2 = true; setTimeout(() => toast('NEW: TIMING COMBAT', 'A white ring closes in on the enemy. Press SPACE (or tap) while it is inside the gold zone: PERFECT hits deal huge damage. Mashing makes you stumble! Just want to farm? Use AUTO FIGHT (top right).', 'gold'), 700); } }

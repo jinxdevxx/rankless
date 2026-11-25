@@ -842,3 +842,7 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 @media (max-width:640px){ .hn{min-width:0;flex:1} .upgrade.compact .urow .btn{flex-basis:100%} }
 .hn .hv{white-space:nowrap}
 @media (max-width:640px){ .hn{flex:1 1 40%;padding:6px 9px} .hn .hv{font-size:20px} .hn .hv i{font-size:15px} .hn small{font-size:9px} }
+
+.big-next .cd{display:inline-grid;place-items:center;width:26px;height:26px;margin-left:6px;border-radius:50%;background:rgba(0,0,0,.25);font:400 18px "Bebas Neue",sans-serif;animation:cdpulse 1s ease-in-out infinite}
+@keyframes cdpulse{50%{transform:scale(1.15)}}
+#bResult .autobar.on small{font-size:14px;font-weight:800}

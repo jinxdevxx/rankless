@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Training Tower auto-continues to the next floor with a visible countdown when auto farming (v0.17.2)
 - [x] Enhance must show how much Gold/Stones you have next to the cost (v0.17.1)
 - [x] Crystals look bad / make no sense: replaced by a Ki bar (0–100) with Ki cost on every skill (v0.17.0)
 - [ ] RECURRING: balancing + flow + dopamine every round (not too easy, not too hard, always progressing)

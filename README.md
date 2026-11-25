@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.17.2 – Keep Climbing
+- Tower auto-continue also when AUTO FARM / AUTO ATTACK is on (towerAuto), 3 s countdown on the next-floor button and in the auto bar (autoCountdown); loss steps one floor down.
+
 ### v0.17.1 – Know Your Wallet
 - Item enhance row uses haveNeed() chips: have / cost, 'left after' or 'missing', green/red.
 
