@@ -8,6 +8,7 @@ const { chromium } = require('playwright');
   await p.waitForFunction(() => typeof menuAct === 'function' && typeof startGate === 'function', null, {timeout:20000});
   const aff = process.argv[2]||'storm'; const policy = process.argv[3]||'good'; const maxMin = +(process.argv[4]||180);
   await p.evaluate(v => { window.__PARA = v; }, !!process.env.PARAGON);
+  await p.evaluate(v => { window.__YOMI = v; }, !!process.env.YOMI);
   const snapIn = process.env.START_SNAP ? require('fs').readFileSync(process.env.START_SNAP, 'utf8') : null;
   const res = await p.evaluate(([aff, policy, maxMin, snapIn]) => {
     S = defaultSave(); SLOT = null; S.created=true; S.intro=true; S.name='BOT'; S.aff='steel'; S.flags.enchantV1=true; const ENCH=aff;
@@ -31,7 +32,7 @@ const { chromium } = require('playwright');
       { const order = ['blade','tough','eye','iron','brutal','leech','k_berserk','arts','giant','k_second','a_power','a_vital','a_crit','k_wrath','a_spirit','k_kiflow','a_limit']; let g = 0; while(talentFree() > 0 && g++ < 60){ const id = order.find(x => { const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.some(n => n.id === x)); const nd = TALENTS[bk].nodes.find(n => n.id === x); return (S.talents[x]||0) < nd.max && talentOpenNode(bk, nd); }); if(!id) break; S.talents[id] = (S.talents[id]||0) + 1; } }
       // endgame sinks a human would use: spirit awakening + skill mastery + enhance to +15 in the Master League
       if(S.rank === 'M'){ for(const id of S.pets.active){ let g = 0; while(g++ < 10 && S.pets.owned[id] >= PET_MAX_LV && petStar(id) < petStarCap()){ const c = petStarCost(petStar(id) + 1); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.pets.stars = S.pets.stars || {}; S.pets.stars[id] = petStar(id) + 1; } }
-        for(let i = 0; i < 4; i++){ let g = 0; while(g++ < 10 && masteryLv(i) < MASTERY_MAX){ const c = masteryCost(i); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; } }
+        for(let i = 0; i < 4; i++){ let g = 0; while(g++ < 10 && masteryLv(i) < masteryCap()){ const c = masteryCost(i); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; } }
         for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 15 && it.plus < 15){ const c = enhanceCost(it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; it.plus++; } }
         if(typeof ascendCost === 'function') for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 5 && ascendOpen(it)){ const c = ascendCost(it); if(S.gold < c.gold*2 || S.stones < c.stones*2) break; S.gold -= c.gold; S.stones -= c.stones; it.asc = (it.asc||0) + 1; } } }
       checkUnlocks(true);
@@ -51,6 +52,13 @@ const { chromium } = require('playwright');
         if(done < list.length){ startArena(S.rank, done, false); const w=run(); log.push(`${(simTime/60).toFixed(0)}m arena ${S.rank}#${done} ${w?'WIN':'lose'} lv${S.level} P${teamPower()} rec${floorPower(list[done].lv+(list[done].rival?3:2))}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
         else { startArena(S.rank, -1, true); const w=run(); log.push(`${(simTime/60).toFixed(0)}m EXAM ${S.rank} ${w?'WIN':'lose'} lv${S.level} P${teamPower()}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
       }
+      if(window.__YOMI && S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX){ S.rift.best = Math.max(S.rift.best||0, 30);   // the bot doesn't play the Rift; the Yomi test assumes depth 30
+        if(regionOpen(2) && (window.__yt = (window.__yt||0) + 1) % 2 === 0){
+          let ci = 0; while(ci < 8 && (S.gates['Y' + (ci + 1)]||0) >= FLOORS) ci++; const gid = 'Y' + (ci + 1), fl = Math.min(FLOORS, (S.gates[gid]||0) + 1);
+          if(yomiCircleOpen(ci)){ startGate(gid, fl); const w = run(); log.push(`${(simTime/60).toFixed(0)}m YOMI ${gid}-F${fl} ${w ? 'clear' : 'lose'} lv${S.level} P${teamPower()} souls${S.yomi.souls}`);
+            const order = ['y_reap','y_bone','y_soul','y_reap','y_bone','k_harvest','y_gaze','k_scythe','y_ghost','y_doom']; let g = 0;
+            while(soulsFree() > 0 && g++ < 50){ const id = order.find(x => { const nd = YOMI_TREE.find(n => n.id === x); return (S.yomi.tree[x]||0) < nd.max && soulsSpent() >= nd.req; }); if(!id) break; S.yomi.tree[id] = (S.yomi.tree[id]||0) + 1; }
+            continue; } } }
       if(S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX && kamiCleared() < KAMI_TRIALS.length && (S.paragon||0) >= paragonCap()){
         const ki = kamiCleared(); startKami(ki); const w = run(); log.push(`${(simTime/60).toFixed(0)}m KAMI ${ki + 1} ${KAMI_TRIALS[ki].name}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} para${S.paragon}`);
         if(!w){ for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startGate('M', Math.max(1, S.gates.M||1)); run(); }

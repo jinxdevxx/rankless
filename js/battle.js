@@ -53,21 +53,21 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rift' ? TOWER.ease*.95*(1 + .25*(BT.curse||0))   // Abyss Rift: Blood Pact curses make it harder
     : 1;
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(BT && BT.mode === 'gate' && BT.gate.region === 2 ? .75 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 /* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
-let MASTER_HM = 13, MASTER_AM = 1.5, MASTER_SLOPE = .06, MASTER_XP = 2.5, MASTER_HPG = .03;   // v0.25.1: fresh gear (set-age rule) made heroes ~2.3x stronger late; masters grow with it
+let MASTER_HM = 22, MASTER_AM = 1, MASTER_SLOPE = .12, MASTER_XP = 2.5, MASTER_HPG = .03;   // v0.26: retuned after the lifesteal budget (heroes were unkillable before)   // v0.26: retuned after the lifesteal budget (heroes were unkillable before)   // v0.25.1: fresh gear (set-age rule) made heroes ~2.3x stronger late; masters grow with it
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
     : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM*(1 + MASTER_HPG*Math.min(h.master, MASTER_MAX)) : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
-    maxHp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
+    maxHp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.02, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
     role:'dps', lifesteal:st.lifesteal, aiSkill:4, xpVal:xpFor(h.lv)*15, goldVal:0};
 }
 function prep(u){
@@ -95,7 +95,7 @@ function floorWaves(gate, f){
 
 /* ---------- start ---------- */
 function startGate(gateId, floor){
-  const gate = GATES.find(g => g.id === gateId);
+  const gate = findGate(gateId);
   const L = gate.baseLv + floor - 1;
   BT = newBattle({mode:'gate', gate, floor, L, theme:gate.theme, waves:floorWaves(gate, floor)});
   spawnWave();
@@ -219,6 +219,8 @@ function newBattle(o){
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
   b.keys = {}; for(const nd of talentNodes()) if(nd.key && S.talents && S.talents[nd.id]) b.keys[nd.key] = true;
+  for(const nd of YOMI_TREE) if(nd.key && S.yomi && S.yomi.tree[nd.id]) b.keys[nd.key] = true;   // Shinigami Arts keystones
+  b.scytheCd = 0;
   b.ufx = {}; for(const sl of SLOTS){ const it = S.eq[sl]; if(it && it.uniq && UNIQUES[it.uniq]) b.ufx[UNIQUES[it.uniq].fx] = true; }   // unique item effects
   b.hitN = 0; b.oni = 0; b.deepT = 0;
   b.heroDr = hs.dr || 0; if(b.keys.crystal) b.energy += 2;
@@ -248,6 +250,7 @@ function spawnWave(){
   wave.forEach(type => {
     const u = prep(enemyUnit(type, BT.L, ENEMY_TYPES[type].boss ? 0 : slot++));
     if(BT.mode === 'tower' || BT.mode === 'rift') decorateTowerMob(u);
+    if(BT.gate && BT.gate.region === 2){ u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, '#2a0b14', .5), rim:'#ff4d6d', eye:'#ffe0e6', fx:'eclipse'}); u.auraC = u.boss || u.elite ? '#ff4d6d' : null; u.name = 'Yomi ' + u.name; }   // the dead of Yomi
     if(u.boss){ BT.boss = u; slot = 1; }
     BT.units.push(u);
   });
@@ -385,6 +388,7 @@ function dealDamage(att, tgt, mult, opt={}){
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
   if(!opt.pierce){ const K = 50*Math.pow(1.066, Math.max(0, (att.level || S.level) - 1)); dmg *= K/(K + tgt.def); }   // DEF scales with the attacker's level, so armor never makes you immune
+  if(tgt.kind === 'hero' && att.side === 'e' && !opt.mech) dmg = Math.min(dmg, tgt.maxHp*.5);   // v0.25.5: no single normal hit takes more than 50% of your max HP
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
@@ -410,7 +414,7 @@ function dealDamage(att, tgt, mult, opt={}){
     if(tgt.side === 'e' && att.side === 'p') bloodSpray(tgt, crit || opt.skill, att);
   }
   const ls = (att.lifesteal||0)/100 + (opt.lifesteal||0);
-  if(ls > 0 && !att.dead){ att.hp = Math.min(att.maxHp, att.hp + dmg*ls); }
+  if(ls > 0 && !att.dead){ if(att.lsBudget === undefined) att.lsBudget = att.maxHp*lsPerSec(); const hl = Math.min(dmg*ls, att.lsBudget); att.lsBudget -= hl; att.hp = Math.min(att.maxHp, att.hp + hl); }   // v0.26: lifesteal heals at most LS_PER_SEC of max HP per second (huge-damage builds were immortal)
   if(att.side === 'p'){ BT.combo++; BT.comboT = 2; if(att.kind === 'hero' && !opt.skill){ gainEnergy(ENERGY.hit); BT.ult = Math.min(100, BT.ult + 3); } }
   if(tgt.kind === 'hero'){ gainEnergy(ENERGY.hurt); if(dmg > 0 && BT.flow){ BT.flow = 0; addText(tgt, 'FLOW BROKEN', '#ff9b8f', 18); } }
   if(opt.burn) tgt.burn = {dps: atk*opt.burn, t:3, src:att};
@@ -433,7 +437,8 @@ function killUnit(u){
   u.dead = true; u.hp = 0; u.state = 'dead'; u.deathT = 0;
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
-    BT.kills++; if(BT.ufx && BT.ufx.oni && BT.oni < 5){ BT.oni++; addText(BT.hero, 'GRUDGE ×' + BT.oni, '#ff5a5a', 18); } gainEnergy(ENERGY.kill + specEnergy('kill')); SFX.kill(u.boss);
+    BT.kills++; if(BT.keys && BT.keys.harvest && BT.hero && !BT.hero.dead){ BT.hero.hp = Math.min(BT.hero.maxHp, BT.hero.hp + BT.hero.maxHp*.06); }
+    if(BT.ufx && BT.ufx.oni && BT.oni < 5){ BT.oni++; addText(BT.hero, 'GRUDGE ×' + BT.oni, '#ff5a5a', 18); } gainEnergy(ENERGY.kill + specEnergy('kill')); SFX.kill(u.boss);
     BT.streak = (BT.streakT > 0 ? (BT.streak||0) : 0) + 1; BT.streakT = 1.2;
     if(BT.streak >= 2) BT.banner = {txt: ['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'MASSACRE'][Math.min(4, BT.streak)], t:1.1, c: BT.streak >= 4 ? '#ff7a59' : '#ffd27a'};
     const hs = heroStats();
@@ -483,6 +488,15 @@ function useSkill(i){
   BT.chainMult = 1 + (BT.chain - 1)*.15;
   if(BT.chain > 1) addText(BT.hero, `CHAIN x${BT.chain}`, '#ffd166', 24);
   castEffect(BT.hero, sk, false);
+}
+/* Shinigami Scythe (Yomi skill tree): key F */
+const SCYTHE = {name:'SHINIGAMI SCYTHE', type:'hit', target:'all', mult:2.2, hits:3, pierce:true};
+function useScythe(){
+  if(!BT || BT.over || !BT.keys.scythe || BT.hero.dead || BT.cutin || !alive('e').length) return;
+  if(BT.scytheCd > 0 || BT.energy < 4){ if((BT.skillMsgT||0) < BT.clock){ BT.skillMsgT = (BT.clock||0) + .5; addText(BT.hero, BT.scytheCd > 0 ? `Scythe ready in ${Math.ceil(BT.scytheCd)} s` : `Need 80 Ki (have ${kiOf(BT.energy)})`, '#ff9fb0', 18); } return; }
+  BT.energy -= 4; BT.scytheCd = 10; SFX.ultHit();
+  castEffect(BT.hero, SCYTHE, true); BT.flashT = Math.max(BT.flashT||0, .08); BT.shake = Math.max(BT.shake||0, .3);
+  for(const e of alive('e')) if(!e.boss && e.kind !== 'hunter' && e.hp < e.maxHp*.15){ addText(e, 'REAPED', '#ff4d6d', 22); killUnit(e, BT.hero); }
 }
 function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
@@ -649,7 +663,11 @@ function stepUnit(u, dt){
   }
 }
 
+/* lifesteal per second: strict against masters, Paragon, Kami and Yomi (builds were unkillable there), generous elsewhere */
+function lsPerSec(){ return BT && (BT.master || BT.kami !== undefined || (BT.gate && BT.gate.region === 2)) ? .08 : .4; }
 function stepBattle(dt){
+  if(BT){ const lr = lsPerSec(); for(const u of BT.units) if(u.lsBudget !== undefined) u.lsBudget = Math.min(u.maxHp*lr, u.lsBudget + u.maxHp*lr*dt); }
+  if(BT && BT.scytheCd > 0) BT.scytheCd -= dt;
   if(BT && BT.kami !== undefined && !BT.over) kamiTick(dt);
   if(BT && BT.ufx && BT.ufx.deep && !BT.over && BT.hero && !BT.hero.dead){ BT.deepT += dt; if(BT.deepT >= 6){ BT.deepT = 0; BT.hero.hp = Math.min(BT.hero.maxHp, BT.hero.hp + BT.hero.maxHp*.04); addText(BT.hero, '+HP', '#7fd8ff', 16); } }
   if(!BT) return;
@@ -685,6 +703,7 @@ function stepBattle(dt){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
     if((window.BOT_AUTO || (timingMode() ? S.settings.autoFight : S.settings.autoSkill)) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
+      if(BT.keys.scythe && BT.scytheCd <= 0 && BT.energy >= 4 && !BT.hero.dead) useScythe();   // AUTO FARM also reaps with the Shinigami Scythe
       // spend Ki when the gauge is nearly full, most expensive skill first
       if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
@@ -815,8 +834,8 @@ function finishBattle(win){
       if(r.first) n += 1;
       if((isBoss || isElite) && BT.keys.treasure) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400 + (g.id === 'M' ? 1.2 : 0);   // Master Gate: endgame loot, better rarity
-      for(let i=0;i<n;i++){ const it = randomItem((g.id === 'M' ? Math.max(BT.L, S.level - 1) : BT.L) + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }   // Master Gate loot: your level, so it upgrades lagging gear
-      r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) * (g.id === 'M' ? 2 : 1) + (isBoss ? 15 : isElite ? 5 : 0);   // Master Gate: double stones
+      for(let i=0;i<n;i++){ const it = randomItem((g.id === 'M' || g.region ? Math.max(BT.L, S.level - 1) : BT.L) + (isBoss ? 2 : 0), bonus + (g.region ? .4 : 0), g.region ? 'M' : g.id); r.items.push(it); }   // Master Gate loot: your level, so it upgrades lagging gear
+      r.stones = randi(2,4) * (1 + (g.region ? 10 : GATES.indexOf(g))*1.5) * (g.id === 'M' ? 2 : 1) + (isBoss ? 15 : isElite ? 5 : 0);   // Master Gate: double stones
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
       if(r.first) r.diamonds += isBoss ? (f > FLOORS ? 3 : 5) : (f === 5 || f === 8 || f === 9) ? 1 : 0;
@@ -882,7 +901,9 @@ function finishBattle(win){
   }
   /* unique / godforged drops from boss-type fights */
   let usrc = null;
-  if(win){ if(BT.mode === 'gate' && isBossFloor(BT.floor) && GATES.indexOf(BT.gate) >= 3) usrc = BT.gate.id === 'M' ? 'mgate' : 'gate';
+  if(win && BT.mode === 'gate' && BT.gate.region === 2 && r.first){ const se = BT.floor >= FLOORS ? 5 : 1; S.yomi.souls = (S.yomi.souls||0) + se; r.souls = se; if(BT.floor >= FLOORS) journeyMark('Yomi Circle ' + BT.gate.circle); }
+  if(win){ if(BT.mode === 'gate' && BT.gate.region === 2 && isBossFloor(BT.floor)) usrc = 'yomi';
+    else if(BT.mode === 'gate' && isBossFloor(BT.floor) && GATES.indexOf(BT.gate) >= 3) usrc = BT.gate.id === 'M' ? 'mgate' : 'gate';
     else if(BT.mode === 'tower' && BT.floor % 10 === 0) usrc = 'tower';
     else if(BT.mode === 'rift') usrc = BT.depth % 10 === 0 ? 'rift' : BT.depth % 5 === 0 ? 'riftElite' : null;
     else if(BT.master) usrc = r.paragonUp ? 'paragon' : r.first ? (BT.master % 10 === 0 ? 'masterWall' : 'master') : null; }

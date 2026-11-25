@@ -3,6 +3,13 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] World map with 5 regions; Region 2 Yomi with circles, Soul Embers, Shinigami Arts tree + new skill; 3–5 coming soon (v0.26.0)
+- [ ] Regions 3–5 (Takamagahara, Ryugu-jo, Mugen): each with own content, currency, skill tree, new skill
+- [x] Master League rushed (0–2 losses) → retuned with lifesteal budget (v0.26.0)
+- [x] Paragon 133 one-shots → 50 % hit cap, Paragon ATK +2 %/level (v0.26.0)
+- [x] Endless skill scaling: Mastery cap grows with Paragon (v0.26.0)
+- [x] Hair glitch, ki aura (v0.26.0)
+- [x] Uniques salvageable, Salvage all button (v0.26.0)
 - [x] Paragon too easy / endless and monotone → Kami Trials, Paragon cap, tougher Paragon, endgame goals (v0.25.0)
 - [x] Paragon auto-continue (v0.25.0)
 - [x] Relics stuck on ??? → not a bug (random duplicates), unowned now 4× likely (v0.25.0)
@@ -12,7 +19,7 @@ Open requests from the player come first. Every development round starts here.
 - [x] Ultimate name pop-up removed (v0.25.0)
 - [~] Mob graphics in the new hero style: golem, blob, husk done (v0.25.2); next: beast, brute/oni, ghost, warden
 - [x] Endless gold/stone sink: item Ascension (v0.25.3)
-- [ ] Verify Paragon curve after HPG cap (bot run in progress)
+- [ ] RECURRING: Paragon/Kami/Yomi measurement with `YOMI=1 PARAGON=1` bot
 - [x] Master Gate balance as farm source (v0.25.1)
 - [x] Recommended power realistic everywhere (v0.25.1)
 - [x] God Level above 1 trillion Power (v0.25.1)

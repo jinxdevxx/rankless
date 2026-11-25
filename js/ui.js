@@ -209,7 +209,7 @@ function drawHomeScene(t, dt){
   const w = S.eq.weapon;
   const aur = UI.screen !== 'create' && S.cosmetic ? S.cosmetic.aura : null; if(aur) drawAura(c, aur, hx, fy, hh, t, 'back');
   drawHumanoid(c, hx, fy, hh, {t, face:1, body:'#07060e', rim:a.color, eye:a.color2,
-    blade: UI.screen === 'create' ? '#d8e2f0' : w ? RARITY[w.rar].color : '#d8e2f0', hair: UI.screen === 'create' ? UI.createHair : S.hair, aura:true, glow:22});
+    blade: UI.screen === 'create' ? '#d8e2f0' : w ? RARITY[w.rar].color : '#d8e2f0', hair: UI.screen === 'create' ? UI.createHair : S.hair, aura:true, glow:22, ki:true});
   if(aur) drawAura(c, aur, hx, fy, hh, t, 'front');
   // aura particles
   if(Math.random() < dt*30) PARTS.push({k:'ember', x:hx + rand(-hh*.2, hh*.2), y:fy - rand(0, hh*.3), vx:rand(-8,8), vy:rand(-30,-70), life:rand(1.5,3), max:3, c:a.color});
@@ -231,7 +231,25 @@ function renderSheet(){
   if(UI.sheet === 'gates') scrollTowerMap();   // new tab starts at the top
 }
 
+/* World map strip (top of the Gates tab) */
+function worldMap(){
+  const cur = UI.region || 1;
+  return `<div class="worldmap"><div class="bt">🗺 WORLD MAP · SHINSEKAI</div><div class="regions">${REGIONS.map(rg => { const open = regionOpen(rg.id);
+    const reqs = rg.id === 2 && !open ? `<span class="rreq">${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n}`).join('<br>')}</span>` : '';
+    return `<button class="region ${cur === rg.id ? 'sel' : ''} ${open ? '' : 'locked'} ${rg.soon ? 'soon' : ''}" style="--c:${rg.color}" data-a="region" data-id="${rg.id}"><i>${rg.icon}</i><b>${rg.id}. ${rg.name}</b><small>${rg.sub}</small>${rg.soon ? '<em>COMING SOON</em>' : open ? '' : '<em>🔒 LOCKED</em>'}${reqs}</button>`; }).join('<span class="rlink"></span>')}</div></div>`;
+}
+function sheetYomi(){
+  const tp = teamPower(), sf = soulsFree();
+  const circles = YOMI_GATES.map((g, i) => { const open = yomiCircleOpen(i), cl = S.gates[g.id]||0; let floors = '';
+    for(let f = 1; f <= FLOORS; f++){ const rp = recPower(g.id, f), fo = open && f <= cl + 1;
+      floors += `<button class="floor ${!fo ? 'lock' : f <= cl ? 'done' : 'next'} ${f === 10 ? 'boss' : ''}" data-a="startGate" data-g="${g.id}" data-f="${f}" ${fo ? '' : 'disabled'}><b>${f === 10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmtPow(rp)}</small></button>`; }
+    return `<div class="gatecard yomi ${open ? '' : 'locked'}" style="--a:#ff4d6d;--b:#3a0a16"><div class="gh"><span class="grank yomi">${i + 1}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div><span class="gprog">${open ? `${Math.min(cl, FLOORS)} / ${FLOORS}` : '🔒'}</span></div>
+      ${open ? `<div class="floors">${floors}</div>` : `<div class="hint">Defeat the boss of Circle ${i} to open this circle.</div>`}</div>`; }).join('');
+  return worldMap() + `<div class="yomihead"><div><small>REGION 2 · LAND OF THE DEAD</small><b>⛩ Yomi</b><span>Nine Circles, 10 floors each. Loot drops at your level with high rarity. New floors give <b>Soul Embers</b> (bosses 5) for the <b>Shinigami Arts</b> tree in the Talents tab. Circle bosses can drop Uniques and Godforged items.</span></div>
+    <button class="ptsb tal" data-a="sheet" data-id="talents"><span class="tpbadge">🔥 <b>${sf}</b> SOUL EMBER${sf === 1 ? '' : 'S'}</span><small>Shinigami Arts ›</small></button></div>` + circles;
+}
 function sheetGates(){
+  if((UI.region || 1) === 2 && regionOpen(2)) return sheetYomi();
   const tp = teamPower();
   const daily = `<div class="dailies"><div class="bt">Daily Gates · reset at midnight</div><div class="dgrid">${Object.entries(DAILY).map(([k,d]) => { const left = dailyLeft(k);
     return `<div class="dcard ${left ? '' : 'done'}" style="--c:${d.color}"><div class="dic">${ICON[d.icon]}</div><b>${d.name}</b><small>${d.desc}</small>
@@ -281,7 +299,7 @@ function sheetGates(){
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${rankLabel(RANKS[RANKS.indexOf(g.rank)-1])}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('').replace(/^/, (S.rank === 'M' ? riftCard() : '') + towerCard + daily);
+  }).join('').replace(/^/, worldMap() + (S.rank === 'M' ? riftCard() : '') + towerCard + daily);
 }
 
 /* Abyss Rift card: run status, relics, unlock roadmap (Master League endgame) */
@@ -358,7 +376,7 @@ function talentNext(nd, r){
   const sh = TALENT_SHOW[nd.stat], cur = heroStats();
   if(nd.stat === 'lifesteal' && cur.lifestealRaw >= LIFESTEAL_CAP) return `<b class="tcap">At the ${LIFESTEAL_CAP}% lifesteal cap: more points do nothing</b>${r ? ` · now +${+now.toFixed(1)}%` : ''}`;
   const t2 = Object.assign({}, S.talents, {[nd.id]: r + 1});
-  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics, paragon:S.paragon});
+  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics, paragon:S.paragon, yomi:S.yomi});
   const d = sh ? nx[sh[0]] - cur[sh[0]] : 0, abs = sh && (sh[0] === 'atk' || sh[0] === 'hp' || sh[0] === 'def');
   const gain = abs ? `+${fmt(d)} ${sh[1]}` : `+${(+d.toFixed(1))}${sh ? sh[1] : ''}`;
   const pw = powerOf(nx) - powerOf(cur);
@@ -390,17 +408,22 @@ function sheetStats(mode){
         <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>`;
+  const yomiTree = regionOpen(2) ? (() => { const sf = soulsFree(), sp = soulsSpent();
+    return `<div class="box yomitree"><div class="bt">⛩ SHINIGAMI ARTS · REGION 2 <span class="tpbadge">🔥 <b>${sf}</b> SOUL EMBER${sf === 1 ? '' : 'S'}</span></div><div class="hint" style="margin-top:0">Earned in the Circles of Yomi (1 per new floor, 5 per circle boss). ${sp} spent.</div>
+    <div class="ttree"><div class="tbranch" style="--c:#ff4d6d"><div class="tbh"><b>Shinigami</b><small>${sp} pts</small></div>${YOMI_TREE.map(nd => { const r = S.yomi.tree[nd.id]||0, open = sp >= nd.req, can = open && sf > 0 && r < nd.max;
+      return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="yomiTalent" data-id="${nd.id}" ${can ? '' : 'disabled'}><span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? nd.desc + (nd.stat && r ? ` · now +${+(nd.per*r).toFixed(1)}%` : '') : `Spend ${nd.req} Soul Embers in this tree`}</span></button>`; }).join('<i class="tlink"></i>')}</div></div></div>`; })()
+    : `<div class="box yomitree locked"><div class="bt">⛩ SHINIGAMI ARTS · REGION 2</div><div class="hint" style="margin-top:0">A new skill tree with a new skill opens in Region 2 (Yomi). Requirements: ${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n}`).join(' · ')}</div></div>`;
   if(mode === 'talents') return `${tf ? `<div class="ptsbar"><div class="ptsb tal"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>spend them below</small></div></div>` : ''}
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>
-      <div class="ttree">${tree}</div></div>`;
+      <div class="ttree">${tree}</div></div>${yomiTree}`;
   return statsHtml;
 }
 /* ---------- Skills tab: element, Ki costs, Skill Mastery ---------- */
 function sheetSkills(){
   const a = AFF[S.aff];
-  const mrow = (i, name, tag, desc) => { const lv = masteryLv(i), c = masteryCost(i), max = lv >= MASTERY_MAX, ok = !max && S.gold >= c.gold && S.stones >= c.stones;
-    return `<div class="skl mast ${i === 3 ? 'ult' : ''}"><div class="mh"><b>${name}</b> <i>${tag}</i><span class="mastlv">Mastery ${lv}/${MASTERY_MAX} · +${Math.round(lv*MASTERY_STEP*100)}% DMG</span></div><span>${desc}</span>
+  const mrow = (i, name, tag, desc) => { const lv = masteryLv(i), c = masteryCost(i), max = lv >= masteryCap(), ok = !max && S.gold >= c.gold && S.stones >= c.stones;
+    return `<div class="skl mast ${i === 3 ? 'ult' : ''}"><div class="mh"><b>${name}</b> <i>${tag}</i><span class="mastlv">Mastery ${lv}/${masteryCap()} · +${Math.round(lv*MASTERY_STEP*100)}% DMG</span></div><span>${desc}</span>
       ${max ? '<div class="tag">MASTERED</div>' : `<div class="mrow">${haveNeed('gold','Gold',S.gold,c.gold)}${haveNeed('stone','Mana Stones',S.stones,c.stones)}<button class="btn small ${ok ? 'primary' : ''}" data-a="mastery" data-id="${i}" ${ok ? '' : 'disabled'}>Train → ${lv + 1}<small> (+12%)</small></button></div>`}</div>`; };
   const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b> (0-100), built by hitting, blocking and defeating enemies. <b>Train</b> a skill to make it hit harder: check the damage split after a fight to see which pays off.</div>`
     + a.skills.map((sk,i) => mrow(i, sk.name, `${SKILL_COST[i]*KI_UNIT} Ki · unlocks Lv ${SKILL_LV[i]}${specOf() && specOf().skill.i === i ? ' · ▲ ' + specOf().name : ''}`, sk.desc)).join('')
@@ -533,6 +556,7 @@ function sheetBag(){
       <label class="muted">Auto-salvage <select data-a="autoSalvage">${['Off','Common','Rare & below','Epic & below'].map((n,i)=>`<option value="${i-1}" ${as===i-1?'selected':''}>${n}</option>`).join('')}</select></label>
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
       <button class="btn small" data-a="salvageBelow" data-id="1">Salvage Rare</button>
+      <button class="btn small danger" data-a="salvageAllAsk">Salvage all</button>
       <button class="btn small primary" data-a="autoEquip">Equip best</button></div>
     ${(() => { const junk = S.inv.filter(isJunk); if(!junk.length) return ''; let st = 0, gd = 0; for(const it of junk){ const v = salvageValue(it); st += v.stones; gd += v.gold; }
       return `<button class="junkbtn" data-a="salvageJunk"><span class="jl"><b>SALVAGE ${junk.length} USELESS ITEM${junk.length > 1 ? 'S' : ''}</b><small>Worse than your gear even at +${MAX_PLUS} (marked ✖)</small></span>
@@ -605,7 +629,7 @@ function itemDetail(id){
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
-          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets, relics:S.relics, paragon:S.paragon});
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets, relics:S.relics, paragon:S.paragon, yomi:S.yomi});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
@@ -630,7 +654,7 @@ function buildBattleHud(){
       : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
   $('#bSkills').style.setProperty('--c', a.color);
   $('#bSkills').innerHTML = `<div class="sk-top"><span class="flow" id="bFlow"></span><span class="chain" id="bChain"></span><div class="kibar" id="bKi"><span class="kil">KI</span><div class="kitrack"><i></i>${[1,2,3,4].map(n => `<b style="left:${n*20}%"></b>`).join('')}</div><span class="kin"><span id="bKiN">0</span><small>/100</small></span></div></div>
-    <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}</div>
+    <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}${BT.keys && BT.keys.scythe ? '<button class="skb scythe" data-a="scythe" style="--c:#ff4d6d"><span class="fill"></span><b>Scythe</b><span class="cost">80 KI</span><kbd>F</kbd></button>' : ''}</div>
     <div class="sk-hint" id="bHint">Strike to build Ki · skills cost Ki</div>`;
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p' && u.kind !== 'pet').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
@@ -659,7 +683,7 @@ function syncFarmUI(){
 function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
-    ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
+    ? `<small>${BT.gate.region === 2 ? 'YOMI · REGION 2' : BT.gate.rank + '-RANK GATE'}</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}${BT.mod ? ' · ' + BT.mod.icon + ' ' + BT.mod.name : ''}</b><span>${THEMES[BT.theme] && THEMES[BT.theme].name ? THEMES[BT.theme].name + ' · ' : ''}Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % 10 === 0 ? ' · BOSS' : BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
     : BT.mode === 'rift' ? `<small>ABYSS RIFT</small><b>Depth ${BT.depth}${BT.curse ? ' · 🩸×' + BT.curse : ''}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.depth % 10 === 0 ? ' · RIFT LORD' : ''}</span>`
     : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
@@ -756,6 +780,7 @@ function showResult(r){
     ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'Master 99! The Paragon ladder, the Abyss Rift and auras wait for you.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
     ${r.kamiDet ? `<div class="rankup"><small>DETERMINATION</small><b>+${r.kamiDet}% damage</b><span>Every defeat against this god makes you stronger next time (max +30%).</span></div>` : ''}
     ${r.kamiClear ? `<div class="rankup uniqdrop god"><small>KAMI TRIAL ${r.kamiClear} CLEARED</small><b>⛩ ${KAMI_TRIALS[r.kamiClear - 1].name} defeated</b><span>${r.kamiClear < KAMI_TRIALS.length ? `Paragon cap raised to ${paragonCap()}.` : 'All gods defeated. Paragon has no limit now. You are Kami.'}</span></div>` : ''}
+    ${r.souls ? `<div class="rankup" style="border-color:#ff4d6d"><small>YOMI</small><b>🔥 +${r.souls} Soul Ember${r.souls > 1 ? 's' : ''}</b><span>Spend them in the Shinigami Arts (Talents tab).</span></div>` : ''}
     ${r.paragonUp ? `<div class="rankup" style="border-color:#c77dff"><small>PARAGON UP</small><b>✦ Paragon ${r.paragonUp}</b><span>+1% ATK and +1% HP forever (total +${r.paragonUp}%).</span></div>` : ''}
     ${r.riftMilestone ? `<div class="rankup chest"><small>RIFT MILESTONE</small><b>Depth ${r.riftMilestone}!</b><span>+${RIFT_MILESTONES[r.riftMilestone].diamonds} Rift Diamonds${Object.values(AURAS).some(a => a.how === 'Reach Rift depth ' + r.riftMilestone) ? ' · NEW AURA unlocked (Champion tab)' : ''}</span></div>` : ''}
     ${r.unique ? `<div class="rankup uniqdrop ${r.unique.rar === 6 ? 'god' : ''}"><small>${r.unique.rar === 6 ? 'GODFORGED 神器 DROP!' : 'UNIQUE DROP!'}</small><b>${esc(r.unique.name)}</b><span>${UNIQUES[r.unique.uniq].desc}</span><button class="btn small primary" data-a="item" data-id="${r.unique.id}">Look at it</button></div>` : ''}
@@ -863,7 +888,7 @@ function act(a, el){
     case 'talent10': { const nd = talentNodes().find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)); let k = 0;
       while(k < 10 && talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; k++; } UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
     case 'goTalents': openSheet('talents'); break;
-    case 'mastery': { const i = +id, c = masteryCost(i); if(masteryLv(i) >= MASTERY_MAX || S.gold < c.gold || S.stones < c.stones) break;
+    case 'mastery': { const i = +id, c = masteryCost(i); if(masteryLv(i) >= masteryCap() || S.gold < c.gold || S.stones < c.stones) break;
       S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; SFX.unlockFx(); toast('SKILL TRAINED', `${i === 3 ? AFF[S.aff].ult.name : AFF[S.aff].skills[i].name} is now Mastery ${S.mastery[i]} (+${Math.round(S.mastery[i]*MASTERY_STEP*100)}% damage)`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
     case 'stat': if(S.points > 0){ S.stats[id]++; S.points--; save(); renderSheet(); renderHome(); } break;
@@ -885,6 +910,13 @@ function act(a, el){
       else toast('ENHANCE FAILED', 'The materials were consumed.', 'red');
       save(); itemDetail(id); renderSheet(); renderHome(); break; }
     case 'bagFilter': UI.bagFilter = id; renderSheet(); break;
+    case 'salvageAllAsk': { const list = S.inv.filter(it => !it.locked); if(!list.length){ toast('NOTHING TO SALVAGE', 'Your bag is empty (locked items are kept).'); break; }
+      let st = 0, gd = 0; for(const it of list){ const v = salvageValue(it); st += v.stones; gd += v.gold; } const nu = list.filter(it => it.uniq).length;
+      showModal(`<div class="menu"><div class="bt">SALVAGE ALL?</div><p>Salvage <b>${list.length}</b> item${list.length > 1 ? 's' : ''} from your bag${nu ? ` (including <b style="color:${RARITY[5].color}">${nu} Unique/Godforged</b>)` : ''}. Equipped and 🔒 locked items are kept.</p>
+        <div class="rrow"><span class="cur stone">${ICON.stone}<b>+${fmt(st)}</b></span><span class="cur gold">${ICON.gold}<b>+${fmt(gd)}</b></span></div>
+        <div class="row c"><button class="btn" data-a="closeModal">Cancel</button><button class="btn danger" data-a="salvageAll">Salvage ${list.length}</button></div></div>`); break; }
+    case 'salvageAll': { let st = 0, gd = 0, n = 0; S.inv = S.inv.filter(it => { if(it.locked) return true; const v = salvageValue(it); st += v.stones; gd += v.gold; n++; return false; });
+      S.stones += st; S.gold += gd; closeModal(); toast('SALVAGED', `${n} items → +${fmt(st)} Mana Stones, +${fmt(gd)} Gold`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'salvageJunk': { let st = 0, gd = 0, n = 0;
       S.inv = S.inv.filter(it => { if(isJunk(it)){ const v = salvageValue(it); st += v.stones; gd += v.gold; n++; return false; } return true; });
       S.stones += st; S.gold += gd; toast('SALVAGED', n ? `${n} useless items → +${st} Mana Stones, +${fmt(gd)} Gold` : 'Nothing useless in your bag.'); save(); renderSheet(); renderHome(); break; }
@@ -937,6 +969,9 @@ function act(a, el){
     case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'setAura': { if(AURAS[id] && AURAS[id].ok()){ S.cosmetic = S.cosmetic || {}; S.cosmetic.aura = id; save(); renderSheet(); } break; }
     case 'codex': showCodex(); break;
+    case 'scythe': useScythe(); break;
+    case 'region': { const r = +id; if(REGIONS[r - 1] && !REGIONS[r - 1].soon && regionOpen(r)){ UI.region = r; renderSheet(); } else if(REGIONS[r - 1] && REGIONS[r - 1].soon) toast('COMING SOON', `${REGIONS[r - 1].name} · ${REGIONS[r - 1].sub} is being built.`); else toast('LOCKED', 'Meet the requirements on the map first.'); break; }
+    case 'yomiTalent': { const nd = YOMI_TREE.find(n => n.id === id); if(!nd || soulsFree() <= 0 || soulsSpent() < nd.req || (S.yomi.tree[id]||0) >= nd.max) break; S.yomi.tree[id] = (S.yomi.tree[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
     case 'startKami': UI.sheet = null; closeSheet(); startKami(+id); break;
     case 'reforge': { const f = findItem(id); if(!f || !f.it.uniq || f.it.ilvl >= S.level) break; const c = reforgeCost(f.it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; f.it.ilvl = S.level; UI.shownPower = undefined; SFX.unlockFx(); toast('REFORGED', `${f.it.name} is now item level ${S.level}.`, 'gold'); save(); itemDetail(f.it.id); renderHome(); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
@@ -993,6 +1028,7 @@ document.addEventListener('keydown', e => {
   if(num || (e.key >= '1' && e.key <= '3')){ if(!e.repeat) useSkill((num ? +num[2] : +e.key) - 1); }
   else if(kk === 'q' || kk === 'w' || kk === 'e') useSkill({q:0,w:1,e:2}[kk]);
   else if(kk === 'r') useUlt();
+  else if(kk === 'f') useScythe();
   else if(e.key === ' '){ e.preventDefault(); if(!e.repeat) heroAction(); }
 });
 

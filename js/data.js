@@ -389,6 +389,8 @@ const KI_UNIT = 20;
 const LIFESTEAL_CAP = 12;   // % - lifesteal from gear, sets, spirits and talents is capped here
 /* Skill Mastery: every skill (0-2) and the ultimate (3) can be trained to Lv 10 with Gold + Mana Stones, +12% damage per level */
 const MASTERY_MAX = 10, MASTERY_STEP = .12;
+/* after Master 99 the mastery cap grows with Paragon: +1 per Paragon level (v0.25.5, endless skill scaling) */
+function masteryCap(){ return MASTERY_MAX + (S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX ? (S.paragon||0) : 0); }
 function masteryLv(i){ return (S.mastery && S.mastery[i]) || 0; }
 function masteryMult(i){ return 1 + masteryLv(i)*MASTERY_STEP; }
 function masteryCost(i){ const lv = masteryLv(i); return {gold: Math.round(goldFor(Math.max(1, S.level))*(i === 3 ? 60 : 35)*(lv + 1)), stones: (i === 3 ? 12 : 8)*(lv + 1)}; }
@@ -516,7 +518,7 @@ function relicValue(id, lv){ return RELICS[id].per*lv*(masterHas(99) ? 1.5 : 1);
 
 /* ================= after Master 99: Paragon + Auras (v0.23.0) ================= */
 /* Paragon: the master ladder never ends. Every Paragon level: +1% ATK and +1% HP forever. */
-function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.paragon = p; h.title = `Paragon ${p} Challenger`; h.rival = p % 10 === 0; h.line = p % 10 === 0 ? 'Ten more steps beyond the top. Prove it.' : 'There is no ceiling. Only the next step.'; return h; }
+function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.paragon = p; h.lv = 78 + Math.round(MASTER_MAX*.75 + p*.35); /* v0.25.5: slower level growth in Paragon */ h.title = `Paragon ${p} Challenger`; h.rival = p % 10 === 0; h.line = p % 10 === 0 ? 'Ten more steps beyond the top. Prove it.' : 'There is no ceiling. Only the next step.'; return h; }
 /* Auras: cosmetic, earned through endgame milestones */
 const AURAS = {
   none:     {name:'No aura',        color:'#9fb4d0', how:'Always',                        ok:() => true},
@@ -574,3 +576,50 @@ function paragonCap(){ return kamiCleared() >= KAMI_TRIALS.length ? Infinity : 1
 function kamiFoe(i){ const t = KAMI_TRIALS[i], h = paragonFoe(10*(i + 1));
   return Object.assign(h, {name:t.name, title:`${t.title} · Kami Trial ${i + 1}`, aff:t.aff, hair:t.hair, rival:true, line:t.mech, kami:t.id, kamiIdx:i,
     comps: t.id === 'hachiman' || t.id === 'amaterasu' ? ['titan', 'colossus', 'behemoth', 'oni'].slice(0, t.id === 'hachiman' ? 4 : 2) : h.comps}); }
+
+/* ================= WORLD MAP · SHINSEKAI (v0.26.0) =================
+   Five regions. Region 1 is everything so far. Region 2 (Yomi) opens after the endgame milestones, 3-5 are teased. */
+const REGIONS = [
+  {id:1, name:'Neo-Tokyo',    sub:'Hunter City',      color:'#ffd27a', icon:'🏙', desc:'Gates E to S+, the Master League, the Abyss Rift and the Kami Trials.'},
+  {id:2, name:'Yomi',         sub:'Land of the Dead', color:'#ff4d6d', icon:'⛩', desc:'The underworld below the Rift. Nine Circles of Yomi, Soul Embers and the Shinigami Arts.'},
+  {id:3, name:'Takamagahara', sub:'Plain of Heaven',  color:'#9fe8ff', icon:'☁', soon:true, desc:'Where the gods live above the clouds.'},
+  {id:4, name:'Ryūgū-jō',     sub:'Dragon Palace',    color:'#7fffd4', icon:'🐉', soon:true, desc:'The palace of the Dragon King at the bottom of the sea.'},
+  {id:5, name:'Mugen',        sub:'The Endless',      color:'#c77dff', icon:'∞', soon:true, desc:'Beyond every map. Nobody has come back.'},
+];
+const YOMI_REQ = [
+  ['Master Lv 99', () => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX],
+  ['Kami Trial 3 (Tsukuyomi)', () => typeof kamiCleared === 'function' && kamiCleared() >= 3],
+  ['Abyss Rift depth 30', () => ((S.rift && S.rift.best) || 0) >= 30],
+];
+function regionOpen(id){ return id === 1 || (id === 2 && YOMI_REQ.every(([, f]) => f())); }
+/* Nine Circles of Yomi: 10 floors each, a boss on floor 10. Circle N opens when circle N-1's boss is beaten. */
+const YOMI_CIRCLES = [
+  ['Yomotsu Hirasaka', 'The slope where the living world ends.',      ['husk','wraith','shade'],     'oni',      'warden'],
+  ['River of Souls',   'Lost souls drift by. Some still bite.',         ['specter','shade','spitter'], 'golem',    'conductor'],
+  ['Bone Forest',      'Trees of bone that whisper your name.',         ['husk','fang','reaver'],      'brute',    'abyssking'],
+  ['Lantern Graves',   'A thousand lanterns, a thousand graves.',       ['wraith','lich','stalker'],   'oni',      'stormlord'],
+  ['Hall of Oni',      'The demon generals train here.',                ['reaver','harpy','sage'],     'sunoni',   'sunqueen'],
+  ['Spider Lair',      'Crimson webs over the abyss.',                  ['stalker','priest','eclipse'],'colossus', 'matriarch'],
+  ['Weeping Well',     'The tears of the dead never stop falling.',     ['oracle','lich','hunterx'],   'titan',    'emperor'],
+  ['Black Shrine',     'A shrine to gods nobody remembers.',            ['eclipse','hunterx','oracle'],'behemoth', 'abyssking'],
+  ['Throne of Izanami','The queen of the dead waits on her throne.',    ['hunterx','eclipse','oracle'],'behemoth', 'emperor'],
+];
+function yomiLv(i){ return 125 + i*7; }   // circle i (0-8): base level, +1 per floor
+const YOMI_GATES = YOMI_CIRCLES.map(([name, desc, enemies, elite, boss], i) => ({id:'Y' + (i + 1), region:2, circle:i + 1, rank:'M', name:`Circle ${i + 1} · ${name}`, desc,
+  get baseLv(){ return yomiLv(i); }, mult:.7, recMult:.3, theme:'yomi', enemies, elite, boss}));
+function findGate(id){ return GATES.find(g => g.id === id) || YOMI_GATES.find(g => g.id === id); }
+function yomiCircleOpen(i){ return regionOpen(2) && (i === 0 || (S.gates['Y' + i]||0) >= FLOORS); }
+/* Shinigami Arts: the Yomi skill tree, paid with Soul Embers (1 per new Yomi floor, 5 per circle boss) */
+const YOMI_TREE = [
+  {id:'y_reap',  name:"Reaper's Edge",   stat:'atkP',    per:3,  max:20, req:0,  desc:'+3% ATK per rank'},
+  {id:'y_bone',  name:'Bone Armor',      stat:'hpP',     per:4,  max:20, req:0,  desc:'+4% HP per rank'},
+  {id:'y_soul',  name:'Soul Fire',       stat:'skill',   per:6,  max:20, req:10, desc:'+6% skill damage per rank'},
+  {id:'y_gaze',  name:"Death's Gaze",    stat:'critDmg', per:5,  max:20, req:15, desc:'+5% crit damage per rank'},
+  {id:'k_harvest', name:'Soul Harvest',  key:'harvest', max:1, req:20, desc:'KEYSTONE: every kill heals you for 6% of your max HP'},
+  {id:'y_ghost', name:'Ghost Legion',    stat:'petP',    per:8,  max:20, req:25, desc:'+8% spirit damage per rank'},
+  {id:'k_scythe', name:'Shinigami Scythe', key:'scythe', max:1, req:30, desc:'NEW SKILL (key F): 80 Ki · three armor-piercing slashes on ALL enemies (220% each), executes normal enemies below 15% HP'},
+  {id:'y_doom',  name:'Doom Ward',       stat:'dr',      per:.6, max:20, req:45, desc:'-0.6% damage taken per rank'},
+];
+function soulsSpent(){ let n = 0; for(const nd of YOMI_TREE) n += (S.yomi && S.yomi.tree[nd.id]) || 0; return n; }
+function soulsFree(){ return ((S.yomi && S.yomi.souls) || 0) - soulsSpent(); }
+UNIQUE_DROP.yomi = .08; GODFORGED_DROP.yomi = .03; UNIQUE_SRC.yomi = 'Yomi circle bosses (Region 2)';

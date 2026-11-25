@@ -1036,3 +1036,17 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .cp.god small{color:#fff1c9} .cp.god b{background:linear-gradient(90deg,#fff1c9,#ffd27a,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent} .krec{color:#ffd27a!important}
 
 .plus.asc{color:#fff1c9!important;text-shadow:0 0 8px #ffd27a} .upgrade.asc{border-color:#ffd27a!important}
+
+/* World map + Yomi (v0.26.0) */
+.worldmap{margin-bottom:14px;padding:12px;border-radius:16px;border:1px solid #ffffff22;background:linear-gradient(135deg,rgba(30,20,50,.8),rgba(10,6,18,.85))}
+.regions{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px}
+.region{position:relative;flex:1 0 140px;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px;border-radius:12px;border:2px solid color-mix(in srgb,var(--c) 50%,transparent);background:rgba(0,0,0,.35);color:#e8e2f0;text-align:left;cursor:pointer;font:inherit}
+.region i{font-style:normal;font-size:24px} .region b{font:900 14px Nunito,sans-serif;color:var(--c)} .region small{font:700 11px Nunito,sans-serif;color:#b9b0c9}
+.region em{font-style:normal;font:900 10px Nunito,sans-serif;letter-spacing:.08em;color:#ffd27a;margin-top:2px} .region .rreq{font:700 10px Nunito,sans-serif;color:#e8e2f0;margin-top:4px;line-height:1.4}
+.region.sel{box-shadow:0 0 18px color-mix(in srgb,var(--c) 55%,transparent);border-color:var(--c)} .region.soon{opacity:.45;filter:grayscale(.6)} .region.locked:not(.soon){opacity:.8}
+.rlink{flex:0 0 16px;align-self:center;height:2px;background:repeating-linear-gradient(90deg,#ffffff55 0 4px,transparent 4px 8px)}
+.yomihead{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;padding:14px;border-radius:16px;border:2px solid #ff4d6d;background:linear-gradient(135deg,rgba(90,15,34,.6),rgba(12,2,7,.85))}
+.yomihead>div>small{font:900 11px Nunito,sans-serif;letter-spacing:.12em;color:#ff4d6d} .yomihead>div>b{display:block;font:400 34px 'Bebas Neue',sans-serif;color:#fff} .yomihead>div>span{font:600 14px Nunito,sans-serif;color:#e8e2f0;max-width:620px;display:block} .yomihead>div>span b{color:#ff9fb0}
+.grank.yomi{background:#3a0a16;color:#ff9fb0;border-color:#ff4d6d}
+.yomitree{border-color:#ff4d6d55} .yomitree.locked{opacity:.75}
+.skb.scythe{border-color:#ff4d6d!important}

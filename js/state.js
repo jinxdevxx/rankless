@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, codex:{}, pity:{u:0, g:0}, kami:{cleared:0, fails:{}}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, yomi:{souls:0, tree:{}}, codex:{}, pity:{u:0, g:0}, kami:{cleared:0, fails:{}}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -150,6 +150,7 @@ function calcStats(src){
   if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat){ const v = talentValue(nd, r); o[nd.stat] += v; if(nd.stat2) o[nd.stat2] += v; } }
   if(src.relics) for(const id of src.relics.active || []){ const lv = src.relics.owned[id]; if(lv && RELICS[id]) o[RELICS[id].stat] += relicValue(id, lv); }
   if(src.paragon){ o.atkP += src.paragon; o.hpP += src.paragon; }
+  if(src.yomi && src.yomi.tree) for(const nd of YOMI_TREE){ const r = src.yomi.tree[nd.id]||0; if(r && nd.stat) o[nd.stat] += nd.per*r; }   // Shinigami Arts
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
@@ -186,7 +187,7 @@ function teamPower(){
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
 const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.36, SS:.25, M:.45};   // v0.25.1: S/S+ were 1.4x/1.9x too high (bot first clears at 0.72/0.54 of rec)
-function recPower(gateId, floor){ const g = GATES.find(x => x.id === gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] || 1)); }
+function recPower(gateId, floor){ const g = findGate(gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] ?? g.recMult ?? 1)); }
 
 /* ---------- inventory helpers ---------- */
 function addItem(it){
@@ -225,7 +226,7 @@ function beatsAtPlus(item){
 }
 /* useless = can never beat the equipped item, not even fully enhanced (locked items are kept) */
 function isJunk(it){
-  if(it.locked || !S.eq[it.slot]) return false;
+  if(it.locked || it.uniq || !S.eq[it.slot]) return false;
   return beatsAtPlus(it) === -1;
 }
 /* equip the best possible combination from bag + worn gear.
@@ -368,7 +369,7 @@ function journeyMark(key){ S.journey = S.journey || {}; if(S.journey[key] === un
 
 /* unique items */
 function reforgeCost(it){ return {gold:Math.round(goldFor(S.level)*30), stones:Math.round(150 + S.level*3)}; }
-function makeUnique(id, ilvl){ ilvl = Math.max(ilvl, S.level); const u = UNIQUES[id], it = makeItem(u.slot, ilvl, u.tier); it.name = u.name; it.uniq = id; it.locked = true; delete it.set; return it; }
+function makeUnique(id, ilvl){ ilvl = Math.max(ilvl, S.level); const u = UNIQUES[id], it = makeItem(u.slot, ilvl, u.tier); it.name = u.name; it.uniq = id; delete it.set; return it; }   // v0.26: not locked any more, just never auto-salvaged
 function uniqueChance(src, tier){ const base = tier === 6 ? (GODFORGED_DROP[src]||0) : (UNIQUE_DROP[src]||0); if(!base) return 0; return base + (S.pity[tier === 6 ? 'g' : 'u']||0)*PITY_STEP[tier === 6 ? 'g' : 'u']; }
 function godforgedOpen(){ return S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX; }
 /* roll for a unique (and, after Master 99, a Godforged) item from a boss-type source */
@@ -395,3 +396,6 @@ function fmtPow(p){ return p >= GOD_POWER ? `神 ${godLv(p).toFixed(1)}` : fmt(p
 const ASC_STEP = .04;
 function ascendOpen(it){ return S.rank === 'M' && it.plus >= MAX_PLUS; }
 function ascendCost(it){ const a = it.asc || 0; return {gold:Math.round(goldFor(it.ilvl)*120*Math.pow(1.18, a)), stones:Math.round(60*(a + 1)*Math.pow(1.08, a))}; }
+
+/* v0.26: older saves auto-locked uniques, which made them impossible to salvage */
+function migrateUniques(){ if(S.flags.uniqUnlock) return; for(const it of [...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)]) if(it.uniq) it.locked = false; S.flags.uniqUnlock = true; }

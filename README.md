@@ -25,6 +25,17 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.26.0 – Shinsekai
+- World map (`REGIONS`, `worldMap()` on top of the Gates tab): 1 Neo-Tokyo (all existing content), 2 Yomi (open), 3 Takamagahara, 4 Ryugu-jo, 5 Mugen (coming soon, greyed out).
+- Yomi (`YOMI_GATES` Y1–Y9, `findGate`, theme `yomi`): unlock `YOMI_REQ` = Master 99 + Kami 3 + Rift 30. Circle i base level 125 + 7i (+1 per floor), mult .7, HP ×.75, loot at hero level with rarity +0.4 and any set, stones tier 10, red Yomi recolor of all mobs. Soul Embers: 1 per first floor clear, 5 per circle boss. Circle bosses: Unique 8 %, Godforged 3 %.
+- Shinigami Arts (`YOMI_TREE`, `soulsFree`): Reaper's Edge, Bone Armor, Soul Fire, Death's Gaze, Soul Harvest (kills heal 6 %), Ghost Legion, Shinigami Scythe (new active skill, key F / HUD button, 80 Ki, 3×220 % pierce on all, executes non-bosses < 15 %, 10 s cooldown, AUTO FARM uses it), Doom Ward.
+- No one-shots: normal enemy hits capped at 50 % of hero max HP (`!opt.mech`).
+- Lifesteal budget (`lsPerSec`): heals at most 8 %/s of max HP vs Masters/Paragon/Kami/Yomi, 25 %/s elsewhere. Measured: a Master 50 hero took 14.6× its max HP in one fight and never dropped below 41 % (lifesteal 12 % of billions of damage). With 8 %/s everywhere the mid game walled (B boss 31 losses, S F4 22) → 25 % outside the endgame (survival test back to 4/6 AUTO, 6/6 spam).
+- Master foes re-tuned from M0 snapshot: HP ×22 (+3 %/level), ATK ×1.0·1.11^(−0.12·lv). Master League 152 bot-min (~51 min at x3), 58 losses in 157 fights, no wall. Before: 0–2 losses (rush).
+- Paragon: foe level +0.35 per Paragon (was +0.75), HP ×1.05^p, ATK ×1.02^p (was ×1.05^p both → one-shots at Paragon 133). `masteryCap()` = 10 + Paragon level after Master 99.
+- Hero: hair cap along the skull + swept spikes + bangs above the eye, ki aura (`o.ki`), boots from the knee. Uniques unlocked (`migrateUniques`), never junk; Salvage all with confirmation.
+- Bot: `YOMI=1` plays Yomi circles and spends Soul Embers.
+
 ### v0.25.4 – Perfect Loadout
 - `bestLoadout`: exact search when ≤ 20,000 combinations (2500-trial test: 2497 → 2500 optimal; misses were 3-slot set trades, 0.02–0.5 % power). Heuristic + pair swaps stay for huge bags.
 

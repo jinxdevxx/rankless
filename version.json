@@ -1,8 +1,15 @@
 {
-  "version": "0.25.4",
+  "version": "0.26.0",
   "date": "2026-11-25",
-  "title": "Perfect Loadout",
+  "title": "Shinsekai",
   "notes": [
-    "Equip Best is now exact for normal bags: it checks every combination, so rare 3-item set trades are no longer missed."
+    "NEW: World Map with 5 regions. Region 1 Neo-Tokyo is everything so far. Region 2 YOMI, the Land of the Dead, is open; Takamagahara, Ryugu-jo and Mugen are coming soon.",
+    "Yomi unlocks at Master 99 + Kami Trial 3 + Rift depth 30: nine Circles of Yomi with 10 floors each, loot at your level with high rarity, Unique and Godforged drops from circle bosses.",
+    "NEW skill tree Shinigami Arts (Talents tab), paid with Soul Embers from Yomi, with the NEW active skill Shinigami Scythe (key F): three armor-piercing slashes on all enemies that reap weak foes.",
+    "No more one-shots: a normal enemy hit can take at most 50% of your max HP.",
+    "Paragon: opponents mostly gain HP (+5% per level) and only a little damage (+2%), and level up more slowly. Skill Mastery has no fixed cap after Master 99 (+1 per Paragon level).",
+    "Master League re-balanced: lifesteal heals at most 8% of your max HP per second against Masters, Paragon, Kami and Yomi (huge-damage builds healed to full on every hit). Now about 50 min at x3 with real fights.",
+    "Hero: hair rebuilt (no more floating spikes), a glowing ki aura around the hero, boots without the odd knee blobs.",
+    "Uniques can be salvaged (no auto-lock any more, still never auto-salvaged). NEW: Salvage all button in the bag."
   ]
 }

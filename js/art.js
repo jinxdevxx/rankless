@@ -21,6 +21,7 @@ const THEMES = {
   shrine:{sky:['#232c58','#7c7fb4','#f0c2b4'], accent:'#ffd9c9', accent2:'#ff8fa3', ground:['#e8eef7','#a3b1c7'], horizon:.66, fx:'snow'},
   arena: {sky:['#2a1f44','#8a4f63','#f0a86a'], accent:'#ffd27a', accent2:'#ff8a5c', ground:['#cfa46c','#7a5634'], horizon:.60, fx:'embers'},
   // Training Tower variants: same scenery, new moods (base = which scenery to draw)
+  yomi:    {base:'shrine', name:'Yomi', sky:['#0c0207','#2a0812','#5a0f22'], accent:'#ff4d6d', accent2:'#ffd0d8', ground:['#1a0a10','#060204'], horizon:.66, fx:'embers'},
   t_night: {base:'harbor', name:'Moonlit Docks',   sky:['#060b1d','#14214a','#3b3f73'], accent:'#cfe3ff', accent2:'#7fb6e6', ground:['#22262f','#0c0d12'], horizon:.64, fx:'rain'},
   t_ember: {base:'subway', name:'Crimson Depths',  sky:['#1a0606','#3a0d0d','#6b1a12'], accent:'#ff6a3c', accent2:'#ffb347', ground:['#1e0c08','#080302'], horizon:.64, fx:'embers'},
   t_dawn:  {base:'shrine', name:'Blossom Shrine',  sky:['#9fb4ff','#f7a8b8','#ffd6a5'], accent:'#fff1e6', accent2:'#ff9fb8', ground:['#f6e9ef','#c8b3c4'], horizon:.66, fx:'petals'},
@@ -325,6 +326,12 @@ function drawHumanoid(c, x, y, h, o){
   c.fillStyle = 'rgba(0,0,0,.38)'; c.beginPath(); c.ellipse(0, 0, 26*k, 5.5*k, 0, 0, 7); c.fill();
   if(o.aura){ const ag = c.createRadialGradient(0,-52*k,5*k,0,-52*k,74*k); ag.addColorStop(0, R + '38'); ag.addColorStop(1, R + '00'); c.fillStyle = ag; c.fillRect(-84*k,-136*k,168*k,146*k); }
   c.scale(f*k, k); c.translate(0, fy);
+  if(o.ki && !o.flash){   // v0.26: ki aura around the hero, flickering flames in the element color (subtle, Dragon Ball style)
+    c.save(); const kg = c.createRadialGradient(0,-55,8,0,-55,62); kg.addColorStop(0, R + '45'); kg.addColorStop(1, R + '00'); c.fillStyle = kg; c.beginPath(); c.ellipse(0,-55,34,64,0,0,7); c.fill();
+    for(let i2 = 0; i2 < 9; i2++){ const ph = (t*1.6 + i2*.37) % 1, side = i2 % 2 ? 1 : -1, bx = side*(10 + (i2 % 4)*4), hh = 70 + (i2 % 3)*18;
+      const g2 = c.createLinearGradient(0, 0, 0, -hh); g2.addColorStop(0, R + '00'); g2.addColorStop(.35, R + '55'); g2.addColorStop(1, R + '00');
+      c.fillStyle = g2; c.globalAlpha = .85*(1 - ph*.5); c.beginPath(); c.moveTo(bx - 7, -4); c.quadraticCurveTo(bx + side*8 + Math.sin(t*6 + i2)*3, -hh*.5, bx + side*2 + Math.sin(t*5 + i2)*4, -hh*(1 - ph*.3)); c.quadraticCurveTo(bx - side*4, -hh*.45, bx + 7, -4); c.closePath(); c.fill(); }
+    c.restore(); }
   const lean = pose === 'lunge' ? .22 : pose === 'hurt' ? -.15 : pose === 'cast' ? -.05 : pose === 'windup' ? -.12 : 0;
   c.rotate(lean);
   c.strokeStyle = INK; c.lineWidth = 1.2; c.lineJoin = 'round'; c.lineCap = 'round';
@@ -358,8 +365,8 @@ function drawHumanoid(c, x, y, h, o){
             : pose === 'hurt'  ? [[-3,-47],[-7,-24],[-12,0],[4,-47],[8,-24],[12,0]]
             : [[-3,-47],[-6,-24],[-9,0],[4,-47],[7,-24],[10,0]];
     const leg = (a,b,cc,fill) => { limbP(c,a[0],a[1],b[0],b[1],5,3.8); inked(c, fill);
-      const kx = b[0] + (cc[0]-b[0])*.35, ky = b[1] + (cc[1]-b[1])*.35; limbP(c,b[0],b[1],kx,ky,3.8,3.6); inked(c, fill);
-      limbP(c,kx,ky,cc[0],cc[1],3.9,3.1); inked(c, boots);   // tall boot
+      const kx = b[0], ky = b[1];
+      limbP(c,b[0],b[1],cc[0],cc[1],3.9,3.1); inked(c, boots);   // tall boot from the knee down (v0.26: no light knee blobs)
       c.save(); c.strokeStyle = W('#3b3446'); c.lineWidth = .8; c.beginPath(); c.moveTo(kx - 3.2, ky + 1); c.lineTo(kx + 3.2, ky + 1); c.stroke(); c.restore();
       polyP(c,[[b[0]-2.6,b[1]-2.5],[b[0]+2.6,b[1]-2.5],[b[0]+3,b[1]+2.5],[b[0]-3,b[1]+2.5]]); inked(c, metal);   // knee plate
       polyP(c,[[cc[0]-3.5,cc[1]-5.5],[cc[0]+3,cc[1]-5.5],[cc[0]+8,cc[1]-1.5],[cc[0]+8,cc[1]+.8],[cc[0]-3.5,cc[1]+.8]]); inked(c, boots); };
@@ -407,15 +414,20 @@ function drawHumanoid(c, x, y, h, o){
     c.beginPath(); c.rect(-5,-102,11,2.4); inked(c, W(R));
   } else {
     const st = typeof o.hair === 'number' ? o.hair % 3 : 0, hb = hy;
-    const spikes = st === 0 ? [[-9,-90],[-17,-99],[-8,-97],[-14,-108],[-4,-102],[-6,-113],[1,-104],[5,-112],[6,-102],[11,-104],[8,-97]]
-                : st === 1 ? [[-9,-88],[-13,-96],[-7,-100],[-5,-108],[1,-104],[6,-108],[8,-100],[10,-95],[7,-93]]
-                : [[-9,-90],[-15,-95],[-8,-99],[-10,-106],[-2,-103],[2,-109],[6,-102],[11,-100],[8,-95]];
-    if(st === 1 && !o.float){ c.beginPath(); c.moveTo(-6,-98+hb); c.quadraticCurveTo(-20+fl*2,-90+hb, -18+fl2*3,-70+hb); c.lineTo(-14,-72+hb); c.quadraticCurveTo(-14,-88+hb,-4,-95+hb); c.closePath(); inked(c, hair); }   // ponytail
-    polyP(c, spikes.concat([[8,-96],[6,-97.5],[3,-96],[1,-98],[-2,-96],[-5,-97]]), 0, hb);
-    const hg = c.createLinearGradient(0,-112,0,-88); hg.addColorStop(0, hairLt); hg.addColorStop(1, hair); inked(c, o.flash ? '#ffffff' : hg);
-    // bangs over the forehead
-    polyP(c, [[0,-98],[6,-97.5],[8.5,-93.5],[6,-95],[4,-93.8],[2,-95.5]], 0, hb); inked(c, hair);
-    c.save(); c.strokeStyle = hairLt; c.lineWidth = .7; c.beginPath(); c.moveTo(-4,-103+hb); c.lineTo(2,-98+hb); c.moveTo(-9,-99+hb); c.lineTo(-3,-96+hb); c.stroke(); c.restore();
+    // v0.26: hair grows from a cap that hugs the skull (no gap above the head), spikes swept back, bangs end above the eye
+    const cx = 1.2, cy = -91.5 + hb, r = 7.3, A0 = 150, A1 = 348, rad = d => d*Math.PI/180;
+    const lens = st === 0 ? [5,9,12,14,12,10,6] : st === 1 ? [3,6,8,8,6,4] : [4,8,10,11,9,5];
+    const n = lens.length, P = a => [cx + r*Math.cos(rad(a)), cy + r*Math.sin(rad(a))];
+    if(st === 1 && !o.float){ c.beginPath(); c.moveTo(-5,-97+hb); c.quadraticCurveTo(-20+fl*2,-90+hb, -18+fl2*3,-70+hb); c.lineTo(-13,-73+hb); c.quadraticCurveTo(-12,-87+hb,-3,-94+hb); c.closePath(); inked(c, hair); }
+    c.beginPath(); let p0 = P(A0); c.moveTo(p0[0], p0[1]);
+    for(let i2 = 0; i2 < n; i2++){ const a0 = A0 + (A1 - A0)*i2/n, a1 = A0 + (A1 - A0)*(i2 + 1)/n, am = (a0 + a1)/2 - 14, rr = r + lens[i2] + Math.sin(t*3 + i2)*.4;
+      c.lineTo(cx + rr*Math.cos(rad(am)), cy + rr*Math.sin(rad(am))); const pb = P(a1); c.lineTo(pb[0], pb[1]); }
+    // inner hairline across the top of the forehead and down the back of the skull
+    c.lineTo(5.6, cy - 4.4); c.lineTo(2.5, cy - 5.6); c.lineTo(-1.5, cy - 5); c.lineTo(-3.6, cy - 2); c.lineTo(-4.6, cy + 2.6); c.closePath();
+    const hg = c.createLinearGradient(0,-114,0,-86); hg.addColorStop(0, hairLt); hg.addColorStop(1, hair); inked(c, o.flash ? '#ffffff' : hg);
+    // bangs: pointed strands that stop above the eye
+    polyP(c, [[1.5,cy-5.6],[3.4,cy-2.3],[4.6,cy-5],[6.2,cy-2.4],[7.4,cy-4.6],[6.4,cy-6.4],[2,cy-7]]); inked(c, hair);
+    c.save(); c.strokeStyle = hairLt; c.lineWidth = .7; c.beginPath(); c.moveTo(-3,cy-9); c.lineTo(2,cy-6.5); c.moveTo(-7,cy-6); c.lineTo(-2.5,cy-4.5); c.stroke(); c.restore();
   }
   if(o.crown){ polyP(c, [[-6,-98],[-4,-107],[-1,-100],[1,-110],[3,-100],[6,-106],[7,-97]]); inked(c, W('#cfe8ff')); }
   // ---- front arm ----
@@ -701,12 +713,13 @@ function drawAura(c, id, x, y, h, t, layer){
 function drawUnitArt(c, u, x, y, h, t, pose, flash, alpha){
   const aura = u.kind === 'hero' && !flash && typeof S !== 'undefined' && S.cosmetic ? S.cosmetic.aura : null;
   if(aura) drawAura(c, aura, x, y, h, t, 'back');
+  if(u.kind === 'hero') u.art.ki = true;
   drawUnitArtInner(c, u, x, y, h, t, pose, flash, alpha);
   if(aura) drawAura(c, aura, x, y, h, t, 'front');
 }
 function drawUnitArtInner(c, u, x, y, h, t, pose, flash, alpha){
   const o = {t:t + (u.seed||0), face:u.side === 'p' ? 1 : -1, pose, flash, alpha,
-    body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura, fx:u.art.fx};
+    body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura, fx:u.art.fx, ki:u.art.ki};
   if(u.art.style === 'spirit') drawSpirit(c, x, y, h*.55, o);
   else if(u.art.style === 'human') drawHumanoid(c, x, y, h, o);
   else drawMonster(c, u.art.style, x, y, h, o);

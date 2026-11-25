@@ -43,7 +43,7 @@ function enterSlot(id){
   const s = readSlot(id);
   if(!s){ S = defaultSave(); showScreen('create'); renderCreate(); return; }
   S = s;
-  migrateEnchant(); fixStarterGear(); migrateCombat(); migratePets(); if(S.flags.petRefund && !S.flags.petRefundShown){ S.flags.petRefundShown = true; setTimeout(() => toast('LEGION REWORKED', `Your old monster Legion became Gold: +${fmt(S.flags.petRefund)}. Buy magic spirits in the Legion tab!`, 'gold'), 1200); }
+  migrateEnchant(); fixStarterGear(); migrateUniques(); migrateCombat(); migratePets(); if(S.flags.petRefund && !S.flags.petRefundShown){ S.flags.petRefundShown = true; setTimeout(() => toast('LEGION REWORKED', `Your old monster Legion became Gold: +${fmt(S.flags.petRefund)}. Buy magic spirits in the Legion tab!`, 'gold'), 1200); }
   checkUnlocks(true);
   if(!S.flags.manualSkills){ S.settings.autoSkill = false; S.flags.manualSkills = true; }
   UI.shownPower = undefined;

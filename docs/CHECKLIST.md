@@ -37,6 +37,9 @@ Add new player feedback here as a new point, so it is never forgotten.
 
 15. **Endgame keeps going**: after Master 99 there are visible goals (Endgame Goals board), Paragon has resistance (losses happen), Kami Trials are beatable (Determination), nothing piles up unusable (talent points, stones, gold). Bot: `PARAGON=1 START_SNAP=<M90 snapshot> node tools/bot_balance.js storm spamskill 500`.
 
+16. **World map**: 5 regions visible on the Gates tab; Yomi opens only with Master 99 + Kami 3 + Rift 30; Yomi floors winnable step by step; Soul Embers + Shinigami Arts + Scythe (F) work; 3–5 show COMING SOON.
+17. **No one-shots, no immortality**: enemy hit ≤ 50 % max HP; lifesteal ≤ 8 %/s in the endgame (25 %/s elsewhere). Check with tools/survival_test.js and a single-fight instrument on master snapshots.
+
 ## Improve continuously (pick the weakest point each round)
 - RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.
 - Combat must be more fun and creative WITHOUT being harder to play: e.g. easy skill combos, weak points that open up, boss moves you answer with a skill. Small steps, one idea per round, ask for feedback.
