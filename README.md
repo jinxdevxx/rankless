@@ -25,6 +25,19 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.27.0 – Worlds
+- Worlds (`S.world`): the map travels between worlds. World ≥ 2 swaps Home (badge, CTAs, background theme), Gates (`sheetRegion`) and Arena (`sheetWorldArena`). Region code generalized (`REG`, `REG_REQ`, `regState/regFree`, `regionGateOpen`, region palettes, region towers `S.tower.y2/y3`).
+- World arenas (`WORLD_ARENA`, `worldFoe`, `startWorldArena`): 10 fighters per world on the Paragon scale (Yomi p 14–68, Takamagahara p 72–135); first wins give region currency (champion 10), Diamonds, loot at hero level, unique roll. Strict lifesteal budget applies.
+- Region 3 Takamagahara: `TAKAMA_GATES` T1–T7 (base 212 + 9i), unlock Yomi Circle 9 + Kami 7 + Paragon 60; `TENGU_TREE` with Heaven's Gale (key G, 60 Ki, 4×160 % + 1 s stun, 8 s cd, AUTO uses it) and Second Sky (revive 50 % + 3 s invulnerable); theme `takama`.
+- Region towers: Yomi Tower (from Lv 128), Heaven Tower (from Lv 205).
+- Legion 2.0 (`PET_ABIL`, `petAbility`): per-spirit abilities on a cooldown (8 s − 0.15·lv − 0.3·stars, min 3.5, pre-charged 60 %), bolts ×2, Legion Resonance (3 spirits: +10 % hero damage), Void Mark +25 % damage taken. Measured on Master snapshots: spirit damage share 2.6–3.9 % → 14–28 %, legion power +48 % → +76 %.
+- Yomi harder: base level 135 + 6/circle (was 125 + 7), mult 1.0 (was .7), full HP (was ×.75).
+- Combat HUD: hero card (level, title, HP numbers, shield, buff chips), rounded skill cards with cost chip and key badge (hidden on phones), damage numbers in Nunito 900 without symbols, crit glow.
+- Recommended power for region gates on the Paragon scale (`regionEqParagon`).
+- Bot: YOMI mode farms the Yomi Tower after losses.
+- Bigger region trees: +4 nodes each, keystones Ferryman's Toll / Divine Judgement, uncapped Limit Break node, +10 button.
+- Midgame enemy hit cap back to 80% max HP (50% only in the endgame). Yomi circles +6 levels each.
+
 ### v0.26.2 – Clean Victory
 - Result screen: `.res.many` when ≥ 2 banners (smaller banners, damage breakdown hidden), no duplicate rarity text when a unique banner shows, sticky button row. Next-fight label shows Paragon after Master 99 and is hidden at the Paragon cap.
 - Mob art: beast (jaw + teeth, claws, neck fur, belly light), ghost (pale mask, second sleeve with bone fingers, mist hem).

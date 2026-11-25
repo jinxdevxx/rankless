@@ -335,7 +335,7 @@ function petStar(id){ return (typeof S !== 'undefined' && S.pets && S.pets.stars
 function petStarCap(){ return Math.min(PET_STAR_MAX, 3 + (S.rank === 'M' ? Math.floor(((S.master && S.master.lv) || 0)/10) : 0)); }
 function petStarCost(st){ return {gold:Math.round(goldFor(Math.max(30, S.level))*40*st), stones:Math.round(350*st*Math.pow(1.35, st - 1))}; }
 function petBonus(id, lv, st = petStar(id)){ const p = PETS[id]; return +(p.b0 + p.bl*(lv - 1 + 2*st)).toFixed(1); }
-function petDmg(id, lv, st = petStar(id)){ return PETS[id].dmg * (1 + .1*(lv - 1)) * (1 + .25*st); }
+function petDmg(id, lv, st = petStar(id)){ return PETS[id].dmg * 2 * (1 + .1*(lv - 1)) * (1 + .25*st); }   // v0.27: bolts x2
 /* Gold Rush: repeatable fight with no loot, lots of gold */
 const RUSH_GOLD = 32;
 /* E-Rank is the 'get hooked' phase: enemies are softer so spamming players progress quickly */
@@ -582,7 +582,7 @@ function kamiFoe(i){ const t = KAMI_TRIALS[i], h = paragonFoe(10*(i + 1));
 const REGIONS = [
   {id:1, name:'Neo-Tokyo',    sub:'Hunter City',      color:'#ffd27a', icon:'🏙', desc:'Gates E to S+, the Master League, the Abyss Rift and the Kami Trials.'},
   {id:2, name:'Yomi',         sub:'Land of the Dead', color:'#ff4d6d', icon:'⛩', desc:'The underworld below the Rift. Nine Circles of Yomi, Soul Embers and the Shinigami Arts.'},
-  {id:3, name:'Takamagahara', sub:'Plain of Heaven',  color:'#9fe8ff', icon:'☁', soon:true, desc:'Where the gods live above the clouds.'},
+  {id:3, name:'Takamagahara', sub:'Plain of Heaven',  color:'#ffe9a8', icon:'☁', desc:'The plain of the gods above the clouds. Seven Celestial Palaces, Divine Feathers and the Tengu Arts.'},
   {id:4, name:'Ryūgū-jō',     sub:'Dragon Palace',    color:'#7fffd4', icon:'🐉', soon:true, desc:'The palace of the Dragon King at the bottom of the sea.'},
   {id:5, name:'Mugen',        sub:'The Endless',      color:'#c77dff', icon:'∞', soon:true, desc:'Beyond every map. Nobody has come back.'},
 ];
@@ -592,7 +592,13 @@ const YOMI_REQ = [
   [() => `Beat Kami Trial 3 – Tsukuyomi (${typeof kamiCleared === 'function' ? kamiCleared() : 0}/3 trials) · Arena tab, opens at Paragon 10/20/30`, () => typeof kamiCleared === 'function' && kamiCleared() >= 3],
   [() => `Abyss Rift depth 30 (best ${(S.rift && S.rift.best) || 0}/30) · Arena tab`, () => ((S.rift && S.rift.best) || 0) >= 30],
 ];
-function regionOpen(id){ return id === 1 || (id === 2 && YOMI_REQ.every(([, f]) => f())); }
+const TAKAMA_REQ = [
+  [() => `Defeat Yomi Circle 9 – Throne of Izanami (${Math.min(9, YOMI_GATES.filter(g => (S.gates[g.id]||0) >= FLOORS).length)}/9 circles) · Gates tab, Region 2`, () => (S.gates.Y9||0) >= FLOORS],
+  [() => `All 7 Kami Trials (${typeof kamiCleared === 'function' ? kamiCleared() : 0}/7) · Arena tab`, () => typeof kamiCleared === 'function' && kamiCleared() >= 7],
+  [() => `Paragon 60 (${S.paragon||0}/60) · Arena tab`, () => (S.paragon||0) >= 60],
+];
+const REG_REQ = {2: YOMI_REQ, 3: TAKAMA_REQ};
+function regionOpen(id){ return id === 1 || (REG_REQ[id] ? REG_REQ[id].every(([, f]) => f()) : false); }
 /* Nine Circles of Yomi: 10 floors each, a boss on floor 10. Circle N opens when circle N-1's boss is beaten. */
 const YOMI_CIRCLES = [
   ['Yomotsu Hirasaka', 'The slope where the living world ends.',      ['husk','wraith','shade'],     'oni',      'warden'],
@@ -605,10 +611,10 @@ const YOMI_CIRCLES = [
   ['Black Shrine',     'A shrine to gods nobody remembers.',            ['eclipse','hunterx','oracle'],'behemoth', 'abyssking'],
   ['Throne of Izanami','The queen of the dead waits on her throne.',    ['hunterx','eclipse','oracle'],'behemoth', 'emperor'],
 ];
-function yomiLv(i){ return 125 + i*7; }   // circle i (0-8): base level, +1 per floor
+function yomiLv(i){ return 135 + i*6; }   // v0.27: +6 per circle (+8 made circle 4 a 5-hour wall)   // v0.27: harder (players found Yomi too easy)   // circle i (0-8): base level, +1 per floor
 const YOMI_GATES = YOMI_CIRCLES.map(([name, desc, enemies, elite, boss], i) => ({id:'Y' + (i + 1), region:2, circle:i + 1, rank:'M', name:`Circle ${i + 1} · ${name}`, desc,
-  get baseLv(){ return yomiLv(i); }, mult:.7, recMult:.3, theme:'yomi', enemies, elite, boss}));
-function findGate(id){ return GATES.find(g => g.id === id) || YOMI_GATES.find(g => g.id === id); }
+  get baseLv(){ return yomiLv(i); }, mult:1, recMult:.3, theme:'yomi', enemies, elite, boss}));
+function findGate(id){ return GATES.find(g => g.id === id) || YOMI_GATES.find(g => g.id === id) || (typeof TAKAMA_GATES !== 'undefined' && TAKAMA_GATES.find(g => g.id === id)); }
 function yomiCircleOpen(i){ return regionOpen(2) && (i === 0 || (S.gates['Y' + i]||0) >= FLOORS); }
 /* Shinigami Arts: the Yomi skill tree, paid with Soul Embers (1 per new Yomi floor, 5 per circle boss) */
 const YOMI_TREE = [
@@ -620,7 +626,86 @@ const YOMI_TREE = [
   {id:'y_ghost', name:'Ghost Legion',    stat:'petP',    per:8,  max:20, req:25, desc:'+8% spirit damage per rank'},
   {id:'k_scythe', name:'Shinigami Scythe', key:'scythe', max:1, req:30, desc:'NEW SKILL (key F): 80 Ki · three armor-piercing slashes on ALL enemies (220% each), executes normal enemies below 15% HP'},
   {id:'y_doom',  name:'Doom Ward',       stat:'dr',      per:.6, max:20, req:45, desc:'-0.6% damage taken per rank'},
+  {id:'y_mark',  name:"Reaper's Mark",   stat:'crit',    per:.8, max:15, req:50, desc:'+0.8% crit rate per rank'},
+  {id:'y_hunt',  name:'Soul Hunter',     stat:'gold', stat2:'xp', per:5, max:20, req:55, desc:'+5% Gold and XP per rank'},
+  {id:'k_ferry', name:"Ferryman's Toll", key:'ferry', max:1, req:60, desc:'KEYSTONE: bosses, hunters and masters take +20% damage from you'},
+  {id:'y_limit', name:'Soul Limit Break', stat:'atkP', stat2:'hpP', per:.4, max:999, req:70, desc:'+0.4% ATK and HP per Soul Ember, no real limit'},
 ];
 function soulsSpent(){ let n = 0; for(const nd of YOMI_TREE) n += (S.yomi && S.yomi.tree[nd.id]) || 0; return n; }
 function soulsFree(){ return ((S.yomi && S.yomi.souls) || 0) - soulsSpent(); }
 UNIQUE_DROP.yomi = .08; GODFORGED_DROP.yomi = .03; UNIQUE_SRC.yomi = 'Yomi circle bosses (Region 2)';
+
+/* ================= LEGION 2.0 (v0.27.0) =================
+   Every spirit casts its own ability on a cooldown (shorter with level and stars).
+   3 spirits in slots = Legion Resonance: +10% damage. */
+const PET_ABIL = {
+  ember: {name:'Fire Nova',     desc:'Explodes on ALL enemies (7x its bolt damage)'},
+  frost: {name:'Frost Ward',    desc:'Shields you for 8% max HP and slows all enemies'},
+  storm: {name:'Thunder Chain', desc:'3 lightning strikes (5x bolt damage) that stun briefly'},
+  owl:   {name:'Void Mark',     desc:'Marks the strongest enemy: it takes +25% damage for 5 s'},
+  moth:  {name:'Crimson Bloom', desc:'Heals you for 6% of your max HP'},
+};
+function petAbilCd(id){ const lv = (S.pets.owned[id]||1), st = petStar(id); return Math.max(3.5, 8 - lv*.15 - st*.3); }
+
+/* Region towers (v0.27.0): every region has its own Training Tower that starts at the region's level */
+function regionTowerLevel(f, region){ return region >= 2 ? REG[region].towerBase + (f - 1)*.9 : towerLevel(f); }
+function regionTowerBest(region){ return region >= 2 ? ((S.tower && S.tower['y' + region]) || 0) : ((S.tower && S.tower.best) || 0); }
+function regionTowerReward(f, region){ const L = regionTowerLevel(f, region); return {gold:Math.round(goldFor(L)*TOWER.gold), xp:Math.round(xpFor(L)*TOWER.xp)}; }
+
+/* ================= REGION 3 · TAKAMAGAHARA (v0.27.0) =================
+   Seven Celestial Palaces above the clouds, Divine Feathers, Tengu Arts with the new skill Heaven's Gale (key G). */
+const TAKAMA_PALACES = [
+  ['Ama-no-Ukihashi',    'The Floating Bridge of Heaven.',               ['harpy','sage','stalker'],     'titan',    'stormlord'],
+  ['Cloud Gardens',      'Gardens of mist where the wind spirits play.', ['harpy','specter','sage'],     'oni',      'matriarch'],
+  ['Hall of a Thousand Mirrors', 'Every reflection fights back.',        ['oracle','eclipse','shade'],   'colossus', 'sunqueen'],
+  ['Thunder Terraces',   'The drums of the thunder gods never stop.',    ['stalker','harpy','hunterx'],  'sunoni',   'stormlord'],
+  ['Golden Orchard',     'Peaches of immortality, guarded jealously.',   ['priest','ember','sunhound'],  'titan',    'sunqueen'],
+  ['Heavenly Forge',     'Where the Kusanagi was first tempered.',       ['golem','reaver','hunterx'],   'behemoth', 'abyssking'],
+  ['Throne of Amaterasu','The sun goddess waits at the top of heaven.',  ['eclipse','oracle','hunterx'], 'behemoth', 'emperor'],
+];
+function takamaLv(i){ return 212 + i*9; }
+const TAKAMA_GATES = TAKAMA_PALACES.map(([name, desc, enemies, elite, boss], i) => ({id:'T' + (i + 1), region:3, circle:i + 1, rank:'M', name:`Palace ${i + 1} · ${name}`, desc,
+  get baseLv(){ return takamaLv(i); }, mult:1, recMult:.3, theme:'takama', enemies, elite, boss}));
+const TENGU_TREE = [
+  {id:'t_might',   name:'Celestial Might', stat:'atkP',  per:3.5, max:20, req:0,  desc:'+3.5% ATK per rank'},
+  {id:'t_body',    name:'Heavenly Body',   stat:'hpP',   per:4.5, max:20, req:0,  desc:'+4.5% HP per rank'},
+  {id:'t_wind',    name:'Wind Step',       stat:'spd',   per:1.5, max:20, req:10, desc:'+1.5% attack speed per rank'},
+  {id:'t_eye',     name:'Tengu Eye',       stat:'crit',  per:.8,  max:20, req:15, desc:'+0.8% crit rate per rank'},
+  {id:'k_gale',    name:"Heaven's Gale",   key:'gale', max:1, req:20, desc:'NEW SKILL (key G): 60 Ki · four wind blades on ALL enemies (160% each) that throw them into the air (1 s stun)'},
+  {id:'t_feather', name:'Feather Guard',   stat:'dr',    per:.6,  max:20, req:25, desc:'-0.6% damage taken per rank'},
+  {id:'k_secondsky', name:'Second Sky',    key:'secondsky', max:1, req:35, desc:'KEYSTONE: once per fight a killing blow leaves you at 50% HP and 3 s untouchable'},
+  {id:'t_sky',     name:'Sky Legion',      stat:'petP',  per:10,  max:20, req:40, desc:'+10% spirit damage per rank'},
+  {id:'t_gust',    name:'Gust Blade',      stat:'critDmg', per:6, max:20, req:50, desc:'+6% crit damage per rank'},
+  {id:'t_fortune', name:'Heavenly Fortune', stat:'gold', stat2:'xp', per:6, max:20, req:55, desc:'+6% Gold and XP per rank'},
+  {id:'k_judge',   name:'Divine Judgement', key:'judge', max:1, req:60, desc:'KEYSTONE: elites and bosses take +25% damage from you'},
+  {id:'t_limit',   name:'Sky Limit Break', stat:'atkP', stat2:'hpP', per:.5, max:999, req:70, desc:'+0.5% ATK and HP per Divine Feather, no real limit'},
+];
+const REG = {
+  2: {key:'yomi',   gates:YOMI_GATES,   tree:YOMI_TREE,  cur:'souls',    curName:'Soul Ember',     curIcon:'🔥', color:'#ff4d6d', dark:'#3a0a16', title:'YOMI', label:'Yomi', towerName:'Yomi Tower',   towerBase:128,
+      palette:{body:'#2a0b14', rim:'#ff4d6d', eye:'#ffe0e6', fx:'eclipse'}, prefix:'Yomi ', usrc:'yomi', treeName:'Shinigami Arts', branch:'Shinigami', icon:'⛩',
+      intro:'Nine Circles, 10 floors each. Loot drops at your level with high rarity. New floors give <b>Soul Embers</b> (bosses 5) for the <b>Shinigami Arts</b> tree in the Talents tab. Circle bosses can drop Uniques and Godforged items.'},
+  3: {key:'takama', gates:TAKAMA_GATES, tree:TENGU_TREE, cur:'feathers', curName:'Divine Feather', curIcon:'🪶', color:'#ffd27a', dark:'#3a3016', title:'TAKAMAGAHARA', label:'Takamagahara', towerName:'Heaven Tower', towerBase:205,
+      palette:{body:'#e8e0cc', rim:'#ffd27a', eye:'#4cc9ff', fx:'storm'}, prefix:'Heavenly ', usrc:'takama', treeName:'Tengu Arts', branch:'Tengu', icon:'☁',
+      intro:'Seven Celestial Palaces, 10 floors each. Loot at your level with even higher rarity. New floors give <b>Divine Feathers</b> (bosses 5) for the <b>Tengu Arts</b> tree in the Talents tab, with the new skill <b>Heaven\'s Gale</b>.'},
+};
+function regState(r){ const k = REG[r].key; S[k] = S[k] || {}; S[k].tree = S[k].tree || {}; S[k][REG[r].cur] = S[k][REG[r].cur] || 0; return S[k]; }
+function regPts(r){ return regState(r)[REG[r].cur] || 0; }
+function regSpent(r){ let n = 0; const st = regState(r); for(const nd of REG[r].tree) n += st.tree[nd.id] || 0; return n; }
+function regFree(r){ return regPts(r) - regSpent(r); }
+function regionGateOpen(r, i){ return regionOpen(r) && (i === 0 || (S.gates[REG[r].gates[i - 1].id]||0) >= FLOORS); }
+UNIQUE_DROP.takama = .1; GODFORGED_DROP.takama = .05; UNIQUE_SRC.takama = 'Takamagahara palace bosses (Region 3)';
+
+/* ================= WORLDS (v0.27.0) =================
+   Each region is its own world you travel to: its own gates, arena, tower and look. */
+const WORLD_ARENA = {
+  2: [['Kuro the Ferryman','Boatman of the Sanzu River','void'],['Hanako of the Lanterns','Keeper of a thousand flames','flame'],['Gashadokuro Jin','Giant of starving bones','blood'],
+      ['Ren the Bone Monk','Prays for the dead with his fists','storm'],['Oni-Hime Akane','Princess of the red oni','flame'],['Jorogumo Sayo','The spider bride','void'],
+      ['Rokurokubi Mei','Her neck never ends','blood'],['Yuki-Onna Shiro','The snow woman of Yomi','storm'],['Datsue-ba','She takes the clothes of the dead','void'],['Enma-ō','King of Hell, judge of all souls','blood']],
+  3: [['Tengu Sojobo','King of the mountain tengu','storm'],['Karura','The golden firebird','flame'],['Kirin Rider Hoshi','Rides the holy beast','storm'],
+      ["Fujin's Herald",'Carries the bag of winds','storm'],['Raiko the Drummer','Beats the thunder drums','storm'],['Kuzunoha','Nine-tailed fox sage','void'],
+      ["Hachiman's Guard",'The war god’s chosen','blood'],['Yumi the Archer','Never misses a star','flame'],['Ame-no-Uzume','Dances the sun back into the sky','flame'],['Omoikane','God of wisdom, last of the arena','void']],
+};
+const WORLD_ARENA_P = {2: i => 14 + i*6, 3: i => 72 + i*7};   // paragon-equivalent strength of each opponent
+function worldFoe(r, i){ const [name, title, aff] = WORLD_ARENA[r][i], h = paragonFoe(WORLD_ARENA_P[r](i));
+  return Object.assign(h, {name, title:`${title} · ${REG[r].label} Arena`, aff, rival:i === 9, hair:i % 3, worldR:r, worldIdx:i, line: i === 9 ? 'You came all this way to fall here.' : 'This world does not belong to you.'}); }
+function worldArenaDone(r){ return (S.warena && S.warena[r]) || 0; }

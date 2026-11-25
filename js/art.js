@@ -21,6 +21,7 @@ const THEMES = {
   shrine:{sky:['#232c58','#7c7fb4','#f0c2b4'], accent:'#ffd9c9', accent2:'#ff8fa3', ground:['#e8eef7','#a3b1c7'], horizon:.66, fx:'snow'},
   arena: {sky:['#2a1f44','#8a4f63','#f0a86a'], accent:'#ffd27a', accent2:'#ff8a5c', ground:['#cfa46c','#7a5634'], horizon:.60, fx:'embers'},
   // Training Tower variants: same scenery, new moods (base = which scenery to draw)
+  takama:  {base:'shrine', name:'Takamagahara', sky:['#7fa8f0','#c8dcff','#fff1d0'], accent:'#ffd27a', accent2:'#ffffff', ground:['#f4efe2','#c9bfa8'], horizon:.7, fx:'petals'},
   yomi:    {base:'shrine', name:'Yomi', sky:['#0c0207','#2a0812','#5a0f22'], accent:'#ff4d6d', accent2:'#ffd0d8', ground:['#1a0a10','#060204'], horizon:.66, fx:'embers'},
   t_night: {base:'harbor', name:'Moonlit Docks',   sky:['#060b1d','#14214a','#3b3f73'], accent:'#cfe3ff', accent2:'#7fb6e6', ground:['#22262f','#0c0d12'], horizon:.64, fx:'rain'},
   t_ember: {base:'subway', name:'Crimson Depths',  sky:['#1a0606','#3a0d0d','#6b1a12'], accent:'#ff6a3c', accent2:'#ffb347', ground:['#1e0c08','#080302'], horizon:.64, fx:'embers'},

@@ -3,10 +3,19 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Each region a real world (own home, gates, arena, tower) (v0.27.0)
+- [x] Region towers (Yomi Tower, Heaven Tower) (v0.27.0)
+- [x] Region 3 Takamagahara with Heaven Arena, Tengu Arts, Heaven's Gale (v0.27.0)
+- [x] Legion useless → Legion 2.0 abilities + resonance (v0.27.0)
+- [x] Combat screen redesign (v0.27.0) — keep polishing
+- [x] Region trees too small (maxed fast) → +4 nodes, keystones, uncapped Limit Break (v0.27.0)
+- [ ] Re-measure midgame after 80% hit cap (flame/storm/void)
+- [ ] Bot: play Takamagahara + world arenas, calibrate WORLD_ARENA_P
+- [ ] Yomi/Takama balance: measure Yomi circles + world arenas with the bot, calibrate recommended power (regionEqParagon)
+- [ ] Regions 4 Ryugu-jo and 5 Mugen
 - [ ] NEXT ROUND (measured v0.26.2, flame spamskill): A-F7 wall 26 losses, A-F10 11, S-F6 14; Master League reached at 161 bot-min (~54 min at x3, earlier runs 275–349) → check variance per element, smooth A gate. Pure spam: B at 210 bot-min, max 14 losses.
 - [x] Victory screen too tall with many messages (v0.26.2)
 - [x] World map with 5 regions; Region 2 Yomi with circles, Soul Embers, Shinigami Arts tree + new skill; 3–5 coming soon (v0.26.0)
-- [ ] Regions 3–5 (Takamagahara, Ryugu-jo, Mugen): each with own content, currency, skill tree, new skill
 - [x] Master League rushed (0–2 losses) → retuned with lifesteal budget (v0.26.0)
 - [x] Paragon 133 one-shots → 50 % hit cap, Paragon ATK +2 %/level (v0.26.0)
 - [x] Endless skill scaling: Mastery cap grows with Paragon (v0.26.0)

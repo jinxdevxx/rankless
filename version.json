@@ -1,10 +1,16 @@
 {
-  "version": "0.26.2",
+  "version": "0.27.0",
   "date": "2026-11-25",
-  "title": "Clean Victory",
+  "title": "Worlds",
   "notes": [
-    "Victory screen stays compact with many messages (Kami trial + Godforged drop + level up): smaller banners, no duplicate drop text, buttons always visible.",
-    "After a Kami Trial the next-fight button now says Paragon (it wrongly said Master Lv 100).",
-    "Monster look: beasts got jaws with teeth, claws and neck fur; ghosts wear pale masks, a torn second sleeve with bone fingers and fade into mist."
+    "WORLDS: every region is now its own world you travel to on the map. In Yomi your Home, Gates and Arena are Yomi's: its own circles, its own arena with 10 fighters up to Enma-o, King of Hell, its own tower and look.",
+    "NEW REGION 3: Takamagahara, Plain of Heaven. Seven Celestial Palaces, the Heaven Arena (up to Omoikane), the Heaven Tower, Divine Feathers and the Tengu Arts tree with the NEW skill Heaven's Gale (key G) and the keystone Second Sky.",
+    "NEW: region towers. Yomi Tower and Heaven Tower start at the region's level, so farming makes sense right away.",
+    "LEGION 2.0: every spirit casts its own ability (Fire Nova, Frost Ward, Thunder Chain, Void Mark, Crimson Bloom), bolts hit twice as hard, 3 spirits give Legion Resonance +10% damage. Spirits now deal about 15-25% of your damage (was 3%).",
+    "Yomi is harder: full enemy strength, circles rise +6 levels each (smooth climb, no 5-hour wall).",
+    "Bigger region trees: Shinigami Arts and Tengu Arts got 4 new nodes each (crit, crit damage, Gold/XP), the keystones Ferryman's Toll (+20% vs bosses/hunters) and Divine Judgement (+25% vs elites/bosses), and a Limit Break node with no cap, so Soul Embers and Feathers never run out of use. New +10 button.",
+    "Midgame enemies can hit for up to 80% of your HP again (the 50% cap made Ranks B-S too easy). The 50% cap stays in the endgame.",
+    "Combat screen redesign: hero card with level, title, HP numbers and active buffs; skill cards instead of circles; cleaner damage numbers (color shows the source, crits glow gold).",
+    "Recommended power in Yomi and Takamagahara uses the Paragon scale (was absurdly high)."
   ]
 }

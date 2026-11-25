@@ -1060,3 +1060,45 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .res.many .rankup .btn{padding:4px 10px;font-size:12px}
 .res.many .dmgbd, .res.many .bdhint{display:none}
 .res .row.c{position:sticky;bottom:-26px;padding:10px 0 4px;background:linear-gradient(180deg,transparent,var(--glass2) 35%);z-index:2}
+
+.pabil{margin:4px 0;font:700 12px Nunito,sans-serif;color:#e8e2f0} .pabil b{color:var(--c)}
+
+.ytower{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px;padding:14px;border-radius:16px;border:1px solid #ff4d6d88;background:linear-gradient(135deg,rgba(60,10,25,.7),rgba(12,2,7,.85))}
+.ytower>div>small{font:900 11px Nunito,sans-serif;letter-spacing:.12em;color:#ff9fb0} .ytower>div>b{display:block;font:400 28px 'Bebas Neue',sans-serif;color:#fff} .ytower>div>span{font:600 13px Nunito,sans-serif;color:#e8e2f0;display:block;max-width:560px}
+.ytower .row{display:flex;gap:8px;flex-wrap:wrap}
+
+.ytower{border-color:color-mix(in srgb,var(--rc,#ff4d6d) 55%,transparent)!important;background:linear-gradient(135deg,color-mix(in srgb,var(--rc,#ff4d6d) 22%,#0c0610),rgba(12,2,7,.85))!important}
+
+/* ===== v0.27 combat HUD redesign: hero card + skill cards ===== */
+.pc.hcard2{min-width:250px;padding:8px 12px 9px;border-radius:14px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);border-left:4px solid var(--c);background:linear-gradient(135deg,rgba(14,10,26,.9),rgba(6,6,14,.82));box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.hc-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.hc-lv{font:900 12px Nunito,sans-serif;color:#0c0816;background:var(--c);border-radius:6px;padding:1px 6px}
+.hcard2 .hc-top b{font:900 15px Nunito,sans-serif;display:inline;color:#fff} .hc-title{font:900 11px Nunito,sans-serif;letter-spacing:.06em}
+.hcard2 .hp{height:14px;border-radius:7px;margin-top:6px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+.hcard2 .hp i{background:linear-gradient(90deg,#26c46c,#6dffa8)} .hcard2.low .hp i{background:linear-gradient(90deg,#d42f4a,#ff7a8a);animation:lowhp .8s infinite alternate}
+.hcard2 .hp s{height:100%;background:rgba(159,216,255,.45);top:0}
+.hpn{position:absolute;inset:0;font:900 10px Nunito,sans-serif;color:#fff;text-align:center;line-height:13px;text-shadow:0 1px 2px #000;font-style:normal;z-index:2}
+.hc-buffs{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px} .hc-buffs span{font:800 10px Nunito,sans-serif;color:var(--c);border:1px solid color-mix(in srgb,var(--c) 50%,transparent);border-radius:999px;padding:1px 7px;background:rgba(0,0,0,.35)}
+@keyframes lowhp{from{filter:brightness(1)}to{filter:brightness(1.35)}}
+/* skill cards instead of circles */
+.skb{width:78px!important;height:78px!important;border-radius:18px!important;border-width:2px!important;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 28%,#14101f),#0a0812 70%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 6px 14px rgba(0,0,0,.4)}
+.skb b{font:900 12px Nunito,sans-serif!important;letter-spacing:.02em}
+.skb .fill{border-radius:0 0 16px 16px}
+.skb kbd{top:5px!important;bottom:auto!important;left:6px!important;transform:none!important;font:900 10px Nunito,sans-serif!important;color:#0c0816!important;background:rgba(255,255,255,.85);border-radius:5px;padding:0 4px;line-height:14px}
+.skb .cost{top:auto!important;bottom:5px!important;font:900 10px Nunito,sans-serif;color:#fff;background:rgba(0,0,0,.45);border-radius:999px;padding:1px 6px}
+.skb.ult{width:120px!important;height:78px!important;border-width:3px!important}
+.skb.ult b{font-size:30px!important;font-family:"Bebas Neue",sans-serif!important}
+.skb.strike{width:96px!important;height:78px!important;border-radius:18px!important}
+.skb.strike b{font-size:26px!important;font-family:"Bebas Neue",sans-serif!important}
+.skb.ready{box-shadow:0 0 0 1px var(--c),0 0 22px -2px var(--c),0 6px 14px rgba(0,0,0,.4)!important}
+@media (max-width:640px){ .skb{width:62px!important;height:62px!important;border-radius:14px!important} .skb.ult{width:84px!important;height:62px!important} .skb.ult b{font-size:22px!important} .skb.strike{width:72px!important;height:62px!important} .skb.strike b{font-size:20px!important} .skb b{font-size:10px!important} .pc.hcard2{min-width:0} }
+/* worlds (v0.27) */
+.region em.here{color:#7fffa0} .region em.go{color:#fff}
+.worldbadge{display:flex;align-items:center;gap:10px;justify-content:space-between;padding:8px 12px;border-radius:12px;border:1px solid var(--c);background:rgba(0,0,0,.45);font:900 13px Nunito,sans-serif;letter-spacing:.08em;color:var(--c);margin-bottom:8px}
+
+.skb b{padding-top:10px!important}   /* key badge no longer covers the skill name */
+.skb.ult b, .skb.strike b{padding-top:0!important}
+.b-party{width:auto!important;min-width:200px}
+@media (max-width:640px){ .b-party{top:auto!important;bottom:calc(150px + var(--safe-b))!important;left:8px!important;min-width:0} .pc.hcard2{padding:5px 8px;max-width:190px} .hcard2 .hc-top b{font-size:13px} .hc-buffs span{font-size:9px} }
+@media (max-width:640px){ .b-party{bottom:calc(196px + var(--safe-b))!important} .skb kbd{display:none!important} .skb b{padding-top:0!important;font-size:10px!important} }
+@media (max-width:640px){ #bTitle span{display:none} #bTitle b{font-size:20px} }

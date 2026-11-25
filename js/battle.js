@@ -53,7 +53,7 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rift' ? TOWER.ease*.95*(1 + .25*(BT.curse||0))   // Abyss Rift: Blood Pact curses make it harder
     : 1;
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(BT && BT.mode === 'gate' && BT.gate.region === 2 ? .75 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
@@ -104,15 +104,15 @@ function startGate(gateId, floor){
 /* Training Tower */
 /* every 5 floors a new place, monsters from every gate mixed, elite every 5th floor, boss every 10th */
 function towerTheme(f){ return TOWER_THEMES[Math.floor((f - 1)/5) % TOWER_THEMES.length]; }
-function startTower(floor){
-  floor = Math.max(1, floor); const gate = towerGate(floor), L = towerLevel(floor);
+function startTower(floor, region){
+  region = region || 1; floor = Math.max(1, floor); const gate = region >= 2 ? REG[region].gates[Math.min(REG[region].gates.length - 1, Math.floor((floor - 1)/10))] : towerGate(floor), L = regionTowerLevel(floor, region);
   const open = GATES.filter(g => g.baseLv <= L + 4), pool = open.flatMap(g => g.enemies), elites = open.map(g => g.elite);
   const mod = towerMod(floor), xtra = mod && mod.extra ? [pick(pool)] : [];
   const w1 = [pick(pool), pick(pool), pick(pool), ...xtra];
   const w2 = floor % 10 === 0 ? [gate.boss, pick(pool)] : [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? pick(elites) : pick(pool), ...xtra];
-  const theme = towerTheme(floor);
-  BT = newBattle({mode:'tower', floor, gate, L, theme, waves:[w1, w2], mod});
-  BT.banner = {txt:`FLOOR ${floor} · ${mod ? mod.icon + ' ' + mod.name.toUpperCase() : THEMES[theme].name}`, t:1.8, c:THEMES[theme].accent};
+  const theme = region >= 2 ? REG[region].gates[0].theme : towerTheme(floor);
+  BT = newBattle({mode:'tower', floor, gate, L, theme, waves:[w1, w2], mod, region});
+  BT.banner = {txt:`${region >= 2 ? REG[region].towerName.toUpperCase() + ' · ' : ''}FLOOR ${floor} · ${mod ? mod.icon + ' ' + mod.name.toUpperCase() : THEMES[theme].name}`, t:1.8, c:THEMES[theme].accent};
   if(mod && mod.pet) for(const u of BT.units) if(u.kind === 'pet') u.atk *= mod.pet;
   spawnWave();
   enterBattle();
@@ -205,6 +205,16 @@ function kamiTick(dt){
   if(has('tsukuyomi') && BT.kamiH >= 6){ BT.kamiH = 0; const hl = t.id === 'amaterasu' ? .012 : .02; b.hp = Math.min(b.maxHp, b.hp + b.maxHp*hl); addText(b, `MOONLIGHT +${hl*100}%`, '#c9c4ff', 20); }
   if(has('susanoo') && !b.kamiRage && b.hp < b.maxHp*.5){ b.kamiRage = true; b.atk *= t.id === 'amaterasu' ? 1.35 : 1.6; b.interval *= .75; b.enraged = true; addText(b, 'ENRAGED', '#ff5a5a', 30); BT.banner = {txt:`${t.name.toUpperCase()} ENRAGES`, t:1.4, c:'#ff5a5a'}; }
 }
+/* arena of another world */
+function startWorldArena(r, i){
+  if(i > worldArenaDone(r) || !regionOpen(r)) return;
+  const h = worldFoe(r, i);
+  BT = newBattle({mode:'arena', rank:'M', idx:i, exam:false, worldArena:r, hunter:h, theme:REG[r].gates[0].theme, L:h.lv, waves:[]});
+  const hu = prep(hunterUnit(h)); hu.auraC = REG[r].color; BT.units.push(hu); BT.boss = hu;
+  (h.comps||[]).forEach((type, k) => { const cu = prep(compUnit(type, k + 1, h.lv, 1 + h.gear, 1, 'e')); const pl = REG[r].palette; cu.art = Object.assign({}, cu.art, {body:mixHex(cu.art.body, pl.body, .5), rim:pl.rim, eye:pl.eye}); BT.units.push(cu); });
+  BT.banner = {txt:`${REG[r].label.toUpperCase()} ARENA · ${i + 1}/10`, t:1.8, c:REG[r].color};
+  enterBattle();
+}
 function startArena(rank, idx, exam){
   const h = exam ? EXAMS[rank] : HUNTERS[rank][idx];
   BT = newBattle({mode:'arena', rank, idx, exam, hunter:h, theme:'arena', L:h.lv, waves:[]});
@@ -220,9 +230,12 @@ function newBattle(o){
   const hs = heroStats();
   b.keys = {}; for(const nd of talentNodes()) if(nd.key && S.talents && S.talents[nd.id]) b.keys[nd.key] = true;
   for(const nd of YOMI_TREE) if(nd.key && S.yomi && S.yomi.tree[nd.id]) b.keys[nd.key] = true;   // Shinigami Arts keystones
+  for(const nd of TENGU_TREE) if(nd.key && S.takama && S.takama.tree[nd.id]) b.keys[nd.key] = true;   // Tengu Arts keystones
+  b.galeCd = 0; b.invulnT = 0;
   b.scytheCd = 0;
   b.ufx = {}; for(const sl of SLOTS){ const it = S.eq[sl]; if(it && it.uniq && UNIQUES[it.uniq]) b.ufx[UNIQUES[it.uniq].fx] = true; }   // unique item effects
   b.hitN = 0; b.oni = 0; b.deepT = 0;
+  b.resonance = ((S.pets && S.pets.active) || []).length >= 3;   // Legion Resonance
   b.heroDr = hs.dr || 0; if(b.keys.crystal) b.energy += 2;
   ((S.pets && S.pets.active) || []).forEach((id, i) => { const lv = S.pets.owned[id]; if(lv && PETS[id]) b.units.push(prep(petUnit(id, lv, i + 1))); });
   return b;
@@ -250,7 +263,7 @@ function spawnWave(){
   wave.forEach(type => {
     const u = prep(enemyUnit(type, BT.L, ENEMY_TYPES[type].boss ? 0 : slot++));
     if(BT.mode === 'tower' || BT.mode === 'rift') decorateTowerMob(u);
-    if(BT.gate && BT.gate.region === 2){ u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, '#2a0b14', .5), rim:'#ff4d6d', eye:'#ffe0e6', fx:'eclipse'}); u.auraC = u.boss || u.elite ? '#ff4d6d' : null; u.name = 'Yomi ' + u.name; }   // the dead of Yomi
+    if(BT.gate && BT.gate.region >= 2){ const pl = REG[BT.gate.region].palette; u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, pl.body, .5), rim:pl.rim, eye:pl.eye, fx:pl.fx}); u.auraC = u.boss || u.elite ? pl.rim : null; u.name = REG[BT.gate.region].prefix + u.name; }   // region look
     if(u.boss){ BT.boss = u; slot = 1; }
     BT.units.push(u);
   });
@@ -376,8 +389,9 @@ function dealDamage(att, tgt, mult, opt={}){
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
   if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; if(BT.keys.wrath && (tgt.boss || tgt.kind === 'hunter')) dmg *= 1.3;
-    const U = BT.ufx || {}; if(U.warlord && (tgt.boss || tgt.elite || tgt.kind === 'hunter')) dmg *= 1.35; if(U.izanagi) dmg *= 1.2; if(U.magatama && opt.skill) dmg *= 1.3; if(U.oni && BT.oni) dmg *= 1 + .08*BT.oni; }
+    const U = BT.ufx || {}; if(U.warlord && (tgt.boss || tgt.elite || tgt.kind === 'hunter')) dmg *= 1.35; if(BT.resonance) dmg *= 1.1; if(BT.keys.ferry && (tgt.boss || tgt.kind === 'hunter')) dmg *= 1.2; if(BT.keys.judge && (tgt.boss || tgt.elite)) dmg *= 1.25; if(U.izanagi) dmg *= 1.2; if(U.magatama && opt.skill) dmg *= 1.3; if(U.oni && BT.oni) dmg *= 1 + .08*BT.oni; }
   if(tgt.kind === 'hero' && BT.heroDr) dmg *= 1 - BT.heroDr/100;
+  if(tgt.markT > 0 && att.side === 'p') dmg *= 1.25;   // Void Mark
   if(tgt.kind === 'hero' && BT.ufx){ const U = BT.ufx; if(U.windwalk && Math.random() < .12){ addText(tgt, 'DODGE', '#9fffe0', 20); return 0; } if(U.aegis && tgt.hp > tgt.maxHp*.7) dmg *= .8; if(U.susanoo) dmg *= .85; }
   if((tgt.boss || tgt.elite) && att.side === 'p'){
     if(tgt.brokenT > 0) dmg *= BREAK.mult;
@@ -388,7 +402,8 @@ function dealDamage(att, tgt, mult, opt={}){
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
   if(!opt.pierce){ const K = 50*Math.pow(1.066, Math.max(0, (att.level || S.level) - 1)); dmg *= K/(K + tgt.def); }   // DEF scales with the attacker's level, so armor never makes you immune
-  if(tgt.kind === 'hero' && att.side === 'e' && !opt.mech) dmg = Math.min(dmg, tgt.maxHp*.5);   // v0.25.5: no single normal hit takes more than 50% of your max HP
+  if(tgt.kind === 'hero' && att.side === 'e' && !opt.mech) dmg = Math.min(dmg, tgt.maxHp*(lsPerSec() < .1 ? .5 : .8));   // v0.27: 50% cap in the endgame, 80% elsewhere (the 50% cap made the midgame far too easy)
+  if(tgt.kind === 'hero' && BT.invulnT > 0) return 0;   // Second Sky   // v0.25.5: no single normal hit takes more than 50% of your max HP
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
@@ -396,6 +411,7 @@ function dealDamage(att, tgt, mult, opt={}){
     if(BT.keys.thorns && att.side === 'e' && !att.dead){ const th = dmg*.25; att.hp -= th; addText(att, fmt(th), '#9fd8ff', 16); if(att.hp <= 0) killUnit(att, tgt); }
     if(tgt.hp <= 0 && BT.keys.second && !BT.secondUsed){ BT.secondUsed = true; tgt.hp = tgt.maxHp*.3; addText(tgt, 'SECOND LIFE', '#9ff0b8', 30); BT.flashT = .12; BT.slowmo = .5; }
     const U = BT.ufx || {};
+    if(tgt.hp <= 0 && BT.keys.secondsky && !BT.skyUsed){ BT.skyUsed = true; tgt.hp = tgt.maxHp*.5; BT.invulnT = 3; addText(tgt, 'SECOND SKY', '#ffe9a8', 30); BT.flashT = .14; burst(tgt.x, tgt.y - 40, '#ffe9a8', 30); }
     if(tgt.hp <= 0 && (U.susanoo || U.phoenix) && !BT.uRevive){ BT.uRevive = true; tgt.hp = tgt.maxHp*(U.susanoo ? .5 : .4); addText(tgt, U.susanoo ? 'SUSANOO RISES' : 'PHOENIX REBIRTH', U.susanoo ? '#bfe6ff' : '#ff9a4a', 30); BT.flashT = .14; burst(tgt.x, tgt.y - 40, U.susanoo ? '#bfe6ff' : '#ff9a4a', 30); }
     if(U.yata && att.side === 'e' && !att.dead){ const rf = dmg*.4; att.hp -= rf; addText(att, fmt(rf), '#fff1c9', 16); if(att.hp <= 0) killUnit(att, tgt); }
   }
@@ -497,6 +513,15 @@ function useScythe(){
   BT.energy -= 4; BT.scytheCd = 10; SFX.ultHit();
   castEffect(BT.hero, SCYTHE, true); BT.flashT = Math.max(BT.flashT||0, .08); BT.shake = Math.max(BT.shake||0, .3);
   for(const e of alive('e')) if(!e.boss && e.kind !== 'hunter' && e.hp < e.maxHp*.15){ addText(e, 'REAPED', '#ff4d6d', 22); killUnit(e, BT.hero); }
+}
+/* Heaven's Gale (Tengu Arts): key G */
+const GALE = {name:"HEAVEN'S GALE", type:'hit', target:'all', mult:1.6, hits:4, stun:1};
+function useGale(){
+  if(!BT || BT.over || !BT.keys.gale || BT.hero.dead || BT.cutin || !alive('e').length) return;
+  if(BT.galeCd > 0 || BT.energy < 3){ if((BT.skillMsgT||0) < BT.clock){ BT.skillMsgT = (BT.clock||0) + .5; addText(BT.hero, BT.galeCd > 0 ? `Gale ready in ${Math.ceil(BT.galeCd)} s` : `Need 60 Ki (have ${kiOf(BT.energy)})`, '#ffe9a8', 18); } return; }
+  BT.energy -= 3; BT.galeCd = 8; SFX.ultHit();
+  castEffect(BT.hero, GALE, true); BT.flashT = Math.max(BT.flashT||0, .06);
+  for(const e of alive('e')) BT.fx.push({k:'pillar', x:e.x, c:'#e8f8ff', w:30*bk(), life:.5, max:.5});
 }
 function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
@@ -664,8 +689,21 @@ function stepUnit(u, dt){
 }
 
 /* lifesteal per second: strict against masters, Paragon, Kami and Yomi (builds were unkillable there), generous elsewhere */
-function lsPerSec(){ return BT && (BT.master || BT.kami !== undefined || (BT.gate && BT.gate.region === 2)) ? .08 : .4; }
+function lsPerSec(){ return BT && (BT.master || BT.worldArena || BT.kami !== undefined || (BT.gate && BT.gate.region >= 2)) ? .08 : .4; }
+/* Legion 2.0: spirit abilities */
+function petAbility(u){
+  const id = u.pet, en = alive('e'), k = bk(), col = PETS[id].color; if(!en.length) return;
+  addText(u, PET_ABIL[id].name.toUpperCase(), col, 14); BT.fx.push({k:'ring', x:u.x, y:u.y, r:8, R:60*k, c:col, life:.4, max:.4});
+  if(id === 'ember'){ for(const e of en){ dealDamage(u, e, 7, {}); burst(e.x, e.y - e.size*k*.5, col, 12); } }
+  else if(id === 'frost'){ const h = BT.hero; h.shield = (h.shield||0) + h.maxHp*.08; addText(h, 'SHIELD', '#9fd8ff', 16); for(const e of en){ e.slow = Math.max(e.slow||0, 3); burst(e.x, e.y - e.size*k*.5, col, 6); } }
+  else if(id === 'storm'){ for(let i = 0; i < 3; i++){ const e = pick(alive('e')); if(!e) break; dealDamage(u, e, 5, {stun:.4}); BT.fx.push({k:'pillar', x:e.x, c:col, w:22*k, life:.35, max:.35}); } }
+  else if(id === 'owl'){ const e = en.reduce((a, b) => b.maxHp > a.maxHp ? b : a); e.markT = 5; addText(e, 'MARKED', '#b48cff', 18); burst(e.x, e.y - e.size*k*.6, col, 16); }
+  else if(id === 'moth'){ const h = BT.hero; if(!h.dead){ h.hp = Math.min(h.maxHp, h.hp + h.maxHp*.06); addText(h, '+6% HP', '#ff8aa0', 16); burst(h.x, h.y - 60*k, col, 14); } }
+}
 function stepBattle(dt){
+  if(BT && BT.galeCd > 0) BT.galeCd -= dt;
+  if(BT && BT.invulnT > 0) BT.invulnT -= dt;
+  if(BT && !BT.over) for(const u of BT.units){ if(u.markT > 0) u.markT -= dt; if(u.kind === 'pet' && u.pet && PET_ABIL[u.pet]){ if(u.abT === undefined) u.abT = petAbilCd(u.pet)*.6; u.abT += dt; if(u.abT >= petAbilCd(u.pet)){ u.abT = 0; petAbility(u); } } }
   if(BT){ const lr = lsPerSec(); for(const u of BT.units) if(u.lsBudget !== undefined) u.lsBudget = Math.min(u.maxHp*lr, u.lsBudget + u.maxHp*lr*dt); }
   if(BT && BT.scytheCd > 0) BT.scytheCd -= dt;
   if(BT && BT.kami !== undefined && !BT.over) kamiTick(dt);
@@ -703,7 +741,8 @@ function stepBattle(dt){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
     if((window.BOT_AUTO || (timingMode() ? S.settings.autoFight : S.settings.autoSkill)) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
-      if(BT.keys.scythe && BT.scytheCd <= 0 && BT.energy >= 4 && !BT.hero.dead) useScythe();   // AUTO FARM also reaps with the Shinigami Scythe
+      if(BT.keys.scythe && BT.scytheCd <= 0 && BT.energy >= 4 && !BT.hero.dead) useScythe();
+      if(BT.keys.gale && BT.galeCd <= 0 && BT.energy >= 3 && !BT.hero.dead) useGale();   // AUTO FARM also reaps with the Shinigami Scythe
       // spend Ki when the gauge is nearly full, most expensive skill first
       if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
@@ -745,7 +784,7 @@ function stepBattle(dt){
 
 /* damage numbers: hits from the same source on the same target within a short window merge into ONE growing number,
    with a small icon + colour per source, so you always see where your damage comes from (no number spam) */
-const DMG_SRC = {hit:{icon:'', c:'#ffffff'}, skill:{icon:'✦ ', c:null}, parry:{icon:'⟲ ', c:'#ffd166'}, spirit:{icon:'❖ ', c:null}, enemy:{icon:'', c:'#ff6b7a'}};
+const DMG_SRC = {hit:{icon:'', c:'#ffffff'}, skill:{icon:'', c:null}, parry:{icon:'', c:'#ffd166'}, spirit:{icon:'', c:null}, enemy:{icon:'', c:'#ff6b7a'}};   // v0.27: color tells the source, no symbol clutter
 /* hits draw blood: a spray of droplets (bigger on crits/skills) and stains on the ground that slowly fade.
    ghosts and blobs bleed in their own colour */
 function bloodColor(u){ const st = u.art && u.art.style; return st === 'ghost' ? u.art.rim : st === 'blob' ? u.art.eye : st === 'golem' ? '#ff8a3c' : null; }
@@ -764,13 +803,13 @@ function dmgNumber(tgt, dmg, src, crit, att){
   tgt._agg = tgt._agg || {};
   const g = tgt._agg[key];
   if(g && now - g.t < .45 && g.tx.life > .3){
-    g.sum += dmg; g.t = now; g.n++; g.tx.txt = g.prefix + fmt(g.sum) + (g.n > 1 ? ` ×${g.n}` : '') + (crit ? '!' : '');
+    g.sum += dmg; g.t = now; g.n++; g.tx.txt = g.prefix + fmt(g.sum) + (g.n > 1 ? ` ×${g.n}` : '');
     g.tx.life = g.tx.max; g.tx.size = Math.min(g.base*1.5, g.tx.size + 1.2); return;
   }
   const meta = DMG_SRC[src] || DMG_SRC.hit;
   const col = src === 'skill' ? AFF[S.aff].color2 : src === 'spirit' ? (att && att.art ? att.art.eye : '#c9a8ff') : crit && src !== 'enemy' ? '#ffd166' : meta.c;
   const base = src === 'enemy' ? 22 : crit ? 30 : src === 'skill' ? 26 : src === 'spirit' ? 18 : 22;
-  addText(tgt, meta.icon + fmt(dmg) + (crit ? '!' : ''), col, base, crit);
+  addText(tgt, meta.icon + fmt(dmg), col, base, crit);
   const tx = BT.texts[BT.texts.length - 1]; tx.life = tx.max = 1.05;
   tgt._agg[key] = {sum:dmg, t:now, n:1, tx, prefix:meta.icon, base:tx.size};
 }
@@ -842,7 +881,7 @@ function finishBattle(win){
       if(Math.random() < .04) r.diamonds += 1;
     }
   } else if(BT.mode === 'tower'){
-    if(win){ const f = BT.floor, tr = towerReward(f); r.first = f > (S.tower.best||0); S.tower.best = Math.max(S.tower.best||0, f);
+    if(win){ const f = BT.floor, rg = BT.region || 1, tr = regionTowerReward(f, rg); r.first = f > regionTowerBest(rg); if(rg === 2) S.tower.y2 = Math.max(S.tower.y2||0, f); else S.tower.best = Math.max(S.tower.best||0, f);
       const md = BT.mod || {gold:1, xp:1};
       r.gold = Math.round((r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1))*md.gold); r.xp = Math.round((r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1))*md.xp);
       if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += (8 + Math.round(f*1.5))*(f % 10 === 0 ? 2 : 1); r.diamonds += (f % 10 === 0 ? 2 : 1) + Math.floor(f/25); }
@@ -879,7 +918,11 @@ function finishBattle(win){
     }
   } else {
     if(win){
-      if(BT.kami !== undefined){ const i = BT.kami; r.first = i >= kamiCleared(); if(r.first){ S.kami.cleared = i + 1; r.kamiClear = i + 1; r.diamonds += 15 + 5*i;
+      if(BT.worldArena){ const wr = BT.worldArena, i = BT.idx, RG = REG[wr]; r.first = i >= worldArenaDone(wr);
+        if(r.first){ S.warena = S.warena || {}; S.warena[wr] = i + 1; const se = i === 9 ? 10 : 3, st = regState(wr); st[RG.cur] = (st[RG.cur]||0) + se; r.souls = se; r.soulReg = wr; r.diamonds += i === 9 ? 10 : 2; if(i === 9) journeyMark(RG.label + ' Arena Champion'); }
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 6)); r.xp = Math.round(xpFor(BT.L)*(r.first ? 1.2 : .3)); r.stones = r.first ? 200 : 30;
+        r.items.push(randomItem(Math.max(BT.L, S.level), r.first ? 1.6 : .9, 'M'));
+      } else if(BT.kami !== undefined){ const i = BT.kami; r.first = i >= kamiCleared(); if(r.first){ S.kami.cleared = i + 1; r.kamiClear = i + 1; r.diamonds += 15 + 5*i;
           const ids = Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === 6), un = ids.filter(id => !(S.codex||{})[id]); if(un.length){ const id = pick(un); S.codex[id] = 1; const it = makeUnique(id, BT.L + 3); r.items.push(it); r.unique = it; } else r.diamonds += 30; }
         r.gold = Math.round(goldFor(BT.L)*(r.first ? 40 : 10)); r.xp = Math.round(xpFor(BT.L)*(r.first ? 4 : 1)); r.stones = r.first ? 400 : 40;
       } else if(BT.master){ const lv = BT.master; if(lv > MASTER_MAX){ if(lv - MASTER_MAX > (S.paragon||0)){ S.paragon = lv - MASTER_MAX; r.first = true; r.paragonUp = S.paragon; } } else if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
@@ -901,11 +944,12 @@ function finishBattle(win){
   }
   /* unique / godforged drops from boss-type fights */
   let usrc = null;
-  if(win && BT.mode === 'gate' && BT.gate.region === 2 && r.first){ const se = BT.floor >= FLOORS ? 5 : 1; S.yomi.souls = (S.yomi.souls||0) + se; r.souls = se; if(BT.floor >= FLOORS) journeyMark('Yomi Circle ' + BT.gate.circle); }
-  if(win){ if(BT.mode === 'gate' && BT.gate.region === 2 && isBossFloor(BT.floor)) usrc = 'yomi';
+  if(win && BT.mode === 'gate' && BT.gate.region >= 2 && r.first){ const rg = REG[BT.gate.region], se = BT.floor >= FLOORS ? 5 : 1; const st = regState(BT.gate.region); st[rg.cur] = (st[rg.cur]||0) + se; r.souls = se; r.soulReg = BT.gate.region; if(BT.floor >= FLOORS) journeyMark(rg.label + ' ' + (BT.gate.region === 2 ? 'Circle ' : 'Palace ') + BT.gate.circle); }
+  if(win){ if(BT.mode === 'gate' && BT.gate.region >= 2 && isBossFloor(BT.floor)) usrc = REG[BT.gate.region].usrc;
     else if(BT.mode === 'gate' && isBossFloor(BT.floor) && GATES.indexOf(BT.gate) >= 3) usrc = BT.gate.id === 'M' ? 'mgate' : 'gate';
     else if(BT.mode === 'tower' && BT.floor % 10 === 0) usrc = 'tower';
     else if(BT.mode === 'rift') usrc = BT.depth % 10 === 0 ? 'rift' : BT.depth % 5 === 0 ? 'riftElite' : null;
+    else if(BT.worldArena) usrc = r.first ? REG[BT.worldArena].usrc : null;
     else if(BT.master) usrc = r.paragonUp ? 'paragon' : r.first ? (BT.master % 10 === 0 ? 'masterWall' : 'master') : null; }
   if(usrc){ const it = rollUnique(usrc, BT.L, usrc === 'rift' && BT.depth < 30); if(it){ r.items.push(it); r.unique = it; journeyMark('First ' + RARITY[it.rar].name); } }
   if(r.rankUp) journeyMark(r.rankUp === 'M' ? 'Master League' : rankLabel(r.rankUp) + '-Rank');
@@ -973,8 +1017,9 @@ function renderBattle(t, dt){
   // texts
   for(const tx of BT.texts){
     const a = clamp(tx.life/tx.max*1.8, 0, 1), sc = tx.crit ? 1 + Math.max(0, tx.life - .7)*2 : 1;
-    c.globalAlpha = a; c.font = `${tx.crit ? 'italic ' : ''}700 ${tx.size*sc}px "Bebas Neue", sans-serif`; c.textAlign = 'center';
-    c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,.85)'; c.strokeText(tx.txt, tx.x, tx.y);
+    c.globalAlpha = a; c.font = `900 ${tx.size*sc*.86}px Nunito, sans-serif`; c.textAlign = 'center'; c.lineJoin = 'round';
+    c.lineWidth = 5; c.strokeStyle = 'rgba(8,6,16,.9)'; c.strokeText(tx.txt, tx.x, tx.y);
+    if(tx.crit){ c.save(); c.shadowColor = tx.c; c.shadowBlur = 14; c.fillStyle = tx.c; c.fillText(tx.txt, tx.x, tx.y); c.restore(); }
     c.fillStyle = tx.c; c.fillText(tx.txt, tx.x, tx.y);
   }
   c.globalAlpha = 1;

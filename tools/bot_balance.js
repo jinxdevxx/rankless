@@ -56,6 +56,7 @@ const { chromium } = require('playwright');
         if(regionOpen(2) && (window.__yt = (window.__yt||0) + 1) % 2 === 0){
           let ci = 0; while(ci < 8 && (S.gates['Y' + (ci + 1)]||0) >= FLOORS) ci++; const gid = 'Y' + (ci + 1), fl = Math.min(FLOORS, (S.gates[gid]||0) + 1);
           if(yomiCircleOpen(ci)){ startGate(gid, fl); const w = run(); log.push(`${(simTime/60).toFixed(0)}m YOMI ${gid}-F${fl} ${w ? 'clear' : 'lose'} lv${S.level} P${teamPower()} souls${S.yomi.souls}`);
+            if(!w){ for(let k = 0; k < 2; k++){ manage(); startTower(Math.max(1, S.tower.y2||1), 2); run(); } manage(); startTower((S.tower.y2||0) + 1, 2); run(); }   // farm the Yomi Tower like a player
             const order = ['y_reap','y_bone','y_soul','y_reap','y_bone','k_harvest','y_gaze','k_scythe','y_ghost','y_doom']; let g = 0;
             while(soulsFree() > 0 && g++ < 50){ const id = order.find(x => { const nd = YOMI_TREE.find(n => n.id === x); return (S.yomi.tree[x]||0) < nd.max && soulsSpent() >= nd.req; }); if(!id) break; S.yomi.tree[id] = (S.yomi.tree[id]||0) + 1; }
             continue; } } }

@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, yomi:{souls:0, tree:{}}, codex:{}, pity:{u:0, g:0}, kami:{cleared:0, fails:{}}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, world:1, warena:{}, yomi:{souls:0, tree:{}}, takama:{feathers:0, tree:{}}, codex:{}, pity:{u:0, g:0}, kami:{cleared:0, fails:{}}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -150,7 +150,8 @@ function calcStats(src){
   if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat){ const v = talentValue(nd, r); o[nd.stat] += v; if(nd.stat2) o[nd.stat2] += v; } }
   if(src.relics) for(const id of src.relics.active || []){ const lv = src.relics.owned[id]; if(lv && RELICS[id]) o[RELICS[id].stat] += relicValue(id, lv); }
   if(src.paragon){ o.atkP += src.paragon; o.hpP += src.paragon; }
-  if(src.yomi && src.yomi.tree) for(const nd of YOMI_TREE){ const r = src.yomi.tree[nd.id]||0; if(r && nd.stat) o[nd.stat] += nd.per*r; }   // Shinigami Arts
+  if(src.yomi && src.yomi.tree) for(const nd of YOMI_TREE){ const r = src.yomi.tree[nd.id]||0; if(r && nd.stat){ o[nd.stat] += nd.per*r; if(nd.stat2) o[nd.stat2] += nd.per*r; } }   // Shinigami Arts
+  if(src.takama && src.takama.tree) for(const nd of TENGU_TREE){ const r = src.takama.tree[nd.id]||0; if(r && nd.stat){ o[nd.stat] += nd.per*r; if(nd.stat2) o[nd.stat2] += nd.per*r; } }   // Tengu Arts
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
@@ -187,7 +188,9 @@ function teamPower(){
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
 const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.36, SS:.25, M:.45};   // v0.25.1: S/S+ were 1.4x/1.9x too high (bot first clears at 0.72/0.54 of rec)
-function recPower(gateId, floor){ const g = findGate(gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] ?? g.recMult ?? 1)); }
+/* region gates: recommended on the Paragon scale (v0.27) – Yomi circle 1 ≈ Paragon 30, each circle +6, Takamagahara from ≈ Paragon 75 */
+function regionEqParagon(g, floor){ return g.region === 2 ? 28 + (g.circle - 1)*6 + floor*.6 : 72 + (g.circle - 1)*8 + floor*.8; }
+function recPower(gateId, floor){ const g = findGate(gateId); if(g && g.region) return recParagon(regionEqParagon(g, floor)); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] ?? g.recMult ?? 1)); }
 
 /* ---------- inventory helpers ---------- */
 function addItem(it){
