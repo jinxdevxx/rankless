@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.14.3 – Clean Bag
+- isJunk(): bag items that lose to the equipped item even at +15 (and are not locked) get a ✖ mark.
+- Bag banner with "Salvage useless (N)" button salvages all of them at once.
+
 ### v0.14.2 – Best Gear
 - Bag cards show Power gain/loss vs the equipped item (powerGain, enhance level included).
 - Item detail: upgrade potential (beatsAtPlus): better now / beats yours at +N / never better.

@@ -686,3 +686,8 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .upot.good{background:rgba(93,255,155,.12);border:1px solid rgba(93,255,155,.45);color:#b9ffcf}
 .upot.mid{background:rgba(255,210,122,.12);border:1px solid rgba(255,210,122,.45);color:#ffe2a8}
 .upot.bad{background:rgba(255,120,110,.1);border:1px solid rgba(255,120,110,.35);color:#ffb3aa}
+
+.icard.junk{opacity:.5;filter:saturate(.4)}
+.icard.junk::after{content:"✖";position:absolute;top:auto;bottom:2px;right:5px;width:auto;height:auto;background:none;box-shadow:none;border-radius:0;font:900 13px Nunito,sans-serif;color:#ff9b8f}
+.junkbar{padding:8px 12px;border-radius:10px;background:rgba(255,120,110,.08);border:1px solid rgba(255,120,110,.3);font-size:14px}
+.btn.danger{background:#7a2530;border-color:#c24b58;color:#ffe3e0}

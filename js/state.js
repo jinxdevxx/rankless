@@ -198,6 +198,8 @@ function beatsAtPlus(item){
   for(let p = item.plus + 1; p <= MAX_PLUS; p++){ if(powerGain(Object.assign({}, item, {plus:p})) > 0) return p; }
   return -1;
 }
+/* useless = can never beat the equipped item, not even fully enhanced (locked items are kept) */
+function isJunk(it){ return !it.locked && !!S.eq[it.slot] && beatsAtPlus(it) === -1; }
 /* equip the best item per slot; repeats so set bonuses are counted correctly */
 function equipBest(){
   let n = 0;

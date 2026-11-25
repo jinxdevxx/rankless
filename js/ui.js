@@ -305,7 +305,7 @@ function jobBox(){
       ${on ? '<span class="tag">ACTIVE</span>' : `<button class="btn small ${cur ? '' : 'primary'}" data-a="chooseSpec" data-id="${sp.id}" ${cur && S.gold < cost ? 'disabled' : ''}>${cur ? `Switch (${fmt(cost)} Gold)` : 'Choose'}</button>`}</div>`; }).join('')}</div></div>`;
 }
 function itemCard(it, eq, up){
-  return `<button class="icard ${it.isNew?'new':''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
+  return `<button class="icard ${it.isNew?'new':''} ${!eq && isJunk(it) ? 'junk' : ''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
     ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${!eq ? (() => { const g = powerGain(it); return `<span class="pgain ${g > 0 ? 'up' : 'down'}" title="Power change if you equip it">${g > 0 ? '+' : '−'}${fmt(Math.abs(g))}</span>`; })() : ''}</button>`;
 }
 function sheetBag(){
@@ -321,6 +321,7 @@ function sheetBag(){
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
       <button class="btn small" data-a="salvageBelow" data-id="1">Salvage Rare</button>
       <button class="btn small primary" data-a="autoEquip">Equip best</button></div>
+    ${(() => { const junk = S.inv.filter(isJunk); return junk.length ? `<div class="bagbar junkbar"><span>✖ <b>${junk.length}</b> item${junk.length > 1 ? 's are' : ' is'} worse than your gear even at +${MAX_PLUS} (marked ✖).</span><span class="sp"></span><button class="btn small danger" data-a="salvageJunk">Salvage useless (${junk.length})</button></div>` : ''; })()}
     <div class="grid-items">${(() => { return items.map(i => itemCard(i, false)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
 }
 
@@ -578,6 +579,9 @@ function act(a, el){
       else toast('ENHANCE FAILED', 'The materials were consumed.', 'red');
       save(); itemDetail(id); renderSheet(); renderHome(); break; }
     case 'bagFilter': UI.bagFilter = id; renderSheet(); break;
+    case 'salvageJunk': { let st = 0, gd = 0, n = 0;
+      S.inv = S.inv.filter(it => { if(isJunk(it)){ const v = salvageValue(it); st += v.stones; gd += v.gold; n++; return false; } return true; });
+      S.stones += st; S.gold += gd; toast('SALVAGED', n ? `${n} useless items → +${st} Mana Stones, +${fmt(gd)} Gold` : 'Nothing useless in your bag.'); save(); renderSheet(); renderHome(); break; }
     case 'salvageBelow': { const max = +id; let st = 0, gd = 0, n = 0;
       S.inv = S.inv.filter(it => { if(it.rar <= max && !it.locked){ const v = salvageValue(it); st += v.stones; gd += v.gold; n++; return false; } return true; });
       S.stones += st; S.gold += gd; if(n) toast('SALVAGED', `${n} items → +${st} Mana Stones, +${fmt(gd)} Gold`); save(); renderSheet(); renderHome(); break; }
