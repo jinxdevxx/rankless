@@ -116,9 +116,9 @@ const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'
 const GATES = [
   {id:'E', rank:'E', name:'Drowned Harbor', baseLv:1,  mult:1,   theme:'harbor', enemies:['husk','hound','spitter'], elite:'brute', boss:'warden',
     desc:'A flooded dock district. The first gate every Breaker fears.'},
-  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.35, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
+  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.6, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
     desc:'An abandoned metro line where the last train still runs.'},
-  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.0, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
+  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.35, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
 ];
 const FLOORS = 10;
@@ -171,11 +171,33 @@ const SETS = {
 const SET_OF_GATE = {E:'tide', D:'rail', C:'frost'};
 
 /* ---------- daily gates ---------- */
+/* ---------- Spirit Legion: magic pets you BUY with gold ----------
+   They float behind you, only cast ranged bolts, can't die, and give a passive bonus. */
+const PETS = {
+  ember: {name:'Ember Wisp',     color:'#ff9a4a', color2:'#ffe08a', price:300,   iv:1.5, dmg:.20, bonus:'atkP',     b0:5,  bl:1.2, label:'ATK',         unit:'%'},
+  frost: {name:'Frost Sprite',   color:'#8fd8ff', color2:'#e8f8ff', price:2000,  iv:1.7, dmg:.18, bonus:'hpP',      b0:8,  bl:1.6, label:'HP',          unit:'%'},
+  storm: {name:'Storm Familiar', color:'#6fb8ff', color2:'#d7f0ff', price:7000,  iv:1.0, dmg:.15, bonus:'crit',     b0:4,  bl:.6,  label:'Crit Rate',   unit:'%'},
+  owl:   {name:'Void Owl',       color:'#b48cff', color2:'#e9dcff', price:16000, iv:1.6, dmg:.20, bonus:'gold',     b0:20, bl:4,   label:'Gold Find',   unit:'%'},
+  moth:  {name:'Crimson Moth',   color:'#ff5a7a', color2:'#ffc2cf', price:40000, iv:1.4, dmg:.24, bonus:'lifesteal',b0:3,  bl:.4,  label:'Lifesteal',   unit:'%'},
+};
+const PET_ORDER = ['ember','frost','storm','owl','moth'];
+const PET_MAX_LV = 15;
+const PET_SLOT_COST = [0, 0, 5000, 25000];   // slot 1 is free, slot 2 and 3 are bought
+function petUpCost(id, lv){ return Math.round(PETS[id].price * .6 * Math.pow(1.42, lv - 1)); }
+function petBonus(id, lv){ const p = PETS[id]; return +(p.b0 + p.bl*(lv - 1)).toFixed(1); }
+function petDmg(id, lv){ return PETS[id].dmg * (1 + .1*(lv - 1)); }
+/* Gold Rush: repeatable fight with no loot, lots of gold */
+const RUSH_GOLD = 32;
+/* E-Rank is the 'get hooked' phase: enemies are softer so spamming players progress quickly */
+const E_EASE = [0, .35, .42, .48, .54, .6, .66, .72, .78, .84, .9];
+/* Training: repeatable, no loot, lots of XP */
+const TRAIN_XP = 22;
+
 const DAILY_TRIES = 3;
 const DAILY = {
   gold:{name:'Gold Vault',      desc:'A vault full of greedy monsters. Huge Gold reward.',            icon:'gold',  color:'#f7c75a'},
   xp:  {name:'Training Grounds',desc:'Endless sparring. Huge XP reward.',                             icon:'hero',  color:'#9fd8ff'},
-  mat: {name:'Crystal Mine',    desc:'Mana Stones, Soul Shards and a guaranteed Epic or better item.', icon:'stone', color:'#c9a8ff'},
+  mat: {name:'Crystal Mine',    desc:'Mana Stones, Rift Diamonds and a guaranteed Epic or better item.', icon:'stone', color:'#c9a8ff'},
 };
 
 /* ---------- progressive unlocks (keeps the start simple) ---------- */
@@ -203,8 +225,8 @@ const UNLOCKS = {
           hint:'Reach Level 3',                    prog:() => (S.level-1)/2},
   gates: {name:'Gate Map',     icon:'gate',   desc:'Pick any cleared floor and farm it for loot.',
           hint:'Clear Floor 3',                    prog:() => (S.gates.E||0)/3},
-  legion:{name:'Legion',       icon:'legion', desc:'Monsters you bind fight at your side. Collect Soul Shards to bind more.',
-          hint:'Collect 12 Soul Shards of one monster', prog:() => Object.keys(S.comps).length ? 1 : Math.max(0, ...Object.keys(S.shards).map(k => (S.shards[k]||0)/shardNeed(k)))},
+  legion:{name:'Spirit Legion', icon:'legion', desc:'Buy magic spirits with Gold. They cast bolts from behind you and give strong bonuses. Level them up with Gold.',
+          hint:'Clear Floor 4', prog:() => (S.gates.E||0)/4},
   arena: {name:'Hunter Arena', icon:'arena',  desc:'Beat hunters and pass the Rank Exam to climb to the next rank.',
           hint:'Defeat the Harbor Warden (Floor 10)', prog:() => (S.gates.E||0)/10},
   enchant:{name:'Weapon Enchant', icon:'weapon', desc:'Enchant your blade with Flame, Storm, Void or Blood. Each element gives you new skills. Costs Rift Diamonds.',

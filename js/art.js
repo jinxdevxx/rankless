@@ -502,9 +502,34 @@ function drawMonster(c, style, x, y, h, o){
 }
 
 /* draw a unit by its visual descriptor */
+/* Spirit Legion pet: a glowing wisp with fluttering wings, floats and pulses when it casts */
+function drawSpirit(c, x, y, r, o){
+  const t = o.t || 0, bob = Math.sin(t*2.6)*r*.12, cast = o.pose === 'cast', fl = Math.sin(t*14)*.5 + .5;
+  const col = o.body, col2 = o.eye;
+  c.save(); c.translate(x, y + bob); c.globalAlpha = o.alpha ?? 1;
+  // soft ground glow far below
+  c.save(); c.globalAlpha *= .25; c.fillStyle = col; c.beginPath(); c.ellipse(0, r*2.4 - bob, r*.7, r*.14, 0, 0, 7); c.fill(); c.restore();
+  // trail motes
+  for(let i = 0; i < 4; i++){ const a = t*2 + i*1.6; c.globalAlpha = (o.alpha ?? 1)*.5; c.fillStyle = col2; c.beginPath(); c.arc(-r*.9 - i*r*.25 + Math.sin(a)*3, Math.cos(a*1.3)*r*.3, r*.07*(4 - i)/4 + 1, 0, 7); c.fill(); }
+  c.globalAlpha = o.alpha ?? 1;
+  // wings
+  c.fillStyle = col2; c.globalAlpha *= .55;
+  for(const s of [-1, 1]){ c.save(); c.rotate(s*(.5 + fl*.45)); c.beginPath(); c.ellipse(0, -r*.55, r*.32, r*.75, 0, 0, 7); c.fill(); c.restore(); }
+  c.globalAlpha = o.alpha ?? 1;
+  // glowing core
+  c.shadowColor = col; c.shadowBlur = cast ? 34 : 18;
+  const g = c.createRadialGradient(-r*.15, -r*.15, r*.05, 0, 0, r*(cast ? .62 : .52));
+  g.addColorStop(0, '#ffffff'); g.addColorStop(.35, col2); g.addColorStop(1, col);
+  c.fillStyle = o.flash ? '#ffffff' : g; c.beginPath(); c.arc(0, 0, r*(cast ? .58 : .5), 0, 7); c.fill();
+  c.shadowBlur = 0; c.strokeStyle = 'rgba(20,14,30,.55)'; c.lineWidth = 1.2; c.stroke();
+  // eyes (look toward the enemies)
+  c.fillStyle = '#1a1030'; for(const ex of [.1, .3]){ c.beginPath(); c.ellipse(r*ex, -r*.05, r*.06, r*.1, 0, 0, 7); c.fill(); }
+  c.restore();
+}
 function drawUnitArt(c, u, x, y, h, t, pose, flash, alpha){
   const o = {t:t + (u.seed||0), face:u.side === 'p' ? 1 : -1, pose, flash, alpha,
     body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura};
-  if(u.art.style === 'human') drawHumanoid(c, x, y, h, o);
+  if(u.art.style === 'spirit') drawSpirit(c, x, y, h*.55, o);
+  else if(u.art.style === 'human') drawHumanoid(c, x, y, h, o);
   else drawMonster(c, u.art.style, x, y, h, o);
 }

@@ -43,7 +43,7 @@ function enterSlot(id){
   const s = readSlot(id);
   if(!s){ S = defaultSave(); showScreen('create'); renderCreate(); return; }
   S = s;
-  migrateEnchant(); fixStarterGear(); migrateCombat();
+  migrateEnchant(); fixStarterGear(); migrateCombat(); migratePets(); if(S.flags.petRefund && !S.flags.petRefundShown){ S.flags.petRefundShown = true; setTimeout(() => toast('LEGION REWORKED', `Your old monster Legion became Gold: +${fmt(S.flags.petRefund)}. Buy magic spirits in the Legion tab!`, 'gold'), 1200); }
   checkUnlocks(true);
   if(!S.flags.manualSkills){ S.settings.autoSkill = false; S.flags.manualSkills = true; }
   UI.shownPower = undefined;
@@ -72,7 +72,7 @@ function openMenu(){
     <div class="bt" style="margin-top:16px">SETTINGS</div>
     <div class="msets">
       ${tg('simple','Simple Mode')}
-      <small class="muted" style="display:block;margin:-4px 0 6px">Enhancing never fails, junk gear is salvaged, your Legion manages itself. Turn off for full control.</small>
+      <small class="muted" style="display:block;margin:-4px 0 6px">Enhancing never fails and Common junk is salvaged automatically. Turn off for full control.</small>
       ${tg('sfx','Sound effects')}
       ${tg('music','Music')}
       ${tg('autoEquip','Auto-equip better gear')}

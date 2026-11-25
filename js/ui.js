@@ -205,6 +205,10 @@ function sheetGates(){
     return `<div class="dcard ${left ? '' : 'done'}" style="--c:${d.color}"><div class="dic">${ICON[d.icon]}</div><b>${d.name}</b><small>${d.desc}</small>
       <div class="row"><span class="tries">${'●'.repeat(left)}${'○'.repeat(DAILY_TRIES - left)}</span><span class="sp"></span>
       <button class="btn small ${left ? 'primary' : ''}" data-a="startDaily" data-id="${k}" ${left ? '' : 'disabled'}>${left ? 'Enter' : 'Tomorrow'}</button></div></div>`; }).join('')}</div></div>`;
+  const rg = currentGate(), rl = rushLevel(), hs0 = heroStats(), rgold = Math.round(goldFor(rl)*RUSH_GOLD*(1 + hs0.gold/100)), rxp = Math.round(xpFor(rl)*TRAIN_XP*(1 + hs0.xp/100));
+  const rush = `<div class="bt" style="margin-bottom:6px">Farm · unlimited · ${rg.name}, enemies like your best floor</div><div class="farmrow">
+    <div class="rushcard"><div class="dic">${ICON.gold}</div><div><b>Gold Rush</b><small>No loot, about <b>${fmt(rgold)}</b>+ Gold per win. Buy spirits and enhance gear.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="gold">Farm Gold</button></div>
+    <div class="rushcard xp"><div class="dic">${ICON.hero}</div><div><b>Training</b><small>No loot, about <b>${fmt(rxp)}</b>+ XP per win. Stuck on a floor? Level up here.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="xp">Train</button></div></div>`;
   return GATES.map(g => {
     const unlocked = rankAtLeast(g.rank), cl = S.gates[g.id]||0, T = THEMES[g.theme];
     let floors = '';
@@ -224,7 +228,7 @@ function sheetGates(){
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${RANKS[RANKS.indexOf(g.rank)-1]}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('').replace(/^/, daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
+  }).join('').replace(/^/, rush + daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
 }
 
 function sheetArena(){
@@ -325,38 +329,36 @@ function sheetBag(){
     <div class="grid-items">${(() => { return items.map(i => itemCard(i, false)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
 }
 
+function petIcon(id, size = 46){
+  const p = PETS[id];
+  return `<span class="peticon" style="--c:${p.color};--c2:${p.color2};width:${size}px;height:${size}px"><i></i></span>`;
+}
 function sheetLegion(){
-  autoLegion();
-  const slots = partySlots();
-  let party = '';
-  for(let i=0;i<3;i++){
-    const type = S.party[i], open = i < slots;
-    party += `<div class="pslot ${open?'':'locked'}">${!open ? `${ICON.lock}<small>${['','D','C'][i]}-Rank</small>` :
-      type ? `<img src="${monsterPortrait(type,true)}" alt=""><b>${ENEMY_TYPES[type].name}</b><small>${'★'.repeat(S.comps[type])}</small>${S.settings.simple ? '' : `<button class="btn small" data-a="unparty" data-id="${type}">Remove</button>`}` : '<small>Empty slot</small>'}</div>`;
+  const P = S.pets, slots = P.slots, nextSlot = slots < PET_SLOT_COST.length - 1 ? PET_SLOT_COST[slots + 1] : 0;
+  let slotHtml = '';
+  for(let i = 0; i < PET_SLOT_COST.length - 1; i++){
+    const id = P.active[i];
+    if(i >= slots) slotHtml += `<div class="pslot locked">${ICON.lock}<small>Slot ${i+1}</small>${i === slots ? `<button class="btn small primary" data-a="buyPetSlot" ${S.gold >= nextSlot ? '' : 'disabled'}>${ICON.gold} ${fmt(nextSlot)}</button>` : '<small class="muted">buy slot ' + i + ' first</small>'}</div>`;
+    else slotHtml += `<div class="pslot ${id ? 'on' : ''}">${id ? `${petIcon(id, 54)}<b>${PETS[id].name}</b><small>Lv ${P.owned[id]} · +${petBonus(id, P.owned[id])}${PETS[id].unit} ${PETS[id].label}</small>` : '<small>Empty slot<br>Buy a spirit below</small>'}</div>`;
   }
   const hs = heroStats();
-  const types = Object.keys(ENEMY_TYPES).filter(k => S.comps[k] || S.shards[k] !== undefined);
-  const cards = types.map(k => {
-    const t = ENEMY_TYPES[k], st = S.comps[k], sh = S.shards[k]||0;
-    const need = st ? (st >= MAX_STARS ? 0 : shardNeed(k)*STAR_COST[st]) : shardNeed(k);
-    const inParty = S.party.includes(k);
-    const cs = st ? compStats(k, st, S.level, hs.compMult) : null;
-    return `<div class="mcard ${st?'bound':''}">
-      <img src="${monsterPortrait(k, !!st)}" alt="">
-      <div class="minfo"><b>${t.name}</b><small>${ROLE_LABEL[t.role]}${t.boss?' · BOSS':t.elite?' · ELITE':''}</small>
-        ${st ? `<span class="stars">${'★'.repeat(st)}<i>${'★'.repeat(MAX_STARS-st)}</i></span><span class="muted">HP ${fmt(cs.hp)} · ATK ${fmt(cs.atk)}</span>` : `<span class="muted">${t.desc}</span>`}
-        ${need ? `<div class="bar"><i style="width:${Math.min(100, sh/need*100)}%"></i></div><small class="muted">${sh} / ${need} shards ${st ? 'to next ★' : 'to bind'}</small>` : '<small class="muted">Max stars</small>'}
-      </div>
-      <div class="mside">
-        ${!S.settings.simple && st && need && sh >= need ? `<button class="btn small primary" data-a="starUp" data-id="${k}">Star up</button>` : ''}
-        ${!S.settings.simple && st && !inParty ? `<button class="btn small" data-a="party" data-id="${k}" ${S.party.length < slots ? '' : 'disabled'}>Add to party</button>` : ''}
-        ${inParty ? '<span class="tag">IN PARTY</span>' : ''}
-      </div></div>`;
+  const cards = PET_ORDER.map(id => {
+    const p = PETS[id], lv = P.owned[id] || 0, act = P.active.includes(id);
+    const nb = petBonus(id, Math.max(1, lv)), dmg = Math.round(hs.atk*petDmg(id, Math.max(1, lv)));
+    let action = '';
+    if(!lv) action = `${costLine('gold', 'Price', S.gold, p.price)}<button class="btn primary" data-a="buyPet" data-id="${id}" ${S.gold >= p.price ? '' : 'disabled'}>Buy ${p.name}</button>`;
+    else if(lv < PET_MAX_LV){ const c = petUpCost(id, lv);
+      action = `<div class="muted small">Next level: +${petBonus(id, lv + 1)}${p.unit} ${p.label}, ${Math.round(hs.atk*petDmg(id, lv + 1))} damage per bolt</div>${costLine('gold', 'Level up', S.gold, c)}<button class="btn primary" data-a="upPet" data-id="${id}" ${S.gold >= c ? '' : 'disabled'}>Level up → ${lv + 1}</button>`; }
+    else action = '<div class="tag">MAX LEVEL</div>';
+    const use = lv ? (act ? '<span class="tag">IN SLOT</span>' : `<button class="btn small" data-a="usePet" data-id="${id}">Put in slot</button>`) : '';
+    return `<div class="petcard ${lv ? 'own' : ''} ${act ? 'act' : ''}" style="--c:${p.color}">
+      <div class="ph">${petIcon(id)}<div><b>${p.name}</b><small>${lv ? 'Lv ' + lv + ' / ' + PET_MAX_LV : 'Not owned'}</small></div><span class="sp"></span>${use}</div>
+      <div class="pbon"><span class="big">+${nb}${p.unit}</span> ${p.label}<span class="sp"></span><span class="muted">${dmg} dmg / ${p.iv}s</span></div>
+      ${action}</div>`;
   }).join('');
-  return `<div class="box sys"><div class="bt">PARTY <span class="pts on">${S.party.length} / ${slots}</span></div><div class="pslots">${party}</div>
-    ${S.settings.simple ? '<div class="hint"><b>Simple Mode:</b> your strongest monsters join the party and star up on their own.</div>' : ''}
-    <div class="hint">Monsters drop <b>Soul Shards</b>. Collect enough to bind them. More shards raise their stars. Rank up to unlock more party slots.</div></div>
-    <div class="mlist">${cards || '<div class="empty">Defeat monsters in gates to collect Soul Shards.</div>'}</div>`;
+  return `<div class="box sys"><div class="bt">SPIRIT SLOTS <span class="pts on">${P.active.length} / ${slots}</span></div><div class="pslots">${slotHtml}</div>
+    <div class="hint">Spirits float behind you, cast magic bolts and can't be hurt. Every spirit in a slot gives its bonus. Buy spirits and slots with <b>Gold</b>, level them up for more. Need Gold? Play <b>Gold Rush</b> in the Gates tab.</div></div>
+    <div class="petlist">${cards}</div>`;
 }
 
 /* ---------- item detail ---------- */
@@ -372,8 +374,14 @@ function itemDetail(id){
       <div class="ihead"><div class="iicon">${ICON[it.slot]}</div><div><small>${r.name} ${SLOT_INFO[it.slot].name} · iLvl ${it.ilvl}</small>
         <h3>${esc(it.name)}${it.plus?` <span class="plus">+${it.plus}</span>`:''}</h3>
         ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>0?'up':'down'}">${diff>0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
+      <div class="row iact">
+        ${eq ? `<button class="btn" data-a="unequip" data-id="${it.slot}">Unequip</button>` :
+          `<button class="btn primary" data-a="equip" data-id="${it.id}">Equip</button>
+           <button class="btn" data-a="lock" data-id="${it.id}">${it.locked?'Unlock':'Lock'}</button>
+           <button class="btn danger" data-a="salvage" data-id="${it.id}" ${it.locked?'disabled':''}>Salvage: +${sv.stones} ${ICON.stone} +${fmt(sv.gold)} ${ICON.gold}</button>`}
+        <span class="sp"></span><button class="btn" data-a="closeModal">✕</button></div>
       ${eq ? '' : `<div class="upot ${bp === 0 ? 'good' : bp > 0 ? 'mid' : 'bad'}">${bp === 0 ? '✔ Better than what you wear right now. Equip it!' : bp > 0 ? `⬆ Enhance this to <b>+${bp}</b> and it beats your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}.` : `✖ Even at +${MAX_PLUS} this stays weaker than your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}. Salvage it.`}</div>`}
-      <div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
+      <div class="icols"><div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
         ${it.affixes.map(a => `<div class="afx">${statLine(a.k,a.v)}</div>`).join('')}</div>
       ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
@@ -382,16 +390,11 @@ function itemDetail(id){
           const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
-          return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}
-      ${it.plus < MAX_PLUS ? `<div class="upgrade"><div class="ut">Enhance <b>+${it.plus} → +${it.plus+1}</b> <small>(+8% base stats · success chance ${Math.round(er*100)}%${er < 1 ? ', materials are lost on failure' : ''})</small></div>
-        ${costLine('gold', 'Gold', S.gold, ec.gold)}${costLine('stone', 'Mana Stones', S.stones, ec.stones)}
-        <button class="btn primary big-act" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance to +${it.plus+1}</button></div>` : '<div class="hint">This item is fully enhanced (+15).</div>'}
-      <div class="row">
-        ${eq ? `<button class="btn" data-a="unequip" data-id="${it.slot}">Unequip</button>` :
-          `<button class="btn primary" data-a="equip" data-id="${it.id}">Equip</button>
-           <button class="btn" data-a="lock" data-id="${it.id}">${it.locked?'Unlock':'Lock'}</button>
-           <button class="btn danger" data-a="salvage" data-id="${it.id}" ${it.locked?'disabled':''}>Salvage for ${sv.stones} ${ICON.stone}</button>`}
-        <span class="sp"></span><button class="btn" data-a="closeModal">Close</button></div>
+          return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
+      ${it.plus < MAX_PLUS ? `<div class="upgrade compact"><div class="ut">Enhance <b>+${it.plus} → +${it.plus+1}</b> <small>+8% base stats${er < 1 ? ` · ${Math.round(er*100)}% chance` : ''}</small></div>
+        <div class="urow"><span class="cchip ${S.gold >= ec.gold ? 'ok' : 'no'}">${ICON.gold} ${fmt(ec.gold)}</span><span class="cchip ${S.stones >= ec.stones ? 'ok' : 'no'}">${ICON.stone} ${fmt(ec.stones)}</span><span class="sp"></span>
+        <button class="btn primary" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance</button></div>
+        ${it.plus ? `<small class="muted">Salvage returns 65% of what you spent on enhancing.</small>` : ''}</div>` : '<div class="hint">This item is fully enhanced (+15).</div>'}
     </div>`);
 }
 
@@ -407,7 +410,7 @@ function buildBattleHud(){
   $('#bSkills').innerHTML = `<div class="sk-top"><span class="flow" id="bFlow"></span><span class="chain" id="bChain"></span><div class="crys" id="bCrys"><span class="crlbl">CRYSTALS<small id="bCrysN">0/5</small></span>${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div>
     <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}</div>
     <div class="sk-hint" id="bHint">Strike to charge crystals · skills cost ◆</div>`;
-  $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
+  $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p' && u.kind !== 'pet').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
   onWaveUI();
   $('#bResult').classList.remove('on');
@@ -428,6 +431,7 @@ function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
+    : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
 }
@@ -453,7 +457,7 @@ function updateBattleHud(){
     b.querySelectorAll('.cost i').forEach((pip,j) => pip.classList.toggle('on', BT.energy >= j+1));
     b.classList.toggle('ready', f >= 1 && !BT.hero.dead);
   });
-  const ps = BT.units.filter(u => u.side === 'p');
+  const ps = BT.units.filter(u => u.side === 'p' && u.kind !== 'pet');
   $$('#bParty .pc').forEach((el,i) => { const u = ps[i]; if(!u) return;
     el.querySelector('i').style.width = clamp(u.hp/u.maxHp,0,1)*100 + '%';
     el.querySelector('s').style.width = clamp(u.shield/u.maxHp,0,1)*100 + '%';
@@ -477,25 +481,27 @@ function showResult(r){
     const canNext = win;
     btns = `<button class="btn" data-a="leave">Home</button>${win && !isUnlocked('gates') ? '' : `<button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>`}
       ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
+  } else if(BT.mode === 'rush'){
+    btns = `<button class="btn" data-a="leave">Home</button><button class="btn primary" data-a="retry">${win ? 'Farm again' : 'Retry'}</button>`;
   } else if(BT.mode === 'daily'){
     const left = dailyLeft(BT.kind);
     btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
   } else btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}`;
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
-  const autoOn = BT.mode === 'gate' && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
+  const autoOn = (BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
-    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
+    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
-    ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
+    ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
     <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
     ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}
-    ${!win ? `<div class="tip">Too strong for now. Replay an earlier floor to collect loot and levels. Auto-continue does that for you.</div>` : ''}
+    ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'Play <b>Training</b> (XP) or <b>Gold Rush</b> in the Gates tab as often as you like, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}
     <div class="row c">${btns}</div>
     <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
@@ -503,7 +509,8 @@ function showResult(r){
   rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
-  if(autoOn){
+  if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
+  else if(autoOn){
     let floor = BT.floor;
     if(S.settings.farm === 'push'){ if(win) floor++; else if(floor > 1) floor--; }
     else if(!win && floor > 1) floor--;
@@ -588,6 +595,14 @@ function act(a, el){
     case 'autoEquip': { const before = teamPower(), n = equipBest();
       S.inv.forEach(i => i.isNew = false); UI.shownPower = undefined;
       toast(n ? 'EQUIPMENT UPDATED' : 'ALREADY OPTIMAL', n ? `${n} item(s) equipped · Power ${fmt(before)} → ${fmt(teamPower())}` : 'Nothing in your bag beats what you wear (enhance levels included).'); save(); renderSheet(); renderHome(); break; }
+    case 'buyPet': { const p = PETS[id]; if(!p || S.pets.owned[id] || S.gold < p.price) break; S.gold -= p.price; S.pets.owned[id] = 1; fillPetSlots(); UI.shownPower = undefined;
+      SFX.unlockFx(); toast('SPIRIT JOINED', `${p.name} joins your Spirit Legion! +${petBonus(id,1)}${p.unit} ${p.label}`, 'gold'); save(); renderSheet(); renderHome(); break; }
+    case 'upPet': { const lv = S.pets.owned[id]; if(!lv || lv >= PET_MAX_LV) break; const c = petUpCost(id, lv); if(S.gold < c) break; S.gold -= c; S.pets.owned[id]++; UI.shownPower = undefined;
+      toast('SPIRIT LEVEL UP', `${PETS[id].name} is now Lv ${S.pets.owned[id]}`, 'gold'); save(); renderSheet(); renderHome(); break; }
+    case 'buyPetSlot': { const n = S.pets.slots + 1, c = PET_SLOT_COST[n]; if(!c || S.gold < c) break; S.gold -= c; S.pets.slots = n; fillPetSlots(); UI.shownPower = undefined;
+      SFX.unlockFx(); toast('NEW SPIRIT SLOT', `You can now use ${n} spirits at once.`, 'gold'); save(); renderSheet(); renderHome(); break; }
+    case 'usePet': { if(!S.pets.owned[id] || S.pets.active.includes(id)) break; if(S.pets.active.length >= S.pets.slots) S.pets.active.pop(); S.pets.active.unshift(id); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
+    case 'startRush': UI.sheet = null; startRush(id || 'gold'); break;
     case 'party': if(S.comps[id] && !S.party.includes(id) && S.party.length < partySlots()){ S.party.push(id); save(); renderSheet(); renderHome(); } break;
     case 'unparty': S.party = S.party.filter(x => x !== id); save(); renderSheet(); renderHome(); break;
     case 'starUp': { const st = S.comps[id], need = shardNeed(id)*STAR_COST[st];
@@ -612,7 +627,7 @@ function act(a, el){
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
-    case 'retry': { cancelAuto(); if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'retry': { cancelAuto(); if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;

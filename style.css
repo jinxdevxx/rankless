@@ -691,3 +691,42 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .icard.junk::after{content:"✖";position:absolute;top:auto;bottom:2px;right:5px;width:auto;height:auto;background:none;box-shadow:none;border-radius:0;font:900 13px Nunito,sans-serif;color:#ff9b8f}
 .junkbar{padding:8px 12px;border-radius:10px;background:rgba(255,120,110,.08);border:1px solid rgba(255,120,110,.3);font-size:14px}
 .btn.danger{background:#7a2530;border-color:#c24b58;color:#ffe3e0}
+
+/* ---------- Spirit Legion + Gold Rush (v0.15.0) ---------- */
+.peticon{position:relative;display:inline-grid;place-items:center;flex:none}
+.peticon i{width:58%;height:58%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,var(--c2) 35%,var(--c));box-shadow:0 0 16px var(--c);animation:pfloat 2.4s ease-in-out infinite}
+.peticon::before,.peticon::after{content:"";position:absolute;top:8%;width:30%;height:56%;border-radius:50%;background:var(--c2);opacity:.5}
+.peticon::before{left:14%;transform:rotate(-28deg)} .peticon::after{right:14%;transform:rotate(28deg)}
+@keyframes pfloat{50%{transform:translateY(-3px)}}
+.pslot.on{border-color:var(--gold)}
+.pslot .btn{margin-top:6px}
+.petlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+.petcard{padding:12px 14px;border-radius:14px;background:rgba(24,19,32,.82);border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;gap:8px}
+.petcard.own{border-color:color-mix(in srgb,var(--c) 55%,transparent)} .petcard.act{box-shadow:0 0 18px -6px var(--c)}
+.petcard .ph{display:flex;align-items:center;gap:10px} .petcard .ph b{display:block;font:400 22px "Bebas Neue",sans-serif;letter-spacing:.04em} .petcard .ph small{color:var(--muted)}
+.petcard .pbon{display:flex;align-items:baseline;gap:6px;font-weight:800} .petcard .pbon .big{font:400 26px "Bebas Neue",sans-serif;color:var(--c)}
+.petcard .sp,.rushcard .sp{flex:1}
+.muted.small{font-size:13px}
+.rushcard{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:12px;border-radius:14px;background:linear-gradient(110deg,rgba(247,199,90,.18),rgba(24,19,32,.85));border:1px solid rgba(247,199,90,.5)}
+.rushcard .dic{font-size:30px;color:var(--gold)} .rushcard b{display:block;font:400 26px "Bebas Neue",sans-serif;letter-spacing:.05em;color:var(--gold)} .rushcard small{color:#e8dcc0;font-size:14px}
+@media (max-width:640px){ .rushcard{flex-wrap:wrap} .rushcard .btn{width:100%} }
+
+/* ---------- compact item window (v0.15.0) ---------- */
+.idet .iact{margin:10px 0 4px;flex-wrap:wrap;gap:8px}
+.idet .icols{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+.idet .icols .ilines{margin:0}
+.idet .icols .cmp{margin:0}
+.idet .upot{margin:8px 0}
+.upgrade.compact{padding:10px 12px}
+.upgrade.compact .urow{display:flex;align-items:center;gap:8px;margin-top:6px}
+.cchip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:14px;font:400 18px "Bebas Neue",sans-serif;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12)}
+.cchip.ok{color:#b9ffcf} .cchip.no{color:#ff9b8f;border-color:rgba(255,120,110,.4)}
+@media (max-width:640px){ .idet .icols{grid-template-columns:1fr} .idet .iact .btn{padding:8px 10px;font-size:13px} }
+
+.farmrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.farmrow .rushcard{margin:0}
+.rushcard.xp{background:linear-gradient(110deg,rgba(159,216,255,.18),rgba(24,19,32,.85));border-color:rgba(159,216,255,.5)}
+.rushcard.xp b,.rushcard.xp .dic{color:#9fd8ff}
+@media (max-width:900px){ .farmrow{grid-template-columns:1fr} }
+
+@media (max-width:640px){ #toasts .toast:nth-last-child(n+3){display:none} }

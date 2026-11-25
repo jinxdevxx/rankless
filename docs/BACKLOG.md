@@ -3,6 +3,12 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Legion useless + ugly melee: Spirit Legion of ranged magic pets, bought and levelled with Gold, slots bought with Gold, no random drops (v0.15.0)
+- [x] Active gold farming possible (Gold Rush, unlimited) (v0.15.0)
+- [x] Training must be repeatable, not daily (Training, unlimited) (v0.15.0)
+- [x] Start too hard for new players; early fun, midgame harder (v0.15.0) – keep checking with spam bot
+- [x] Item window too big, scrolling to Equip (v0.15.0)
+- [x] Salvage should return ~60–70 % of enhance spending (v0.15.0: 65 %)
 - [x] Equip best must always equip the best possible gear incl. full sets (e.g. 4/4 Tidecaller) (v0.14.4, verified by brute force)
 - [x] Salvage-all button for items that are worse than equipped even at +15, auto-marked in the bag (v0.14.3)
 - [x] Equip best must always pick the truly best item (+8 vs fresh drop), show which item would be better and at which upgrade level (v0.14.2)

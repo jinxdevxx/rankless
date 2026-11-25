@@ -25,6 +25,14 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.15.0 – Spirit Legion
+- Legion reworked into the Spirit Legion: 5 magic spirits (PETS in data.js), bought with Gold, levelled with Gold (max Lv 15), ranged bolts only, untargetable, passive bonus per spirit. Slots: 1 free, slot 2 = 5,000, slot 3 = 25,000 Gold. Soul shard drops removed; old bound monsters refunded as Gold (migratePets).
+- New repeatable farm modes in the Gates tab: Gold Rush (RUSH_GOLD) and Training (TRAIN_XP), 2 waves at 85 % of your best floor's strength, no loot.
+- Balance: E-Rank enemies softened (E_EASE per floor), D mult 2.35 → 2.6, C mult 2.0 → 2.35, spirit level costs grow faster. Bot (tools/bot_balance.js): skilled 60–64 min to Rank B; pure spammer without skills clears E in ~38 min.
+- Item window compact: actions at the top, stats and comparison side by side, enhance costs in one row.
+- Salvage returns 65 % of enhance spending (enhanceSpent, SALVAGE_REFUND).
+- Defeat tips point to Training / Gold Rush / skills / AUTO FARM / spirits. Max 2 toasts visible on phones.
+
 ### v0.14.4 – True Best
 - bestLoadout(): set-aware search over bag + worn gear. Starts from current gear, each set forced in (2/4 pieces) and set pairs (2+2), then improves on TOTAL power with single and two-slot swaps.
 - New tools/equip_best_test.js compares with a brute force over every combination: 150/150 optimal; ~0.15 s with a full bag.

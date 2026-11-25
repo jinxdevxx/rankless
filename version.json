@@ -1,10 +1,14 @@
 {
-  "version": "0.14.4",
+  "version": "0.15.0",
   "date": "2026-11-25",
-  "title": "True Best",
+  "title": "Spirit Legion",
   "notes": [
-    "Equip best now finds the best possible combination from your bag, including set bonuses: a full Tidecaller (or any) set is equipped when 2 or 4 pieces together beat stronger single items.",
-    "Checked against trying every possible combination: 150 of 150 test bags were equipped perfectly.",
-    "Salvage useless keeps set pieces while you own pieces of that set in at least 2 slots."
+    "LEGION REWORKED: the Legion is now made of magic spirits. They float behind you, only cast ranged bolts, can't be hurt and each gives a strong bonus (ATK, HP, Crit, Gold Find, Lifesteal).",
+    "Spirits are bought with Gold, not dropped. Level them up with Gold. You start with 1 slot and can buy slot 2 and 3. Your old monsters were turned into Gold.",
+    "NEW: Gold Rush and Training in the Gates tab. Play them as often as you like for lots of Gold or XP (no loot). Stuck on a floor? Train and come back.",
+    "Easier start: E-Rank enemies are softer, so you progress fast even by just spamming SPACE. D and C Rank are tougher, that's where gear, skills and spirits matter.",
+    "Item window is compact: Equip, Lock and Salvage sit at the top, no scrolling.",
+    "Salvage now returns 65% of the Gold and Mana Stones you spent on enhancing that item.",
+    "Defeat screen tells you exactly what helps (Training, Gold Rush, skills, AUTO FARM, spirits)."
   ]
 }

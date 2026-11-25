@@ -13,6 +13,7 @@ const BOSS_POS = [.58,.015];
 function bk(){ return VW < VH ? clamp(VW/680, .42, .9) : clamp(Math.min(VH/900, VW/1500), .3, 1.25); }
 function groundY(){ return VW < VH ? VH*.6 : VH*.77; }
 function homeOf(u){
+  if(u.kind === 'pet'){ const px = [.21, .13, .06][u.slot - 1] ?? .1; return [VW*px, groundY() - VH*(.2 + (u.slot % 2)*.05)]; }
   const p0 = u.boss ? BOSS_POS : (u.side === 'p' ? P_POS : E_POS)[u.slot] || [.5,0];
   const p = u.side === 'e' && !u.boss && (u.ranged || u.role === 'healer') ? [p0[0] + RANGED_BACK, p0[1]] : p0;
   return [VW*p[0], groundY() + VH*p[1]*(VW < VH ? .6 : 1)];
@@ -34,10 +35,21 @@ function compUnit(type, slot, lv, stars, compMult, side='p'){
     maxHp:cs.hp, hp:cs.hp, atk:cs.atk, def:cs.def, crit:5, critDmg:150, interval:cs.interval,
     role:t.role, ranged:!!t.ranged, lifesteal:0, stars};
 }
+function petUnit(id, lv, slot){
+  const p = PETS[id], hs = heroStats();
+  return {side:'p', kind:'pet', pet:id, name:p.name, slot, size:44,
+    art:{style:'spirit', body:p.color, rim:p.color, eye:p.color2},
+    maxHp:1, hp:1, atk:hs.atk*petDmg(id, lv), def:0, crit:hs.crit, critDmg:hs.critDmg, interval:p.iv,
+    role:'dps', ranged:true, lifesteal:0, untargetable:true};
+}
 function enemyUnit(type, L, slot){
   const t = ENEMY_TYPES[type];
   const lv = L + (t.boss ? 2 : t.elite ? 1 : 0);
-  const ease = !BT || BT.mode !== 'gate' ? 1 : BT.gate.id === 'E' ? ([0, .45, .6, .8][BT.floor] || 1) : BT.gate.mult;
+  const eBest = E_EASE[Math.max(1, Math.min(FLOORS, (S.gates && S.gates.E) || 1))] ?? 1;
+  const ease = !BT ? 1
+    : BT.mode === 'gate' ? (BT.gate.id === 'E' ? (E_EASE[BT.floor] ?? 1) : BT.gate.mult)
+    : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)   // farm fights: a bit softer than your best floor
+    : 1;
   const hp = enemyHp(lv)*t.hp*ease, mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1},
@@ -83,6 +95,14 @@ function startGate(gateId, floor){
   spawnWave();
   enterBattle();
 }
+/* Gold Rush: repeatable, no loot, lots of gold. Enemy level = your best floor in the current gate. */
+function rushLevel(){ const g = currentGate(); return g.baseLv + Math.max(1, Math.min(FLOORS, S.gates[g.id]||1)) - 1; }
+function startRush(kind = 'gold'){
+  const gate = currentGate(), L = rushLevel(), pool = gate.enemies;
+  BT = newBattle({mode:'rush', kind, gate, L, theme:gate.theme, waves:[[pick(pool), pick(pool), pick(pool)], [pick(pool), pick(pool), pick(pool)]]});
+  spawnWave();
+  enterBattle();
+}
 function startDaily(kind){
   if(dailyLeft(kind) <= 0) return;
   const gate = currentGate(), L = Math.max(1, S.level);
@@ -104,8 +124,7 @@ function newBattle(o){
     gold:0, xp:0, kills:0, shards:{}, drops:[], result:null, boss:null, autoT:0}, o);
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
-  autoLegion();
-  S.party.slice(0, partySlots()).forEach((type,i) => { if(S.comps[type]) b.units.push(prep(compUnit(type, i+1, S.level, S.comps[type], hs.compMult))); });
+  ((S.pets && S.pets.active) || []).forEach((id, i) => { const lv = S.pets.owned[id]; if(lv && PETS[id]) b.units.push(prep(petUnit(id, lv, i + 1))); });
   return b;
 }
 function spawnWave(){
@@ -124,7 +143,7 @@ const alive = side => BT.units.filter(u => u.side === side && !u.dead);
 
 /* ---------- combat ---------- */
 function pickTarget(u){
-  const foes = alive(u.side === 'p' ? 'e' : 'p'); if(!foes.length) return null;
+  const foes = alive(u.side === 'p' ? 'e' : 'p').filter(f => !f.untargetable); if(!foes.length) return null;
   if(u.side === 'e'){
     const w = foes.map(f => f.role === 'tank' ? 4 : f.kind === 'hero' ? 1.6 : 1);
     let r = Math.random()*w.reduce((a,b)=>a+b,0);
@@ -220,7 +239,7 @@ function doParry(h, threats, k){
 }
 
 function dealDamage(att, tgt, mult, opt={}){
-  if(!tgt || tgt.dead) return 0;
+  if(!tgt || tgt.dead || tgt.untargetable) return 0;
   let atk = att.atk;
   if(att.buffs.atk) atk *= 1 + att.buffs.atk.v;
   let dmg = atk * mult * rand(.92, 1.08);
@@ -273,7 +292,7 @@ function killUnit(u){
     if(u.type){
       S.record.kills++; if(u.boss) S.record.bosses++;
       const t = ENEMY_TYPES[u.type];
-      let sh = u.boss ? randi(3,5) : Math.random() < (u.elite ? .6 : .3) ? 1 : 0;
+      let sh = 0;   // soul shards retired (Spirit Legion is bought with gold)
       if(sh){ BT.shards[u.type] = (BT.shards[u.type]||0) + sh; S.shards[u.type] = (S.shards[u.type]||0) + sh;
         addText(u, `+${sh} ${t.name} Shard`, '#c9a8ff', 16); checkBind(u.type); }
     }
@@ -472,7 +491,7 @@ function stepUnit(u, dt){
           if(allies.length){ heal(allies[0], u.atk*2.2); BT.fx.push({k:'ring', x:allies[0].x, y:allies[0].y, r:5, R:70*k, c:'#5dff9b', life:.5, max:.5}); break; }
         }
         const t = u.target && !u.target.dead ? u.target : pickTarget(u);
-        if(t) BT.projs.push({x:u.x + dir*30*k, y:u.y - u.size*k*.55, t, src:u, c:u.side === 'p' ? AFF[S.aff].color : u.art.eye, sp:VW*1.1});
+        if(t) BT.projs.push({x:u.x + dir*30*k, y:u.y - u.size*k*(u.kind === 'pet' ? 0 : .55), t, src:u, c:u.kind === 'pet' ? u.art.eye : u.side === 'p' ? AFF[S.aff].color : u.art.eye, sp:VW*1.1});
       }
       break; }
   }
@@ -541,7 +560,7 @@ function stepBattle(dt){
   // wave / result
   const enemiesLeft = alive('e').length;
   if(!enemiesLeft && !BT.pending.length){
-    if(BT.mode === 'gate' && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
+    if((BT.mode === 'gate' || BT.mode === 'rush') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
     else { if(BT.winT === undefined){ BT.slowmo = .9; BT.koT = 1.4; BT.zoom = .06; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
   }
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
@@ -613,6 +632,9 @@ function finishBattle(win){
       if(r.first) r.diamonds += isBoss ? (f > FLOORS ? 3 : 5) : (f === 5 || f === 8 || f === 9) ? 1 : 0;
       if(Math.random() < .04) r.diamonds += 1;
     }
+  } else if(BT.mode === 'rush'){
+    if(win){ if(BT.kind === 'xp'){ r.xp = Math.round(r.xp + xpFor(BT.L)*TRAIN_XP*(1 + hs.xp/100)); r.gold = Math.round(r.gold*.3); }
+      else { r.gold = Math.round(r.gold + goldFor(BT.L)*RUSH_GOLD*(1 + hs.gold/100)); r.xp = Math.round(r.xp*.3); } }
   } else if(BT.mode === 'daily'){
     if(win){
       const L = BT.L, tier = GATES.indexOf(BT.gate);
@@ -623,9 +645,7 @@ function finishBattle(win){
       if(BT.kind === 'mat'){
         r.stones = 30*(1 + tier); r.diamonds += 2;
         r.items.push(randomItem(L + 1, 2.5, BT.gate.id));
-        const known = Object.keys(S.shards).length ? Object.keys(S.shards) : BT.gate.enemies;
-        const t = pick(known); const n = 4 + tier*2;
-        S.shards[t] = (S.shards[t]||0) + n; r.shards = Object.assign({}, r.shards, {[t]:(r.shards[t]||0) + n}); checkBind(t);
+        r.diamonds += 1;
       }
     }
   } else {
@@ -674,7 +694,7 @@ function renderBattle(t, dt){
       rg.addColorStop(0, 'rgba(255,90,60,.35)'); rg.addColorStop(1, 'rgba(255,90,60,0)'); c.fillStyle = rg; c.fillRect(u.x - u.size*k, u.y - u.size*k*1.4, u.size*k*2, u.size*k*1.6); }
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
     drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0 || (u.dead && u.deathT < .09), alpha);
-    if(!u.dead && !(u.boss || u.kind === 'hunter')) drawHpBar(c, u, k);
+    if(!u.dead && !(u.boss || u.kind === 'hunter' || u.kind === 'pet')) drawHpBar(c, u, k);
     if(BT.ring && BT.ring.target === u && !u.dead) drawRing(c, u, k);
     if(!u.dead && u.tele === BT.hero && u.state === 'idle'){
       const rem = clamp((u.interval - u.timer)/TELE, 0, 1), cx = u.x, cy = u.y - u.size*k - 40*k;

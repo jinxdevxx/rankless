@@ -20,6 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
+    pets:{owned:{}, active:[], slots:1},
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -37,7 +38,7 @@ let SLOT = null;                       // active save slot (1..3)
 const slotKey = id => 'rankless_slot_' + id;
 function normalizeSave(s){
   const out = Object.assign(defaultSave(), s);
-  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
   return out;
 }
 function readMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY)) || {last:null}; }catch(e){ return {last:null}; } }
@@ -118,7 +119,11 @@ function itemBase(it){
 function statLine(k, v){ return PCT.has(k) ? `+${(Math.round(v*10)/10)}% ${STAT_LABEL[k]}` : `+${fmt(v)} ${STAT_LABEL[k]}`; }
 function enhanceCost(it){ return {gold: Math.ceil(30 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: (it.plus+1) * (1 + it.rar)}; }
 function enhanceRate(it){ if(S.settings && S.settings.simple) return it.plus < MAX_PLUS ? 1 : 0; return ENHANCE_RATE[it.plus] ?? 0; }
-function salvageValue(it){ return {stones: [1,3,8,20,50][it.rar] + it.plus*2, gold: Math.ceil(goldFor(it.ilvl) * 2 * (1+it.rar))}; }
+/* salvage gives the base value plus 65% of everything spent on enhancing (35% is lost) */
+const SALVAGE_REFUND = .65;
+function enhanceSpent(it){ let g = 0, s = 0; for(let p = 0; p < it.plus; p++){ const c = enhanceCost(Object.assign({}, it, {plus:p})); g += c.gold; s += c.stones; } return {gold:g, stones:s}; }
+function salvageValue(it){ const sp = enhanceSpent(it);
+  return {stones: [1,3,8,20,50][it.rar] + Math.round(sp.stones*SALVAGE_REFUND), gold: Math.ceil(goldFor(it.ilvl) * 2 * (1+it.rar)) + Math.round(sp.gold*SALVAGE_REFUND)}; }
 
 /* ---------- champion stats ---------- */
 function calcStats(src){
@@ -132,6 +137,7 @@ function calcStats(src){
     for(const a of it.affixes) o[a.k] += a.v;
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
+  if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
@@ -156,8 +162,7 @@ function compStats(type, stars, level, compMult){
 }
 function teamPower(){
   const hs = heroStats(); let p = powerOf(hs);
-  for(const type of S.party){ const c = compStats(type, S.comps[type]||1, S.level, hs.compMult);
-    p += Math.round(c.atk/c.interval*5*.8 + c.hp*.45); }
+  for(const id of (S.pets && S.pets.active) || []){ const lv = S.pets.owned[id]; if(lv) p += Math.round(hs.atk*petDmg(id, lv)/PETS[id].iv*5); }
   return p;
 }
 /* recommended power for a gate floor */
@@ -280,7 +285,7 @@ function autoAssignStats(){
 
 /* ---------- simple mode: the legion manages itself ---------- */
 function compValue(k){ const t = ENEMY_TYPES[k]; return (t.comp.hp + t.comp.atk) * (S.comps[k]||0); }
-function autoLegion(){
+function autoLegion(){ return;   // old monster legion retired in v0.15.0
   if(!S.settings.simple) return;
   for(const k in S.comps){ while(S.comps[k] < MAX_STARS && (S.shards[k]||0) >= shardNeed(k)*STAR_COST[S.comps[k]]){ S.shards[k] -= shardNeed(k)*STAR_COST[S.comps[k]]; S.comps[k]++; } }
   S.party = Object.keys(S.comps).filter(k => S.comps[k]).sort((a,b) => compValue(b) - compValue(a)).slice(0, partySlots());
@@ -304,6 +309,18 @@ function dailyLeft(kind){
 }
 /* the active element follows the blade's enchantment */
 function syncAff(){ S.aff = S.enchant && ELEMENTS.includes(S.enchant.el) ? S.enchant.el : 'steel'; if(S.aff === 'steel') S.spec = null; }
+/* v0.15.0: monster legion -> Spirit Legion. Bound monsters are refunded as Gold. */
+function migratePets(){
+  if(S.flags.petsV1) return; S.flags.petsV1 = true;
+  S.pets = S.pets || {owned:{}, active:[], slots:1};
+  let refund = 0; for(const k in (S.comps||{})) refund += 400 * (S.comps[k]||0) * Math.max(1, S.level/8);
+  refund = Math.round(refund);
+  if(refund > 0){ S.gold += refund; S.flags.petRefund = refund; }
+  S.party = [];
+}
+/* first free slot gets the newest spirit */
+function fillPetSlots(){ const own = PET_ORDER.filter(id => S.pets.owned[id]); S.pets.active = S.pets.active.filter(id => S.pets.owned[id]).slice(0, S.pets.slots);
+  for(const id of [...own].reverse()){ if(S.pets.active.length >= S.pets.slots) break; if(!S.pets.active.includes(id)) S.pets.active.push(id); } }
 /* saves hit by the v0.13.0 bug (starter gear salvaged) get it back */
 function fixStarterGear(){ for(const sl of ['weapon','armor']) if(!S.eq[sl]) S.eq[sl] = makeItem(sl, Math.max(1, S.level - 1), 1); }
 /* v0.14.2: back to classic combat; skills are manual again unless the player turns AUTO on */
