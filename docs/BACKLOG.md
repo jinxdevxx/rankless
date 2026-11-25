@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [ ] NEXT ROUND (measured v0.26.2, flame spamskill): A-F7 wall 26 losses, A-F10 11, S-F6 14; Master League reached at 161 bot-min (~54 min at x3, earlier runs 275–349) → check variance per element, smooth A gate. Pure spam: B at 210 bot-min, max 14 losses.
 - [x] Victory screen too tall with many messages (v0.26.2)
 - [x] World map with 5 regions; Region 2 Yomi with circles, Soul Embers, Shinigami Arts tree + new skill; 3–5 coming soon (v0.26.0)
 - [ ] Regions 3–5 (Takamagahara, Ryugu-jo, Mugen): each with own content, currency, skill tree, new skill
