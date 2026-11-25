@@ -1017,3 +1017,18 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .cxl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px}
 .cxi{display:flex;gap:8px;align-items:center;padding:8px;border-radius:10px;border:1px solid #ffffff1a;background:#0004;opacity:.6}
 .cxi.got{opacity:1;border-color:var(--r);box-shadow:0 0 10px color-mix(in srgb,var(--r) 30%,transparent)} .cxi i{color:var(--r);width:26px} .cxi b{display:block;color:var(--r);font:900 13px Nunito,sans-serif} .cxi small{font:600 11px Nunito,sans-serif;color:#b9b0c9} .cxi em{margin-left:auto;font-style:normal;font:900 12px Nunito,sans-serif;color:#7fffa0}
+
+/* Kami Trials + endgame goals (v0.25.0) */
+.pcap{font-style:normal;font-size:22px;color:#c9b8e8}
+.kamibox,.egbox{margin:10px 0;padding:12px;border-radius:16px;border:1px solid #ffffff22;background:rgba(0,0,0,.3)}
+.kamis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:6px}
+.kami{display:flex;flex-direction:column;gap:3px;padding:10px;border-radius:12px;border:1px solid color-mix(in srgb,var(--c) 40%,transparent);background:#14101e}
+.kami b{color:var(--c);font:900 15px Nunito,sans-serif} .kami small{font:800 11px Nunito,sans-serif;color:#b9b0c9} .kami span{font:600 12px Nunito,sans-serif;color:#e8e2f0}
+.kami em{font-style:normal;font:800 12px Nunito,sans-serif;color:#ffd27a} .kami.locked{opacity:.45} .kami.done{border:2px solid var(--c)} .kami.open{border:2px solid var(--c);box-shadow:0 0 16px color-mix(in srgb,var(--c) 45%,transparent)}
+.egs{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px;margin-top:6px}
+.eg{position:relative;overflow:hidden;display:flex;justify-content:space-between;padding:8px 10px;border-radius:10px;background:#1c1528;font:800 13px Nunito,sans-serif;color:#e8e2f0}
+.eg b{color:#ffd27a;z-index:1} .eg span{z-index:1} .eg i{position:absolute;left:0;bottom:0;height:3px;background:#c77dff} .eg.ok i{background:#7fffa0} .eg.ok b{color:#7fffa0}
+
+.tcap{color:#ffd27a}
+
+.spbig{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 10px} .spbig small{color:#b9b0c9;font:700 12px Nunito,sans-serif}

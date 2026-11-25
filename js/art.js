@@ -313,112 +313,151 @@ function polyP(c, pts, ox=0, oy=0){ c.beginPath(); pts.forEach(([x,y],i) => i ? 
 /* anime-style character with real colors, cel shading and ink outlines. (x,y)=feet, h=height in px */
 function drawHumanoid(c, x, y, h, o){
   const t = o.t || 0, k = h/100, f = o.face || 1, pose = o.pose || 'idle';
-  const br = Math.sin(t*2.2)*.8, fl = Math.sin(t*5), fl2 = Math.sin(t*5 + 1.3);
+  const br = Math.sin(t*2.2)*.8, fl = Math.sin(t*5), fl2 = Math.sin(t*5 + 1.3), fl3 = Math.sin(t*4.2 + 2.1);
   const fy = o.float ? -10 + Math.sin(t*1.6)*3 : 0;
   const W = col => o.flash ? '#ffffff' : col;
-  const R = o.rim, coat = W(o.coat || coatFor(R)), coatSh = W(mixHex(o.coat || coatFor(R), '#000000', .3)), coatLt = W(mixHex(o.coat || coatFor(R), '#ffffff', .18));
-  const pants = W('#2c2836'), boots = W('#17141c'), hair = W(o.hairColor || hairFor(R)), skin = W(SKIN), skinSh = W(SKIN_SH);
+  const R = o.rim, base = o.coat || coatFor(R);
+  const coat = W(base), coatSh = W(mixHex(base, '#000000', .38)), coatLt = W(mixHex(base, '#ffffff', .16)), lining = W(mixHex(R, '#000000', .25));
+  const metal = W('#2b2735'), metalLt = W('#59536a'), gold = W('#d8b36a');
+  const pants = W('#24202e'), boots = W('#121018'), hairC = o.hairColor || hairFor(R), hair = W(hairC), hairLt = W(mixHex(hairC, '#ffffff', .3)), skin = W(SKIN), skinSh = W(SKIN_SH);
   c.save(); c.translate(x, y);
   c.globalAlpha = o.alpha ?? 1;
-  // ground shadow + soft aura
-  c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(0, 0, 24*k, 5*k, 0, 0, 7); c.fill();
-  if(o.aura){
-    const ag = c.createRadialGradient(0,-50*k,5*k,0,-50*k,70*k);
-    ag.addColorStop(0, R + '30'); ag.addColorStop(1, R + '00');
-    c.fillStyle = ag; c.fillRect(-80*k,-130*k,160*k,140*k);
-  }
+  c.fillStyle = 'rgba(0,0,0,.38)'; c.beginPath(); c.ellipse(0, 0, 26*k, 5.5*k, 0, 0, 7); c.fill();
+  if(o.aura){ const ag = c.createRadialGradient(0,-52*k,5*k,0,-52*k,74*k); ag.addColorStop(0, R + '38'); ag.addColorStop(1, R + '00'); c.fillStyle = ag; c.fillRect(-84*k,-136*k,168*k,146*k); }
   c.scale(f*k, k); c.translate(0, fy);
-  const lean = pose === 'lunge' ? .2 : pose === 'hurt' ? -.14 : pose === 'cast' ? -.05 : pose === 'windup' ? -.12 : 0;
+  const lean = pose === 'lunge' ? .22 : pose === 'hurt' ? -.15 : pose === 'cast' ? -.05 : pose === 'windup' ? -.12 : 0;
   c.rotate(lean);
-  c.strokeStyle = INK; c.lineWidth = 1.25; c.lineJoin = 'round'; c.lineCap = 'round';
-  if(pose === 'windup'){ c.shadowColor = '#ff3d5e'; c.shadowBlur = 14; }
-  c.shadowBlur = 0;
+  c.strokeStyle = INK; c.lineWidth = 1.2; c.lineJoin = 'round'; c.lineCap = 'round';
+  const hy = br*.3;   // head bob
 
-  // scarf
-  c.beginPath(); c.moveTo(-3,-82); c.bezierCurveTo(-16,-84+fl, -28,-78+fl2*3, -44,-81+fl*4); c.lineTo(-42,-75+fl*4);
-  c.bezierCurveTo(-27,-72+fl2*3, -15,-77, -3,-77); c.closePath(); inked(c, W(mixHex(R, '#ffffff', .05)));
-  // back coat tail
-  if(!o.float){ c.beginPath(); c.moveTo(-9,-58); c.quadraticCurveTo(-16,-34, -28+fl2*3,-12+fl); c.lineTo(-18,-16+fl*.5); c.quadraticCurveTo(-13,-36,-6,-54); c.closePath(); inked(c, coatSh); }
-  // back arm
-  const BA = pose === 'cast' ? [[-6,-80],[-13,-88],[-16,-98]] : pose === 'lunge' ? [[-6,-80],[-13,-74],[-20,-68]] : [[-6,-80],[-9,-68],[-9,-57]];
-  limbP(c,BA[0][0],BA[0][1],BA[1][0],BA[1][1],3.1,2.5); inked(c, coatSh);
-  limbP(c,BA[1][0],BA[1][1],BA[2][0],BA[2][1],2.5,2.2); inked(c, coatSh);
-  c.beginPath(); c.arc(BA[2][0], BA[2][1], 2.4, 0, 7); inked(c, W('#2a2430'));
-  // legs
+  // ---- scarf: two wavy ribbons that taper and flutter ----
+  const ribbon = (len, ph, w0, a) => { const n = 7, top = [], bot = [];
+    for(let i = 0; i <= n; i++){ const u = i/n, xx = -2 - u*len, wave = Math.sin(t*5 + ph - u*4.5)*(1.5 + u*5), yy = -83 + u*3 + wave, w = w0*(1 - u*.65);
+      top.push([xx, yy - w/2]); bot.push([xx, yy + w/2]); }
+    c.beginPath(); top.forEach(([px, py], i) => i ? c.lineTo(px, py) : c.moveTo(px, py)); bot.reverse().forEach(([px, py]) => c.lineTo(px, py)); c.closePath();
+    const g = c.createLinearGradient(0, 0, -len, 0); g.addColorStop(0, W(R)); g.addColorStop(1, W(mixHex(R, '#000000', .5))); c.globalAlpha = (o.alpha ?? 1)*a; inked(c, g); c.globalAlpha = o.alpha ?? 1; };
+  ribbon(40, 1.1, 4.2, .8); ribbon(32, 0, 5, 1);
+  c.beginPath(); c.ellipse(0,-83,5.5,3.2,0,0,7); inked(c, W(R));   // scarf knot around the neck
+
+  // ---- sheathed saya on the back hip ----
+  if(!o.float && (o.bladeLen ?? 1) > 0){ c.save(); c.translate(-6,-50); c.rotate(-.95); c.beginPath(); c.roundRect ? c.roundRect(-2,-2,40,4.2,2) : c.rect(-2,-2,40,4.2); inked(c, W('#1c1724')); c.fillStyle = gold; c.fillRect(30,-2,3,4.2); c.restore(); }
+
+  // ---- back coat tails (two, with colored lining) ----
   if(!o.float){
-    const L = pose === 'lunge' ? [[-3,-46],[-12,-23],[-23,-1],[5,-46],[14,-28],[19,0]]
-            : pose === 'hurt'  ? [[-3,-46],[-7,-23],[-12,0],[4,-46],[8,-23],[12,0]]
-            : [[-3,-46],[-5,-23],[-8,0],[4,-46],[7,-23],[9,0]];
-    const leg = (a,b,cc,fill) => { limbP(c,a[0],a[1],b[0],b[1],4.6,3.4); inked(c, fill); limbP(c,b[0],b[1],cc[0],cc[1],3.4,2.6); inked(c, fill);
-      polyP(c,[[cc[0]-3.5,cc[1]-5],[cc[0]+3,cc[1]-5],[cc[0]+7,cc[1]-1.5],[cc[0]+7,cc[1]+.8],[cc[0]-3.5,cc[1]+.8]]); inked(c, boots); };
-    leg(L[0],L[1],L[2], W(mixHex('#2c2836','#000000',.25)));
+    c.beginPath(); c.moveTo(-8,-56); c.quadraticCurveTo(-18,-30, -30+fl2*3,-6+fl); c.lineTo(-19,-10+fl*.5); c.quadraticCurveTo(-13,-34,-5,-52); c.closePath(); inked(c, lining);
+    c.beginPath(); c.moveTo(-6,-56); c.quadraticCurveTo(-14,-30, -24+fl*3,-3+fl2); c.lineTo(-13,-8); c.quadraticCurveTo(-9,-32,-2,-52); c.closePath(); inked(c, coatSh);
+  }
+  // ---- back arm ----
+  const BA = pose === 'cast' ? [[-6,-80],[-13,-89],[-17,-99]] : pose === 'lunge' ? [[-6,-80],[-14,-74],[-22,-69]] : [[-6,-80],[-9,-68],[-9,-57]];
+  limbP(c,BA[0][0],BA[0][1],BA[1][0],BA[1][1],3,2.4); inked(c, coatSh);
+  limbP(c,BA[1][0],BA[1][1],BA[2][0],BA[2][1],2.6,2.2); inked(c, metal);
+  c.beginPath(); c.arc(BA[2][0], BA[2][1], 2.3, 0, 7); inked(c, W('#1e1a26'));
+  // ---- legs: armored greaves ----
+  if(!o.float){
+    const L = pose === 'lunge' ? [[-3,-47],[-13,-24],[-24,-1],[5,-47],[15,-28],[21,0]]
+            : pose === 'hurt'  ? [[-3,-47],[-7,-24],[-12,0],[4,-47],[8,-24],[12,0]]
+            : [[-3,-47],[-6,-24],[-9,0],[4,-47],[7,-24],[10,0]];
+    const leg = (a,b,cc,fill) => { limbP(c,a[0],a[1],b[0],b[1],5,3.8); inked(c, fill);
+      const kx = b[0] + (cc[0]-b[0])*.35, ky = b[1] + (cc[1]-b[1])*.35; limbP(c,b[0],b[1],kx,ky,3.8,3.6); inked(c, fill);
+      limbP(c,kx,ky,cc[0],cc[1],3.9,3.1); inked(c, boots);   // tall boot
+      c.save(); c.strokeStyle = W('#3b3446'); c.lineWidth = .8; c.beginPath(); c.moveTo(kx - 3.2, ky + 1); c.lineTo(kx + 3.2, ky + 1); c.stroke(); c.restore();
+      polyP(c,[[b[0]-2.6,b[1]-2.5],[b[0]+2.6,b[1]-2.5],[b[0]+3,b[1]+2.5],[b[0]-3,b[1]+2.5]]); inked(c, metal);   // knee plate
+      polyP(c,[[cc[0]-3.5,cc[1]-5.5],[cc[0]+3,cc[1]-5.5],[cc[0]+8,cc[1]-1.5],[cc[0]+8,cc[1]+.8],[cc[0]-3.5,cc[1]+.8]]); inked(c, boots); };
+    leg(L[0],L[1],L[2], W(mixHex('#24202e','#000000',.3)));
     leg(L[3],L[4],L[5], pants);
   }
-  // coat body (lit from the front)
-  c.beginPath(); c.moveTo(-8,-84); c.lineTo(8,-84); c.lineTo(11,-52);
+  // ---- coat body ----
+  c.beginPath(); c.moveTo(-8,-85); c.lineTo(8,-85); c.lineTo(11,-53);
   if(o.float){ c.quadraticCurveTo(16,-20,10,-4); c.lineTo(-4,-10+fl*2); c.quadraticCurveTo(-18,-6+fl, -24+fl*3,-2+fl); }
-  else { c.quadraticCurveTo(15,-36,13,-24); c.lineTo(3,-31); c.lineTo(-5,-27); c.quadraticCurveTo(-15,-22+fl, -21+fl*2,-17+fl); }
-  c.quadraticCurveTo(-14,-40,-11,-56); c.closePath();
+  else { c.quadraticCurveTo(16,-36,14,-22); c.lineTo(5,-29); c.lineTo(-4,-25); c.quadraticCurveTo(-15,-21+fl, -21+fl*2,-16+fl); }
+  c.quadraticCurveTo(-14,-40,-11,-57); c.closePath();
   if(o.flash) inked(c, '#ffffff');
-  else { const g = c.createLinearGradient(-14,0,14,0); g.addColorStop(0, coatSh); g.addColorStop(.45, coat); g.addColorStop(1, coatLt); inked(c, g); }
-  // shirt + belt + coat trim
-  polyP(c, [[-2,-84],[5,-84],[2,-64]]); inked(c, W('#ece6dc'));
-  c.beginPath(); c.rect(-9,-51.5,20,3.2); inked(c, W('#5b4433'));
-  c.beginPath(); c.rect(1,-51.5,3.4,3.2); inked(c, W('#d8b36a'));
-  c.save(); c.strokeStyle = W(mixHex(R, '#ffffff', .25)); c.lineWidth = .9;
-  c.beginPath(); c.moveTo(9,-82); c.lineTo(11.5,-52); if(!o.float) c.quadraticCurveTo(15,-36,13,-24); c.stroke(); c.restore();
-  // collar
-  polyP(c, [[-8,-83],[-10,-94],[-1,-86]]); inked(c, coatLt);
-  polyP(c, [[6,-83],[9,-93],[3,-86]]); inked(c, coat);
-  // head: neck, face, shading
-  c.beginPath(); c.rect(-1.5,-86,4,4); inked(c, skinSh);
-  c.beginPath(); c.arc(1,-90+br*.3,7,0,7); inked(c, skin);
-  c.beginPath(); c.arc(1,-90+br*.3,7,Math.PI*.55,Math.PI*1.45); c.lineTo(-1,-90+br*.3); c.closePath(); c.fillStyle = skinSh; c.fill();
-  // eye, brow, mouth
-  const ey = -90.6 + br*.3;
-  c.fillStyle = W(INK); c.beginPath(); c.ellipse(4.4, ey, 1.35, 1.6, 0, 0, 7); c.fill();
-  c.fillStyle = W(mixHex(R, '#ffffff', .2)); c.beginPath(); c.ellipse(4.5, ey + .35, .8, .9, 0, 0, 7); c.fill();
-  c.fillStyle = '#ffffff'; c.beginPath(); c.arc(4.1, ey - .55, .42, 0, 7); c.fill();
-  c.lineWidth = .9; c.beginPath(); c.moveTo(2.6, ey - 2.6 - (pose === 'lunge' ? -.6 : 0)); c.lineTo(6.6, ey - 2.2); c.stroke();
-  c.beginPath(); c.moveTo(5, ey + 4.4); c.lineTo(6.8, ey + 4.1); c.stroke();
-  c.lineWidth = 1.25;
-  // hair / hat
+  else { const g = c.createLinearGradient(-14,0,15,0); g.addColorStop(0, coatSh); g.addColorStop(.5, coat); g.addColorStop(1, coatLt); inked(c, g); }
+  // inner lining visible at the front opening + chest plate
+  if(!o.float){ polyP(c, [[6,-60],[12,-53],[14,-23],[6,-29]]); inked(c, lining); }
+  polyP(c, [[-2,-84],[5,-84],[2,-66]]); inked(c, W('#e9e2d6'));   // shirt
+  polyP(c, [[-8,-82],[-4,-84],[11,-55],[7,-53]]); inked(c, W('#3a2b22'));   // leather strap across the chest
+  c.beginPath(); c.arc(1.5,-70,2.2,0,7); inked(c, gold);
+  c.save(); c.strokeStyle = W(R); c.lineWidth = .9; c.shadowColor = R; c.shadowBlur = o.flash ? 0 : 6; c.beginPath(); c.arc(1.5,-70,1,0,7); c.stroke(); c.restore();   // glowing gem on the strap
+  // belt + talisman
+  c.beginPath(); c.rect(-9,-52.5,21,3.4); inked(c, W('#3a2b22'));
+  c.beginPath(); c.rect(1,-52.8,4,4); inked(c, gold);
+  if(!o.float){ c.save(); c.translate(8,-49); c.rotate(.15 + fl*.08); c.beginPath(); c.rect(-1.6,0,3.2,11); inked(c, W('#efe6cf')); c.fillStyle = W('#b3242f'); c.fillRect(-.8,2.5,1.6,5); c.restore(); }   // ofuda paper charm
+  // gold trim along the coat edge
+  c.save(); c.strokeStyle = gold; c.lineWidth = .8; c.beginPath(); c.moveTo(9,-82); c.lineTo(11.5,-53); if(!o.float) c.quadraticCurveTo(16,-36,14,-22); c.stroke(); c.restore();
+  // high collar
+  polyP(c, [[-8,-84],[-11,-97],[-2,-88]]); inked(c, coatLt);
+  polyP(c, [[6,-84],[10,-96],[3,-88]]); inked(c, coat);
+  // ---- head ----
+  c.beginPath(); c.rect(-1.5,-87,4,4); inked(c, skinSh);
+  c.beginPath(); c.ellipse(1.2,-91.5+hy,6.2,6.8,0,0,7); inked(c, skin);
+  c.beginPath(); c.ellipse(1.2,-91.5+hy,6.2,6.8,0,Math.PI*.55,Math.PI*1.45); c.lineTo(-1,-91.5+hy); c.closePath(); c.fillStyle = skinSh; c.fill();
+  // anime eye: dark, colored iris, glow streak
+  const ey = -91.8 + hy, eyeC = o.eye || R;
+  c.fillStyle = W(INK); c.beginPath(); c.ellipse(4.3, ey, 1.5, 1.9, 0, 0, 7); c.fill();
+  c.fillStyle = W(eyeC); c.beginPath(); c.ellipse(4.5, ey + .4, .95, 1.15, 0, 0, 7); c.fill();
+  c.fillStyle = '#ffffff'; c.beginPath(); c.arc(4, ey - .6, .45, 0, 7); c.fill();
+  if(!o.flash && (pose === 'lunge' || pose === 'cast')){ c.save(); c.strokeStyle = eyeC; c.shadowColor = eyeC; c.shadowBlur = 8; c.lineWidth = 1; c.globalAlpha = .9; c.beginPath(); c.moveTo(5.5, ey); c.lineTo(-6, ey - 1.5); c.stroke(); c.restore(); }   // eye streak when attacking
+  c.lineWidth = 1; c.beginPath(); c.moveTo(2.4, ey - 2.9 - (pose === 'lunge' ? -.7 : 0)); c.lineTo(6.6, ey - 2.3); c.stroke();
+  c.beginPath(); c.moveTo(5, ey + 4.6); c.lineTo(6.8, ey + 4.3); c.stroke();
+  c.lineWidth = 1.2;
+  // ---- hair ----
   if(o.hair === 'hat'){
-    c.beginPath(); c.rect(-8,-98,17,3); inked(c, W('#16121c')); c.beginPath(); c.rect(-5,-112,11,15); inked(c, W('#16121c'));
-    c.beginPath(); c.rect(-5,-101,11,2.4); inked(c, W(R));
+    c.beginPath(); c.rect(-8,-99,17,3); inked(c, W('#16121c')); c.beginPath(); c.rect(-5,-113,11,15); inked(c, W('#16121c'));
+    c.beginPath(); c.rect(-5,-102,11,2.4); inked(c, W(R));
   } else {
-    polyP(c, HAIR_SHAPES[o.hair || 0], 0, br*.3); inked(c, hair);
-    c.save(); c.strokeStyle = W(mixHex(o.hairColor || hairFor(R), '#ffffff', .35)); c.lineWidth = .8;
-    const hs = HAIR_SHAPES[o.hair || 0]; c.beginPath(); c.moveTo(hs[1][0]-1, hs[1][1]+1.5+br*.3); c.lineTo(hs[3][0]+1, hs[3][1]+1.8+br*.3); c.stroke(); c.restore();
+    const st = typeof o.hair === 'number' ? o.hair % 3 : 0, hb = hy;
+    const spikes = st === 0 ? [[-9,-90],[-17,-99],[-8,-97],[-14,-108],[-4,-102],[-6,-113],[1,-104],[5,-112],[6,-102],[11,-104],[8,-97]]
+                : st === 1 ? [[-9,-88],[-13,-96],[-7,-100],[-5,-108],[1,-104],[6,-108],[8,-100],[10,-95],[7,-93]]
+                : [[-9,-90],[-15,-95],[-8,-99],[-10,-106],[-2,-103],[2,-109],[6,-102],[11,-100],[8,-95]];
+    if(st === 1 && !o.float){ c.beginPath(); c.moveTo(-6,-98+hb); c.quadraticCurveTo(-20+fl*2,-90+hb, -18+fl2*3,-70+hb); c.lineTo(-14,-72+hb); c.quadraticCurveTo(-14,-88+hb,-4,-95+hb); c.closePath(); inked(c, hair); }   // ponytail
+    polyP(c, spikes.concat([[8,-96],[6,-97.5],[3,-96],[1,-98],[-2,-96],[-5,-97]]), 0, hb);
+    const hg = c.createLinearGradient(0,-112,0,-88); hg.addColorStop(0, hairLt); hg.addColorStop(1, hair); inked(c, o.flash ? '#ffffff' : hg);
+    // bangs over the forehead
+    polyP(c, [[0,-98],[6,-97.5],[8.5,-93.5],[6,-95],[4,-93.8],[2,-95.5]], 0, hb); inked(c, hair);
+    c.save(); c.strokeStyle = hairLt; c.lineWidth = .7; c.beginPath(); c.moveTo(-4,-103+hb); c.lineTo(2,-98+hb); c.moveTo(-9,-99+hb); c.lineTo(-3,-96+hb); c.stroke(); c.restore();
   }
-  if(o.crown){ polyP(c, [[-6,-97],[-4,-106],[-1,-99],[1,-109],[3,-99],[6,-105],[7,-96]]); inked(c, W('#cfe8ff')); }
-  // front arm + glove
-  const hand = pose === 'lunge' ? [27,-74] : pose === 'cast' ? [20,-92] : pose === 'hurt' ? [12,-62] : [15,-57];
+  if(o.crown){ polyP(c, [[-6,-98],[-4,-107],[-1,-100],[1,-110],[3,-100],[6,-106],[7,-97]]); inked(c, W('#cfe8ff')); }
+  // ---- front arm ----
+  const hand = pose === 'lunge' ? [28,-74] : pose === 'cast' ? [20,-93] : pose === 'hurt' ? [12,-62] : [15,-57];
   const elb = [(7 + hand[0])/2 + (pose === 'lunge' ? 0 : 3), (-80 + hand[1])/2 + (pose === 'cast' ? 0 : 2)];
-  limbP(c, 7,-80, elb[0], elb[1], 3.1, 2.5); inked(c, coat);
-  limbP(c, elb[0], elb[1], hand[0], hand[1], 2.5, 2.2); inked(c, coat);
-  // shoulder pad
-  polyP(c, [[2,-86],[11,-85],[13,-79],[4,-78]]); inked(c, coatLt);
-  // weapon (steel katana)
+  limbP(c, 7,-80, elb[0], elb[1], 3, 2.5); inked(c, coat);
+  limbP(c, elb[0], elb[1], hand[0], hand[1], 2.6, 2.2); inked(c, metal);   // bracer
+  c.save(); c.strokeStyle = gold; c.lineWidth = .7; c.beginPath(); c.moveTo(elb[0], elb[1]); c.lineTo(hand[0], hand[1]); c.stroke(); c.restore();
+  // layered shoulder pauldron
+  polyP(c, [[2,-84],[12,-84],[15,-78],[4,-76]]); inked(c, metalLt);
+  polyP(c, [[3,-80],[14,-79],[15,-75],[5,-73]]); inked(c, metal);
+  c.save(); c.strokeStyle = W(R); c.lineWidth = .8; c.beginPath(); c.moveTo(3,-83.5); c.lineTo(12,-83.5); c.stroke(); c.restore();
+  // ---- katana: curved blade, element edge, wrapped handle, tsuba ----
   const bl = o.bladeLen ?? 1;
   if(bl > 0){
-    const tip = pose === 'lunge' ? [hand[0]+55*bl, hand[1]-4] : pose === 'cast' ? [hand[0]+8*bl, hand[1]-50*bl] :
-                pose === 'hurt' ? [hand[0]+30*bl, hand[1]+30*bl] : [hand[0]+22*bl, hand[1]+40*bl];
+    const tip = pose === 'lunge' ? [hand[0]+58*bl, hand[1]-6] : pose === 'cast' ? [hand[0]+10*bl, hand[1]-54*bl] :
+                pose === 'hurt' ? [hand[0]+31*bl, hand[1]+31*bl] : [hand[0]+24*bl, hand[1]+42*bl];
     const dx = tip[0]-hand[0], dy = tip[1]-hand[1], len = Math.hypot(dx,dy), ux = dx/len, uy = dy/len, px = -uy, py = ux;
-    // handle
-    c.save(); c.lineWidth = 2.8; c.strokeStyle = INK; c.beginPath(); c.moveTo(hand[0] - ux*8, hand[1] - uy*8); c.lineTo(hand[0], hand[1]); c.stroke();
-    c.lineWidth = 1.6; c.strokeStyle = W('#4a2f2a'); c.stroke(); c.restore();
-    // blade
-    const b0 = [hand[0] + ux*2, hand[1] + uy*2];
-    c.beginPath(); c.moveTo(b0[0] + px*1.1, b0[1] + py*1.1); c.lineTo(tip[0] + px*.2, tip[1] + py*.2); c.lineTo(tip[0] - ux*3 - px*1, tip[1] - uy*3 - py*1); c.lineTo(b0[0] - px*1.1, b0[1] - py*1.1); c.closePath();
-    const bg = c.createLinearGradient(b0[0] + px*1.1, b0[1] + py*1.1, b0[0] - px*1.1, b0[1] - py*1.1);
-    bg.addColorStop(0, W('#ffffff')); bg.addColorStop(.5, W('#c9d3df')); bg.addColorStop(1, W('#7f8b9c'));
-    c.lineWidth = .9; inked(c, bg); c.lineWidth = 1.25;
-    // guard
-    c.beginPath(); c.ellipse(b0[0], b0[1], 3.2, 1.3, Math.atan2(py,px), 0, 7); inked(c, W('#d8b36a'));
-    if(o.aura && !o.flash){ c.save(); c.globalAlpha = (o.alpha ?? 1)*.35; c.strokeStyle = R; c.lineWidth = 2.2; c.beginPath(); c.moveTo(b0[0], b0[1]); c.lineTo(tip[0], tip[1]); c.stroke(); c.restore(); }
+    const curve = 4*bl;   // katana curvature
+    // handle with wrap
+    c.save(); c.lineWidth = 3.4; c.strokeStyle = INK; c.beginPath(); c.moveTo(hand[0] - ux*10, hand[1] - uy*10); c.lineTo(hand[0], hand[1]); c.stroke();
+    c.lineWidth = 2.2; c.strokeStyle = W('#2a1e26'); c.stroke();
+    c.strokeStyle = W(mixHex(R, '#ffffff', .2)); c.lineWidth = .7; for(let i = 1; i < 5; i++){ const q = i*2.2; c.beginPath(); c.moveTo(hand[0] - ux*q + px*1.1, hand[1] - uy*q + py*1.1); c.lineTo(hand[0] - ux*(q+1.1) - px*1.1, hand[1] - uy*(q+1.1) - py*1.1); c.stroke(); }
+    c.restore();
+    const b0 = [hand[0] + ux*2.5, hand[1] + uy*2.5], mid = [(b0[0]+tip[0])/2 + px*curve, (b0[1]+tip[1])/2 + py*curve];
+    // glow trail behind the blade on attacks
+    if(!o.flash && (pose === 'lunge' || o.aura)){ c.save(); c.globalAlpha = (o.alpha ?? 1)*(pose === 'lunge' ? .45 : .22); c.strokeStyle = W(o.blade || R); c.shadowColor = o.blade || R; c.shadowBlur = 14; c.lineWidth = 4;
+      c.beginPath(); c.moveTo(b0[0], b0[1]); c.quadraticCurveTo(mid[0], mid[1], tip[0], tip[1]); c.stroke(); c.restore(); }
+    // blade body (spine side lit)
+    c.beginPath(); c.moveTo(b0[0] + px*1.3, b0[1] + py*1.3); c.quadraticCurveTo(mid[0] + px*1.3, mid[1] + py*1.3, tip[0], tip[1]);
+    c.quadraticCurveTo(mid[0] - px*1.2, mid[1] - py*1.2, b0[0] - px*1.3, b0[1] - py*1.3); c.closePath();
+    const bg = c.createLinearGradient(b0[0] + px*1.3, b0[1] + py*1.3, b0[0] - px*1.3, b0[1] - py*1.3);
+    bg.addColorStop(0, W('#ffffff')); bg.addColorStop(.45, W('#d4dce8')); bg.addColorStop(1, W('#8a95a8'));
+    c.lineWidth = .9; inked(c, bg); c.lineWidth = 1.2;
+    // hamon: glowing edge line in the element / weapon rarity color
+    if(!o.flash){ c.save(); c.strokeStyle = o.blade || R; c.shadowColor = o.blade || R; c.shadowBlur = 6; c.lineWidth = .9; c.globalAlpha = (o.alpha ?? 1)*.95;
+      c.beginPath(); c.moveTo(b0[0] - px*.6, b0[1] - py*.6); c.quadraticCurveTo(mid[0] - px*.7, mid[1] - py*.7, tip[0], tip[1]); c.stroke(); c.restore(); }
+    // tsuba (guard)
+    c.beginPath(); c.ellipse(b0[0], b0[1], 3.6, 1.6, Math.atan2(py,px), 0, 7); inked(c, W('#1e1a26'));
+    c.save(); c.strokeStyle = gold; c.lineWidth = .7; c.beginPath(); c.ellipse(b0[0], b0[1], 3.6, 1.6, Math.atan2(py,px), 0, 7); c.stroke(); c.restore();
   }
-  c.beginPath(); c.arc(hand[0], hand[1], 2.6, 0, 7); inked(c, W('#2a2430'));
+  c.beginPath(); c.arc(hand[0], hand[1], 2.6, 0, 7); inked(c, W('#1e1a26'));
   c.restore();
 }
 

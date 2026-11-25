@@ -9,6 +9,7 @@ const UI = {screen:null, sheet:null, createAff:'steel', createHair:0, autoNext:n
 /* ---------- icons ---------- */
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
 const ICON = {
+  star:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6.1L12 16.6 6.6 19.6l1.2-6.1L3.3 9.3l6.1-.7z"/></svg>',
   home:  SVG('<path d="M3 11 12 4l9 7v9h-7v-6h-4v6H3z"/>'),
   gate:  SVG('<ellipse cx="12" cy="12" rx="6.5" ry="9.5"/><ellipse cx="12" cy="12" rx="3" ry="5"/>'),
   arena: SVG('<path d="M4 4l10 10M20 4 10 14M6.5 16.5 4 19M17.5 16.5 20 19M12 16l4-4M12 16l-4-4"/>'),
@@ -136,11 +137,11 @@ function renderHome(){
   const pts = S.points > 0, newItems = S.inv.some(i => i.isNew);
   let shown = 0;
   $$('.nav button').forEach(b => {
-    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id === 'stats' || id === 'skills' ? 'hero' : id);
+    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id === 'stats' || id === 'skills' || id === 'talents' ? 'hero' : id);
     b.hidden = !ok; if(ok && id !== 'home') shown++;
     b.classList.toggle('on', UI.sheet === id || (!UI.sheet && id === 'home'));
     const d = b.querySelector('.dot'); if(d) d.outerHTML = '';
-    const statN = id === 'stats' ? (S.points || 0) + Math.max(0, talentFree()) : 0;
+    const statN = id === 'stats' ? (S.points || 0) : id === 'talents' ? Math.max(0, talentFree()) : 0;
     if(statN) b.insertAdjacentHTML('beforeend', `<span class="dot num">${statN > 99 ? '99+' : statN}</span>`);
     else if((id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
   });
@@ -220,7 +221,7 @@ function scrollTowerMap(){ const m = document.getElementById('tmap'), n = m && m
 function renderSheet(){
   if(UI.sheet) hidePatchNote();
   if(!UI.sheet) return;
-  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats & Talents',sheetStats], skills:['Skills',sheetSkills], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
+  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats',sheetStats], talents:['Talents',sheetTalents], skills:['Skills',sheetSkills], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
   const [title, fn] = map[UI.sheet];
   $('#sheetTitle').textContent = title;
   const body = $('#sheetBody'), sc = body.scrollTop;
@@ -290,7 +291,7 @@ function riftCard(){
   const run = S.rift.run, ml = S.master.lv || 0, slots = relicSlots();
   const boons = run ? Object.entries(run.picks.reduce((m, id) => (m[id] = (m[id]||0) + 1, m), {})).map(([id, n]) => `<span class="bchip" style="--c:${BOON_TIER[RIFT_BOONS[id].tier].c}">${RIFT_BOONS[id].icon} ${RIFT_BOONS[id].name}${n > 1 ? ' ×' + n : ''}</span>`).join('') : '';
   const relics = Object.keys(RELICS).map(id => { const lv = S.relics.owned[id]||0, on = S.relics.active.includes(id), r = RELICS[id];
-    return `<button class="relic ${lv ? '' : 'none'} ${on ? 'on' : ''}" ${lv ? `data-a="relicToggle" data-id="${id}"` : 'disabled'}><i>${lv ? r.icon : '❔'}</i><b>${lv ? r.name : '???'}</b><span>${lv ? `Lv ${lv}/${RELIC_MAX} · +${+relicValue(id, lv).toFixed(1)}${r.unit}` : 'Drops from Rift Lords'}</span>${on ? '<em>WORN</em>' : ''}</button>`; }).join('');
+    return `<button class="relic ${lv ? '' : 'none'} ${on ? 'on' : ''}" ${lv ? `data-a="relicToggle" data-id="${id}"` : 'disabled'}><i>${lv ? r.icon : '❔'}</i><b>${lv ? r.name : '???'}</b><span>${lv ? `Lv ${lv}/${RELIC_MAX} · +${+relicValue(id, lv).toFixed(1)}${r.unit}` : `Not found yet · Rift Lords (every 10th depth, best so far ${S.rift.best||0})`}</span>${on ? '<em>WORN</em>' : ''}</button>`; }).join('');
   const road = MASTER_UNLOCKS.map(([lv, name, desc]) => `<div class="mu ${masterHas(lv) ? 'ok' : ''}"><b>${lv === 1 ? 'M1' : 'M' + lv}</b><span><strong>${masterHas(lv) ? '✔' : '🔒'} ${name}</strong><small>${desc}</small></span></div>`).join('');
   return `<div class="riftcard"><div class="rfh"><div><small>ENDGAME · RUN MODE</small><b>🌀 Abyss Rift</b>
       <span>Fight deeper and deeper. Your HP carries over. After every win pick <b>1 of 3 boons</b>. Every 10 depths a <b>Rift Lord</b> drops a permanent <b>relic</b>.</span></div>
@@ -314,9 +315,11 @@ function sheetMaster(){
       return `<div class="mtitles">${cur ? `<span class="mt" style="--c:${cur.color}">Title: <b>${cur.name}</b></span>` : ''}${nextM ? `<span class="mt next" style="--c:${nextM[2]}">Next title at Lv ${nextM[0]}: <b>${nextM[1]}</b></span>` : ''}${nm <= MASTER_MAX ? `<span class="mt" style="--c:#ffd27a">Lv ${nm}: <b>+2 talent points</b> + 5 Diamonds</span>` : ''}</div>`; })()}
     <div class="mladder">${ladder}</div>
     ${lv >= MASTER_MAX ? (() => { const pp = S.paragon||0, ph = paragonFoe(pp + 1), pPow = Math.round(floorPower(ph.lv + 3) * REC_MULT.M);
-      return `<div class="paracard"><div><small>BEYOND MASTER 99</small><b>✦ Paragon ${pp}</b><span>The ladder never ends. Every Paragon level: <b>+1% ATK and +1% HP</b> forever (now +${pp}%). Paragon 10 and 25 unlock auras.</span></div></div>
+      const cap = paragonCap(), capped = pp >= cap;
+      return `<div class="paracard"><div><small>BEYOND MASTER 99</small><b>✦ Paragon ${pp}${cap < Infinity ? ` <em class="pcap">/ ${cap}</em>` : ''}</b><span>Every Paragon level: <b>+1% ATK and +1% HP</b> forever (now +${pp}%). Opponents get 3% stronger per level. ${cap < Infinity ? `Beat <b>Kami Trial ${kamiCleared() + 1}</b> to climb past Paragon ${cap}.` : 'All Kami Trials beaten: no limit.'}</span></div></div>${kamiBox()}${endgameBox()}
+      ${capped ? `<div class="empty">Paragon ${cap} reached. Beat <b>Kami Trial ${kamiCleared() + 1}</b> above to go on.</div>` : `
       <div class="hcard ${ph.rival ? 'exam' : ''}"><img src="${hunterPortrait(ph)}" alt=""><div class="hinfo"><small>PARAGON ${pp + 1}</small><b>${esc(ph.name)}</b><span>${esc(ph.title)} · ${AFF[ph.aff].name}</span><em>"${esc(ph.line)}"</em></div>
-      <div class="hside"><span class="pw ${tp >= pPow ? 'ok' : 'hard'}">${fmt(pPow)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`; })() : `<div class="hcard ${h.rival ? 'exam' : ''}">
+      <div class="hside"><span class="pw ${tp >= pPow ? 'ok' : 'hard'}">${fmt(pPow)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`; })() : `<div class="hcard ${h.rival ? 'exam' : ''}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>MASTER LV ${nx}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
       <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
@@ -352,6 +355,7 @@ function talentNext(nd, r){
   const now = talentValue(nd, r), name = nd.desc.replace(/^\+[\d.]+%? ?/, '');
   if(r >= nd.max) return `Maxed · +${+now.toFixed(1)}% ${name}`;
   const sh = TALENT_SHOW[nd.stat], cur = heroStats();
+  if(nd.stat === 'lifesteal' && cur.lifestealRaw >= LIFESTEAL_CAP) return `<b class="tcap">At the ${LIFESTEAL_CAP}% lifesteal cap: more points do nothing</b>${r ? ` · now +${+now.toFixed(1)}%` : ''}`;
   const t2 = Object.assign({}, S.talents, {[nd.id]: r + 1});
   const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics, paragon:S.paragon});
   const d = sh ? nx[sh[0]] - cur[sh[0]] : 0, abs = sh && (sh[0] === 'atk' || sh[0] === 'hp' || sh[0] === 'def');
@@ -359,7 +363,8 @@ function talentNext(nd, r){
   const pw = powerOf(nx) - powerOf(cur);
   return `<b class="tnx">Next: ${gain}</b>${pw >= 1 ? ` <b class="tpw">(+${fmt(pw)} Power)</b>` : ''}${r ? ` · now +${+now.toFixed(1)}%` : ''}`;
 }
-function sheetStats(){
+function sheetTalents(){ return sheetStats('talents'); }
+function sheetStats(mode){
   const hs = heroStats();
   const big = [['Max HP', fmt(hs.hp), '#5dff9b'], ['ATK', fmt(hs.atk), '#ff8a5c'], ['DEF', fmt(hs.def), '#9fd8ff'], ['Power', fmt(teamPower()), '#f7c75a']]
     .map(([k,v,c]) => `<div class="bigstat" style="--c:${c}"><small>${k}</small><b>${v}</b></div>`).join('');
@@ -377,16 +382,19 @@ function sheetStats(){
   const pointsBar = (tf || sp) ? `<div class="ptsbar">
       ${tf ? `<button class="ptsb tal" data-a="goTalents"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>tap to spend ›</small></button>` : ''}
       ${sp ? `<div class="ptsb st"><b>${sp}</b><span>STAT POINT${sp === 1 ? '' : 'S'}<small>${S.settings.autoStats ? 'auto-assign is on' : 'press + below'}</small></span></div>` : ''}</div>` : '';
-  return `${pointsBar}<div class="bigstats">${big}</div>
+  const statsHtml = `${pointsBar}<div class="bigstats">${big}</div>
     <div class="cols">
-      <div class="box sys"><div class="bt">STAT POINTS <span class="pts ${S.points?'on':''}">${S.points} free</span></div>
+      <div class="box sys"><div class="bt">STAT POINTS</div>${S.points ? `<div class="spbig"><span class="tpbadge">● <b>${S.points}</b> STAT POINT${S.points === 1 ? '' : 'S'} TO SPEND</span><small>press + next to a stat</small></div>` : '<small class="muted">No free stat points. You get 3 per level.</small>'}
         <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}
         <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
+    <div class="box"><div class="bt">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : ''}</div><div class="hint" style="margin-top:0">The talent tree has its own tab now.</div><button class="btn primary" data-a="sheet" data-id="talents">Open Talents ›</button></div>`;
+  if(mode === 'talents') return `${tf ? `<div class="ptsbar"><div class="ptsb tal"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>spend them below</small></div></div>` : ''}
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>
       <div class="ttree">${tree}</div></div>`;
+  return statsHtml;
 }
 /* ---------- Skills tab: element, Ki costs, Skill Mastery ---------- */
 function sheetSkills(){
@@ -413,6 +421,29 @@ function showCodex(){
     <p class="muted">Bad-luck protection: every boss without a Unique adds +${(PITY_STEP.u*100).toFixed(1)}% (now +${((S.pity && S.pity.u)||0)*PITY_STEP.u*100 | 0}%). Godforged drops only after <b>Master 99</b>.</p>
     <div class="bt">UNIQUES · ${ids(5).filter(id => S.codex && S.codex[id]).length}/${ids(5).length} found</div><div class="cxl">${ids(5).map(card).join('')}</div>
     <div class="bt">GODFORGED 神器 · ${ids(6).filter(id => S.codex && S.codex[id]).length}/${ids(6).length} found</div><div class="cxl">${ids(6).map(card).join('')}</div></div>`);
+}
+function kamiBox(){
+  const c = kamiCleared(), pp = S.paragon||0;
+  return `<div class="kamibox"><div class="bt">⛩ KAMI TRIALS 神試練 · ${c}/${KAMI_TRIALS.length} <small class="muted">first clear: guaranteed Godforged item</small></div><div class="kamis">${KAMI_TRIALS.map((t, i) => {
+    const done = i < c, open = i === c && pp >= 10*(i + 1), next = i === c;
+    return `<div class="kami ${done ? 'done' : ''} ${open ? 'open' : ''} ${!done && !next ? 'locked' : ''}" style="--c:${t.color}"><b>${i + 1}. ${t.name}</b><small>${t.title}</small><span>${done || next ? t.mech : '???'}${next && kamiFails(i) ? ` <b style="color:#7fffa0">Determination +${Math.min(30, 3*kamiFails(i))}%</b>` : ''}</span>
+      ${done ? `<button class="btn small" data-a="startKami" data-id="${i}">✔ Rematch</button>` : open ? `<button class="btn small primary" data-a="startKami" data-id="${i}">⛩ Challenge</button>` : next ? `<em>Reach Paragon ${10*(i + 1)}</em>` : '<em>🔒</em>'}</div>`; }).join('')}</div></div>`;
+}
+/* everything that is still ahead after Master 99, with progress */
+function endgameBox(){
+  const ids = t => Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === t), cx = S.codex || {};
+  const g = [
+    ['⛩ Kami Trials', kamiCleared(), KAMI_TRIALS.length],
+    ['✦ Paragon', S.paragon||0, paragonCap() < Infinity ? paragonCap() : (S.paragon||0) + 10],
+    ['🌀 Rift depth', S.rift.best||0, [25, 50, 75, 100, 150].find(d => d > (S.rift.best||0)) || (S.rift.best||0)],
+    ['🗿 Relics found', Object.keys(RELICS).filter(id => S.relics.owned[id]).length, Object.keys(RELICS).length],
+    ['🗿 Relic levels', Object.values(S.relics.owned).reduce((a, b) => a + b, 0), Object.keys(RELICS).length*RELIC_MAX],
+    ['💎 Uniques', ids(5).filter(id => cx[id]).length, ids(5).length],
+    ['神 Godforged', ids(6).filter(id => cx[id]).length, ids(6).length],
+    ['★ Awakening stars', Object.values((S.pets && S.pets.stars) || {}).reduce((a, b) => a + b, 0), PET_ORDER.length*PET_STAR_MAX],
+    ['✨ Auras', Object.keys(AURAS).filter(id => id !== 'none' && AURAS[id].ok()).length, Object.keys(AURAS).length - 1],
+  ];
+  return `<div class="egbox"><div class="bt">🎯 ENDGAME GOALS</div><div class="egs">${g.map(([n, v, m]) => `<div class="eg ${v >= m ? 'ok' : ''}"><span>${n}</span><b>${v}/${m}</b><i style="width:${Math.min(100, v/m*100)}%"></i></div>`).join('')}</div></div>`;
 }
 function journeyBox(){
   const j = S.journey || {}, rows = Object.entries(j).sort((a, b) => a[1] - b[1]);
@@ -709,7 +740,8 @@ function showResult(r){
     btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[0] === 'M' ? `MASTER LV ${(S.master.lv||0) + 1}` : nx[2] ? (EXAMS[nx[0]].next === 'M' ? 'MASTER TRIAL' : 'RANK EXAM') : 'NEXT FIGHT'} › <small>${esc(nx[0] === 'M' ? masterFoe((S.master.lv||0) + 1).name : nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
   const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack || S.settings.towerRepeat);
-  const autoOn = (towerAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
+  const masterAuto = !!BT.master && win && (S.settings.autoSkill || S.settings.autoAttack || S.settings.farm !== 'off' || S.settings.towerRepeat);
+  const autoOn = (towerAuto || masterAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rift' ? `Abyss Rift · Depth ${BT.depth}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
@@ -717,6 +749,8 @@ function showResult(r){
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
     ${r.masterUp && MASTER_TITLES_BY_LV.some(([m]) => m === r.masterUp) ? `<div class="rankup" style="border-color:${masterTitle(r.masterUp).color}"><small>NEW TITLE</small><b style="color:${masterTitle(r.masterUp).color}">${masterTitle(r.masterUp).name}</b><span>You earned a new Master title.</span></div>` : ''}
     ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'Master 99! The Paragon ladder, the Abyss Rift and auras wait for you.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
+    ${r.kamiDet ? `<div class="rankup"><small>DETERMINATION</small><b>+${r.kamiDet}% damage</b><span>Every defeat against this god makes you stronger next time (max +30%).</span></div>` : ''}
+    ${r.kamiClear ? `<div class="rankup uniqdrop god"><small>KAMI TRIAL ${r.kamiClear} CLEARED</small><b>⛩ ${KAMI_TRIALS[r.kamiClear - 1].name} defeated</b><span>${r.kamiClear < KAMI_TRIALS.length ? `Paragon cap raised to ${paragonCap()}.` : 'All gods defeated. Paragon has no limit now. You are Kami.'}</span></div>` : ''}
     ${r.paragonUp ? `<div class="rankup" style="border-color:#c77dff"><small>PARAGON UP</small><b>✦ Paragon ${r.paragonUp}</b><span>+1% ATK and +1% HP forever (total +${r.paragonUp}%).</span></div>` : ''}
     ${r.riftMilestone ? `<div class="rankup chest"><small>RIFT MILESTONE</small><b>Depth ${r.riftMilestone}!</b><span>+${RIFT_MILESTONES[r.riftMilestone].diamonds} Rift Diamonds${Object.values(AURAS).some(a => a.how === 'Reach Rift depth ' + r.riftMilestone) ? ' · NEW AURA unlocked (Champion tab)' : ''}</span></div>` : ''}
     ${r.unique ? `<div class="rankup uniqdrop ${r.unique.rar === 6 ? 'god' : ''}"><small>${r.unique.rar === 6 ? 'GODFORGED 神器 DROP!' : 'UNIQUE DROP!'}</small><b>${esc(r.unique.name)}</b><span>${UNIQUES[r.unique.uniq].desc}</span><button class="btn small primary" data-a="item" data-id="${r.unique.id}">Look at it</button></div>` : ''}
@@ -741,7 +775,10 @@ function showResult(r){
   rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
-  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; const rep = S.settings.towerRepeat || S.settings.farm === 'repeat'; if(!rep){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
+  if(BT.master && win && (S.settings.autoSkill || S.settings.autoAttack || S.settings.farm !== 'off' || S.settings.towerRepeat) && !(r.unlocked||[]).length){   // Master League / Paragon: keep climbing on its own
+    autoCountdown((S.master.lv||0) >= MASTER_MAX ? `Paragon ${(S.paragon||0) + 1} starts in` : `Master Lv ${(S.master.lv||0) + 1} starts in`, 3, null);
+    UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startMaster(); }, 3000); }
+  else if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; const rep = S.settings.towerRepeat || S.settings.farm === 'repeat'; if(!rep){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
     autoCountdown(!win ? `Back to floor ${tf} in` : tf === BT.floor ? `Repeating floor ${tf} in` : `Floor ${tf} starts in`, 3, tf === BT.floor ? '#bResult [data-a="retry"]' : null);
     UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
   else if(BT.mode === 'rift' && win && S.rift.run && S.rift.run.choices && (S.settings.autoSkill || S.settings.autoAttack || S.settings.towerRepeat)){
@@ -820,7 +857,7 @@ function act(a, el){
       if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
     case 'talent10': { const nd = talentNodes().find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)); let k = 0;
       while(k < 10 && talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; k++; } UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
-    case 'goTalents': { const el = document.getElementById('talentsHead'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); break; }
+    case 'goTalents': openSheet('talents'); break;
     case 'mastery': { const i = +id, c = masteryCost(i); if(masteryLv(i) >= MASTERY_MAX || S.gold < c.gold || S.stones < c.stones) break;
       S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; SFX.unlockFx(); toast('SKILL TRAINED', `${i === 3 ? AFF[S.aff].ult.name : AFF[S.aff].skills[i].name} is now Mastery ${S.mastery[i]} (+${Math.round(S.mastery[i]*MASTERY_STEP*100)}% damage)`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
@@ -893,6 +930,7 @@ function act(a, el){
     case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'setAura': { if(AURAS[id] && AURAS[id].ok()){ S.cosmetic = S.cosmetic || {}; S.cosmetic.aura = id; save(); renderSheet(); } break; }
     case 'codex': showCodex(); break;
+    case 'startKami': UI.sheet = null; closeSheet(); startKami(+id); break;
     case 'reforge': { const f = findItem(id); if(!f || !f.it.uniq || f.it.ilvl >= S.level) break; const c = reforgeCost(f.it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; f.it.ilvl = S.level; UI.shownPower = undefined; SFX.unlockFx(); toast('REFORGED', `${f.it.name} is now item level ${S.level}.`, 'gold'); save(); itemDetail(f.it.id); renderHome(); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
     case 'riftStart': { cancelAuto(); UI.sheet = null; closeSheet(); const run = newRiftRun(id === 'deep'); save(); startRift(run.depth + 1); break; }
@@ -902,7 +940,7 @@ function act(a, el){
     case 'riftLeave': { if(S.rift.run && S.rift.run.choices) S.rift.run.choices = null; save(); leaveBattle(); toast('RUN PAUSED', 'Continue it any time in the Abyss Rift (Arena / Gates tab).'); break; }
     case 'riftEnd': { S.rift.run = null; S.rift.runs = (S.rift.runs||0) + 1; save(); renderSheet(); break; }
     case 'relicToggle': { const a = S.relics.active, i = a.indexOf(id); if(i >= 0) a.splice(i, 1); else if(a.length < relicSlots()) a.push(id); else { { const nx = [30, 60, 90].find(l => !masterHas(l)); toast(`ALL ${relicSlots()} RELIC SLOTS USED`, nx ? `Tap a worn relic to remove it first. Next slot at Master ${nx}.` : `${relicSlots()} is the maximum. Tap a worn relic to remove it, then wear another.`); } break; } save(); renderSheet(); renderHome(); break; }
-    case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else if(BT.master) startMaster(); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'retry': { cancelAuto(); if(BT.kami !== undefined){ startKami(BT.kami); break; } if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else if(BT.master) startMaster(); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;

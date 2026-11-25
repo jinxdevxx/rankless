@@ -25,6 +25,15 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.25.0 – Kami Trials
+- Kami Trials (`KAMI_TRIALS`, `startKami`, `kamiTick`): 7 god bosses = paragonFoe(10·n) × HP 1.6 / ATK 1.15 (Amaterasu 1.35 / 1.05) + mechanic (Fujin 2× speed, Raijin 12 % HP thunder / 7 s, Tsukuyomi 2 % heal / 6 s, Izanami −25 % hero HP, Susanoo enrage < 50 %, Hachiman 4 elites, Amaterasu combo). First clear: guaranteed unfound Godforged + Diamonds. Determination +3 % per loss (max 30 %).
+- Paragon: cap 10 × (trials + 1); foes ×1.06^p; paragon XP ×0.6 (was ×2.5; hero went Lv 140 → 197 in 70 paragon levels). Bot from Master 90 snapshot: Paragon now 139 losses on the way (was 0), Kami 1–6 cleared by ~170 bot-min, Kami 3 wall (240+ bot-min, power frozen) fixed by smoother trial levels + Determination; Amaterasu softened after 105 bot losses.
+- Master/Paragon auto-continue with AUTO settings; endgame goals board; relics: unowned ×4 weight (was uniform → coupon-collector gaps).
+- Talents tab (own nav button, star icon); stats sheet shows a big stat-point badge; Blood Thirst shows the 12 % lifesteal cap.
+- Hero redesign (`drawHumanoid`): two-tail scarf ribbon, coat with element lining + gold trim, chest strap + gem, pauldron, bracers, boots/knee plates, spiky gradient hair with bangs, element-colored eye + attack streak, curved katana with element hamon, wrapped handle, tsuba, saya, glow trail. Applies to all elements and enemy hunters.
+- Ultimate: no cut-in screen and no name text at any speed (flash + shake only).
+- Bot: `PARAGON=1` plays Paragon + Kami Trials.
+
 ### v0.24.0 – Unique & Godforged
 - Rarities 5 Unique (×3.4, 4 affixes) and 6 Godforged (×4.3, 5 affixes), weight 0 in normal rolls. `UNIQUES`: 9 tier-5 + 5 tier-6 named items with passive stats and an effect (`BT.ufx` hooks in dealDamage / gainEnergy / killUnit / stepBattle).
 - Drops via `rollUnique(src)`: gate boss B+ 1.5 %, tower boss 1 %, Master Gate boss 4 %, master win 2.5 %, master wall 12 %, rift elite 1 %, rift lord 6 %, paragon 5 %; Godforged (after Master 99) paragon 2 %, rift lord depth 30+ 2.5 %, Master Gate 1 %. Pity +0.2 % / +0.1 % per miss. Unfound items twice as likely.

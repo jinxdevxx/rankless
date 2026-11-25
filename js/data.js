@@ -516,7 +516,7 @@ function relicValue(id, lv){ return RELICS[id].per*lv*(masterHas(99) ? 1.5 : 1);
 
 /* ================= after Master 99: Paragon + Auras (v0.23.0) ================= */
 /* Paragon: the master ladder never ends. Every Paragon level: +1% ATK and +1% HP forever. */
-function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.title = `Paragon ${p} Challenger`; h.rival = p % 10 === 0; h.line = p % 10 === 0 ? 'Ten more steps beyond the top. Prove it.' : 'There is no ceiling. Only the next step.'; return h; }
+function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.paragon = p; h.title = `Paragon ${p} Challenger`; h.rival = p % 10 === 0; h.line = p % 10 === 0 ? 'Ten more steps beyond the top. Prove it.' : 'There is no ceiling. Only the next step.'; return h; }
 /* Auras: cosmetic, earned through endgame milestones */
 const AURAS = {
   none:     {name:'No aura',        color:'#9fb4d0', how:'Always',                        ok:() => true},
@@ -555,3 +555,22 @@ const GODFORGED_DROP = {paragon:.02, rift:.025, mgate:.01};
 const UNIQUE_SRC = {gate:'Gate bosses (B-Rank and higher)', tower:'Training Tower bosses (every 10th floor)', mgate:'Master Gate boss', master:'Master League wins',
   masterWall:'Master League walls (every 10th level)', riftElite:'Abyss Rift elites (every 5th depth)', rift:'Rift Lords (every 10th depth)', paragon:'Paragon fights'};
 const PITY_STEP = {u:.002, g:.001};
+
+/* ================= KAMI TRIALS 神試練 (v0.25.0) =================
+   Seven god bosses after Master 99. Paragon is capped at 10 per cleared trial: beat Trial N to climb past Paragon 10*N.
+   First clear: a guaranteed Godforged item + Diamonds. */
+const KAMI_TRIALS = [
+  {id:'fujin',     name:'Fūjin',     title:'God of Wind',       aff:'storm', color:'#9fffe0', hair:2, mech:'Attacks twice as fast, but has less HP.'},
+  {id:'raijin',    name:'Raijin',    title:'God of Thunder',    aff:'storm', color:'#9fd8ff', hair:0, mech:'Every 7 s thunder strikes you for 12% of your max HP. It cannot be blocked.'},
+  {id:'tsukuyomi', name:'Tsukuyomi', title:'God of the Moon',   aff:'void',  color:'#c9c4ff', hair:1, mech:'Heals 2% of its HP every 6 s. Burst it down.'},
+  {id:'izanami',   name:'Izanami',   title:'Goddess of Death',  aff:'blood', color:'#ff5a7a', hair:1, mech:'Curse: your max HP is 25% lower in this fight.'},
+  {id:'susanoo',   name:'Susanoo',   title:'God of Storms',     aff:'flame', color:'#7fb6ff', hair:2, mech:'Below 50% HP it enrages: +60% damage, faster attacks.'},
+  {id:'hachiman',  name:'Hachiman',  title:'God of War',        aff:'blood', color:'#ffb066', hair:0, mech:'Brings an army of four elite warriors.'},
+  {id:'amaterasu', name:'Amaterasu', title:'Queen of the Gods', aff:'flame', color:'#fff1c9', hair:1, mech:'Thunder, healing and enrage. Everything you have learned.'},
+];
+function kamiFails(i){ return (S.kami && S.kami.fails && S.kami.fails[i]) || 0; }
+function kamiCleared(){ return (S.kami && S.kami.cleared) || 0; }
+function paragonCap(){ return kamiCleared() >= KAMI_TRIALS.length ? Infinity : 10*(kamiCleared() + 1); }
+function kamiFoe(i){ const t = KAMI_TRIALS[i], h = paragonFoe(10*(i + 1));
+  return Object.assign(h, {name:t.name, title:`${t.title} · Kami Trial ${i + 1}`, aff:t.aff, hair:t.hair, rival:true, line:t.mech, kami:t.id, kamiIdx:i,
+    comps: t.id === 'hachiman' || t.id === 'amaterasu' ? ['titan', 'colossus', 'behemoth', 'oni'].slice(0, t.id === 'hachiman' ? 4 : 2) : h.comps}); }

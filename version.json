@@ -1,13 +1,15 @@
 {
-  "version": "0.24.0",
+  "version": "0.25.0",
   "date": "2026-11-25",
-  "title": "Unique & Godforged",
+  "title": "Kami Trials",
   "notes": [
-    "NEW: 9 Unique items (turquoise) with effects you can't get anywhere else: lightning strikes, healing crits, Phoenix revive, dodge, Oni grudge, Ki boost and more.",
-    "NEW: 5 Godforged 神器 items after Master 99, the Japanese god-relics: Kusanagi, Yata Mirror, Yasakani Magatama, Susanoo's Storm Plate, Izanagi's Crown.",
-    "Uniques drop from bosses: Gate B+, Tower every 10th floor, Master Gate, Master League, Rift and Paragon. Bad-luck protection raises the chance after every miss.",
-    "NEW: Loot Codex (Gates tab and Bag): where everything drops, the chances and your collection.",
-    "Uniques drop at your level, are auto-locked, and can be reforged to your current level for Gold + Mana Stones.",
-    "Unique effects count in Power, so Equip Best keeps them."
+    "NEW: Kami Trials 神試練 after Master 99. Seven god bosses with their own mechanics: Fujin, Raijin, Tsukuyomi, Izanami, Susanoo, Hachiman, Amaterasu. First clear gives a guaranteed Godforged item.",
+    "Paragon is capped every 10 levels: beat the next Kami Trial to climb on. Paragon opponents get 6% stronger per level and give less XP, so it's a real climb now.",
+    "Determination: every loss against a god gives +3% damage against it (max +30%).",
+    "NEW: Endgame Goals board with progress for trials, Paragon, Rift, relics, uniques, Godforged, awakening and auras.",
+    "Master League and Paragon auto-continue with AUTO on: watch how far you get.",
+    "NEW: Talents have their own tab. Stat points show as a big badge.",
+    "New hero look: layered coat with element lining, armor, spiky anime hair, glowing eyes, curved katana with a glowing edge.",
+    "The Ultimate no longer covers the screen with its name. Missing relics are 4x more likely to drop. Blood Thirst shows when you're at the 12% lifesteal cap."
   ]
 }

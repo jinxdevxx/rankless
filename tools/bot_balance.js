@@ -7,6 +7,7 @@ const { chromium } = require('playwright');
   await p.goto('http://localhost:8782/');
   await p.waitForFunction(() => typeof menuAct === 'function' && typeof startGate === 'function', null, {timeout:20000});
   const aff = process.argv[2]||'storm'; const policy = process.argv[3]||'good'; const maxMin = +(process.argv[4]||180);
+  await p.evaluate(v => { window.__PARA = v; }, !!process.env.PARAGON);
   const snapIn = process.env.START_SNAP ? require('fs').readFileSync(process.env.START_SNAP, 'utf8') : null;
   const res = await p.evaluate(([aff, policy, maxMin, snapIn]) => {
     S = defaultSave(); SLOT = null; S.created=true; S.intro=true; S.name='BOT'; S.aff='steel'; S.flags.enchantV1=true; const ENCH=aff;
@@ -45,7 +46,12 @@ const { chromium } = require('playwright');
         if(done < list.length){ startArena(S.rank, done, false); const w=run(); log.push(`${(simTime/60).toFixed(0)}m arena ${S.rank}#${done} ${w?'WIN':'lose'} lv${S.level} P${teamPower()} rec${floorPower(list[done].lv+(list[done].rival?3:2))}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
         else { startArena(S.rank, -1, true); const w=run(); log.push(`${(simTime/60).toFixed(0)}m EXAM ${S.rank} ${w?'WIN':'lose'} lv${S.level} P${teamPower()}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
       }
-      if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX){ log.push('MASTER 99 DONE'); break; }
+      if(S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX && kamiCleared() < KAMI_TRIALS.length && (S.paragon||0) >= paragonCap()){
+        const ki = kamiCleared(); startKami(ki); const w = run(); log.push(`${(simTime/60).toFixed(0)}m KAMI ${ki + 1} ${KAMI_TRIALS[ki].name}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} para${S.paragon}`);
+        if(!w){ for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startGate('M', Math.max(1, S.gates.M||1)); run(); }
+        continue; }
+      if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX && !window.__PARA){ log.push('MASTER 99 DONE'); break; }
+        if(kamiCleared() >= KAMI_TRIALS.length){ log.push('ALL KAMI DONE'); break; }
         if(!window.__snaps) window.__snaps = {}; const mk = 'M' + (S.master.lv||0); if(((S.master.lv||0) % 10 === 0) && !window.__snaps[mk]) window.__snaps[mk] = JSON.stringify(S);
         startMaster(); const w = run(); if(window.__lastU !== JSON.stringify(S.codex)){ window.__lastU = JSON.stringify(S.codex); log.push(`${(simTime/60).toFixed(0)}m UNIQUES ${window.__lastU}`); }
         log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);

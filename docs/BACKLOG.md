@@ -3,6 +3,16 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Paragon too easy / endless and monotone → Kami Trials, Paragon cap, tougher Paragon, endgame goals (v0.25.0)
+- [x] Paragon auto-continue (v0.25.0)
+- [x] Relics stuck on ??? → not a bug (random duplicates), unowned now 4× likely (v0.25.0)
+- [x] Talents in their own tab; stat points shown big (v0.25.0)
+- [x] +0% Lifesteal → 12 % cap shown on the node (v0.25.0)
+- [x] Hero / sword look redesigned (v0.25.0)
+- [x] Ultimate name pop-up removed (v0.25.0)
+- [ ] Mob graphics: match the new hero style (outline glow, more detail) — next round
+- [ ] Master Gate balance as farm source (measure floors vs master level)
+- [ ] RECURRING: endgame scaling everywhere (talents, legion, relics, items, trials) so progress never stops; every new system needs a sink for points/currencies
 - [x] Title Kami for Master 99 (v0.23.3)
 - [x] Tooltip on equipped gear, no stuck tooltips (v0.23.3)
 - [x] 60 unusable talent points at Master 99 → Ascension branch (v0.23.3)

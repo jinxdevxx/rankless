@@ -67,7 +67,7 @@ function hunterUnit(h){
     : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
-    maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
+    maxHp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
     role:'dps', lifesteal:st.lifesteal, aiSkill:4, xpVal:xpFor(h.lv)*15, goldVal:0};
 }
 function prep(u){
@@ -143,7 +143,8 @@ function applyBoon(id){
 }
 function dropRelic(){
   const ids = Object.keys(RELICS).filter(id => (S.relics.owned[id]||0) < RELIC_MAX); if(!ids.length) return null;
-  const id = pick(ids); S.relics.owned[id] = (S.relics.owned[id]||0) + 1;
+  const w = ids.map(id => S.relics.owned[id] ? 1 : 4); let rr = Math.random()*w.reduce((a, b) => a + b, 0), id = ids[0];   // relics you don't have yet are 4x as likely (v0.24.1)
+  for(let i = 0; i < ids.length; i++){ rr -= w[i]; if(rr <= 0){ id = ids[i]; break; } } S.relics.owned[id] = (S.relics.owned[id]||0) + 1;
   if(!S.relics.active.includes(id) && S.relics.active.length < relicSlots()) S.relics.active.push(id);
   return {id, lv:S.relics.owned[id], isNew:S.relics.owned[id] === 1};
 }
@@ -176,11 +177,33 @@ function startDaily(kind){
   enterBattle();
 }
 function startMaster(){
+  if((S.master.lv||0) >= MASTER_MAX && (S.paragon||0) >= paragonCap()){ toast('PARAGON CAP', `Beat Kami Trial ${kamiCleared() + 1} to climb past Paragon ${paragonCap()}.`, 'gold'); leaveBattle(); return; }
   const para = (S.master.lv||0) >= MASTER_MAX, lv = para ? MASTER_MAX + (S.paragon||0) + 1 : Math.min(MASTER_MAX, (S.master.lv||0) + 1), h = para ? paragonFoe((S.paragon||0) + 1) : masterFoe(lv);
   BT = newBattle({mode:'arena', rank:'M', idx:lv, exam:false, master:lv, hunter:h, theme:'t_void', L:h.lv, waves:[]});
   const hu = prep(hunterUnit(h)); BT.units.push(hu); BT.boss = hu;
   (h.comps||[]).forEach((type,i) => BT.units.push(prep(compUnit(type, i+1, h.lv, 1 + h.gear, 1, 'e'))));
   enterBattle();
+}
+/* Kami Trial: a god boss with its own mechanic */
+function startKami(i){
+  if(i > kamiCleared() || (S.paragon||0) < 10*(i + 1)) return;   // must reach the paragon cap first
+  const t = KAMI_TRIALS[i], h = kamiFoe(i);
+  BT = newBattle({mode:'arena', rank:'M', idx:0, exam:false, kami:i, hunter:h, theme:'t_void', L:h.lv, waves:[]});
+  const hu = prep(hunterUnit(h)); hu.size *= 1.3; hu.auraC = t.color; hu.art = Object.assign({}, hu.art, {rim:t.color, eye:'#ffffff'}); BT.units.push(hu); BT.boss = hu; BT.kamiT = 0; BT.kamiH = 0;
+  const det = Math.min(.3, .03*kamiFails(i)); if(det > 0){ BT.hero.atk *= 1 + det; BT.detBonus = det; }   // Determination: every loss vs this god = +3% damage (max +30%)
+  if(t.id === 'fujin'){ hu.interval /= 2; hu.maxHp *= .7; hu.hp = hu.maxHp; }
+  if(t.id === 'izanami'){ BT.hero.maxHp *= .75; BT.hero.hp = Math.min(BT.hero.hp, BT.hero.maxHp); }
+  (h.comps||[]).forEach((type, k) => BT.units.push(prep(compUnit(type, k + 1, h.lv, 1 + h.gear, 1, 'e'))));
+  BT.banner = {txt:`KAMI TRIAL ${i + 1} · ${t.name.toUpperCase()}`, t:2.2, c:t.color};
+  enterBattle();
+}
+function kamiTick(dt){
+  const t = KAMI_TRIALS[BT.kami], b = BT.boss, h = BT.hero; if(!b || b.dead || !h || h.dead) return;
+  const has = m => t.id === m || t.id === 'amaterasu';
+  BT.kamiT += dt; BT.kamiH += dt;
+  if(has('raijin') && BT.kamiT >= 7){ BT.kamiT = 0; const d = h.maxHp*(t.id === 'amaterasu' ? .08 : .12); h.hp -= d; addText(h, 'THUNDER ' + fmt(d), '#9fd8ff', 24); BT.flashT = .12; BT.shake = Math.max(BT.shake, .4); burst(h.x, h.y - 60, '#e8f8ff', 24); if(h.hp <= 0) killUnit(h, b); }
+  if(has('tsukuyomi') && BT.kamiH >= 6){ BT.kamiH = 0; const hl = t.id === 'amaterasu' ? .012 : .02; b.hp = Math.min(b.maxHp, b.hp + b.maxHp*hl); addText(b, `MOONLIGHT +${hl*100}%`, '#c9c4ff', 20); }
+  if(has('susanoo') && !b.kamiRage && b.hp < b.maxHp*.5){ b.kamiRage = true; b.atk *= t.id === 'amaterasu' ? 1.35 : 1.6; b.interval *= .75; b.enraged = true; addText(b, 'ENRAGED', '#ff5a5a', 30); BT.banner = {txt:`${t.name.toUpperCase()} ENRAGES`, t:1.4, c:'#ff5a5a'}; }
 }
 function startArena(rank, idx, exam){
   const h = exam ? EXAMS[rank] : HUNTERS[rank][idx];
@@ -465,7 +488,7 @@ function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
   BT.ult = 0;
   const u = Object.assign({}, AFF[S.aff].ult); if(u.mult) u.mult *= masteryMult(3);
-  if((S.settings.speed||1) > 1){ SFX.ultHit(); castEffect(BT.hero, u, true); addText(BT.hero, u.name.toUpperCase(), AFF[S.aff].color, 26); return; }   // fast speeds: no cut-in screen
+  { SFX.ultHit(); castEffect(BT.hero, u, true); BT.flashT = Math.max(BT.flashT||0, .06); BT.shake = Math.max(BT.shake||0, .25); return; }   // v0.25.0: no cut-in screen and no name text at any speed (player: covers the fight)
   BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => { SFX.ultHit(); castEffect(BT.hero, u, true); }};
   SFX.ultStart();
 }
@@ -627,6 +650,7 @@ function stepUnit(u, dt){
 }
 
 function stepBattle(dt){
+  if(BT && BT.kami !== undefined && !BT.over) kamiTick(dt);
   if(BT && BT.ufx && BT.ufx.deep && !BT.over && BT.hero && !BT.hero.dead){ BT.deepT += dt; if(BT.deepT >= 6){ BT.deepT = 0; BT.hero.hp = Math.min(BT.hero.maxHp, BT.hero.hp + BT.hero.maxHp*.04); addText(BT.hero, '+HP', '#7fd8ff', 16); } }
   if(!BT) return;
   BT.clock = (BT.clock || 0) + dt / Math.max(1, S.settings.speed || 1);
@@ -836,8 +860,11 @@ function finishBattle(win){
     }
   } else {
     if(win){
-      if(BT.master){ const lv = BT.master; if(lv > MASTER_MAX){ if(lv - MASTER_MAX > (S.paragon||0)){ S.paragon = lv - MASTER_MAX; r.first = true; r.paragonUp = S.paragon; } } else if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
-        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? MASTER_XP : 1));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 60 + 3*lv : 25;   // v0.23.3: more stones in the endgame (bot: stone-starved at Master 40-50)
+      if(BT.kami !== undefined){ const i = BT.kami; r.first = i >= kamiCleared(); if(r.first){ S.kami.cleared = i + 1; r.kamiClear = i + 1; r.diamonds += 15 + 5*i;
+          const ids = Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === 6), un = ids.filter(id => !(S.codex||{})[id]); if(un.length){ const id = pick(un); S.codex[id] = 1; const it = makeUnique(id, BT.L + 3); r.items.push(it); r.unique = it; } else r.diamonds += 30; }
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 40 : 10)); r.xp = Math.round(xpFor(BT.L)*(r.first ? 4 : 1)); r.stones = r.first ? 400 : 40;
+      } else if(BT.master){ const lv = BT.master; if(lv > MASTER_MAX){ if(lv - MASTER_MAX > (S.paragon||0)){ S.paragon = lv - MASTER_MAX; r.first = true; r.paragonUp = S.paragon; } } else if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? (lv > MASTER_MAX ? .6 : MASTER_XP) : 1));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 60 + 3*lv : 25;   // v0.23.3: more stones in the endgame (bot: stone-starved at Master 40-50)
         if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; if(!r.paragonUp) r.masterUp = lv; }
         r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
       } else {
@@ -862,7 +889,9 @@ function finishBattle(win){
   if(usrc){ const it = rollUnique(usrc, BT.L, usrc === 'rift' && BT.depth < 30); if(it){ r.items.push(it); r.unique = it; journeyMark('First ' + RARITY[it.rar].name); } }
   if(r.rankUp) journeyMark(r.rankUp === 'M' ? 'Master League' : rankLabel(r.rankUp) + '-Rank');
   if(r.masterUp && [10, 50, 99].includes(r.masterUp)) journeyMark('Master ' + r.masterUp);
-  if(r.paragonUp && [1, 10, 25].includes(r.paragonUp)) journeyMark('Paragon ' + r.paragonUp);
+  if(r.paragonUp && [1, 10, 25, 50].includes(r.paragonUp)) journeyMark('Paragon ' + r.paragonUp);
+  if(r.kamiClear) journeyMark('Kami Trial ' + r.kamiClear);
+  if(!win && BT.kami !== undefined && BT.kami >= kamiCleared()){ S.kami.fails = S.kami.fails || {}; S.kami.fails[BT.kami] = (S.kami.fails[BT.kami]||0) + 1; r.kamiDet = Math.min(30, 3*S.kami.fails[BT.kami]); }
   if(r.riftMilestone) journeyMark('Rift depth ' + r.riftMilestone);
   // apply
   S.gold += r.gold; S.stones += r.stones; S.diamonds = (S.diamonds||0) + r.diamonds;
