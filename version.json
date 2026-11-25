@@ -1,9 +1,11 @@
 {
-  "version": "0.21.1",
+  "version": "0.21.2",
   "date": "2026-11-25",
-  "title": "Throne Within Reach",
+  "title": "Pick Your Floor",
   "notes": [
-    "Eclipse Throne (S+ gate) and its Eclipse Behemoth elite are a bit softer: floor 8 is no longer a wall.",
-    "Test runs now reach the Master League after the full climb, losing about 7% of fights with many close wins along the way."
+    "Training Tower: new big CHOOSE YOUR FLOOR box. Press -10 / -1 / +1 / +10 and FIGHT FLOOR X. Every floor in the list is clickable too.",
+    "Removed the sun halo on S-Rank monsters.",
+    "Rank Exam now also needs the gate boss (Floor 10) of your current rank. The Arena shows what is missing.",
+    "Master League: smaller XP and Gold per win, so your level no longer explodes and the climb to Lv 99 lasts longer."
   ]
 }

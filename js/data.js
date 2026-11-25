@@ -197,7 +197,7 @@ const GATES = [
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
 ];
 const FLOORS = 10;
-const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:'sun', SS:'eclipse'};
+const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:null, SS:'eclipse'};   // S: sun halo removed (v0.21.2, looked goofy)
 const MOB_FX = {}; for(const g of GATES) for(const t of [...g.enemies, g.elite, g.boss]) if(!MOB_FX[t]) MOB_FX[t] = GATE_FX[g.id];
 
 /* ---------- arena ---------- */

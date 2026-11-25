@@ -763,7 +763,7 @@ function finishBattle(win){
   } else {
     if(win){
       if(BT.master){ const lv = BT.master; if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
-        r.gold = Math.round(goldFor(BT.L)*(r.first ? 45 : 12)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 20 : 6)); r.stones = r.first ? 20 + lv : 5;
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 5 : 1.5));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 20 + lv : 5;
         if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; r.masterUp = lv; }
         r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
       } else {

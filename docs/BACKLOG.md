@@ -3,6 +3,10 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Tower floor selection must be obvious: big Choose-your-floor box + clickable list (v0.21.2)
+- [x] Goofy sun animation on S-Rank monsters removed (v0.21.2)
+- [x] B-gate 0 floors but A-Rank reached: exam now needs the rank's gate boss (v0.21.2)
+- [ ] Master League: AUTO bot stalls around Master 45, check pacing/farm options next round
 - [x] Annoying slow motion when attacking (v0.21.0)
 - [x] More blood / brutality, tasteful (v0.21.0)
 - [x] Ultimate pop-up only at x1 speed (v0.21.0)

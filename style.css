@@ -918,3 +918,30 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .mtitles{display:flex;flex-wrap:wrap;gap:8px;margin:-2px 0 12px}
 .mt{padding:5px 12px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 60%,transparent);background:rgba(0,0,0,.3);font:700 13px Nunito,sans-serif;color:#e8e2f0}
 .mt b{color:var(--c);font-weight:900} .mt.next{opacity:.85}
+
+/* tower floor picker (v0.21.2) */
+.tmap{max-height:300px;overflow-y:auto;padding-right:6px;scrollbar-width:thin}
+.tfl{width:100%;cursor:pointer;text-align:left;color:inherit;font:inherit}
+.tfl:not(:disabled):hover{filter:brightness(1.2);border-color:var(--c)}
+.tfl.done{opacity:.85} .tfl.locked{opacity:.35;cursor:default}
+.tquick{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:var(--muted)}
+.tmap{position:relative}
+.towercard .tl small.muted{font:600 12px Nunito,sans-serif;letter-spacing:0;color:var(--muted)}
+
+.examhint{margin:8px 0;padding:8px 12px;border-radius:10px;border:1px dashed #ffd27a88;background:rgba(255,210,122,.08);font:700 13px Nunito,sans-serif;color:#e8e2f0}
+.examhint b{color:#ffd27a}
+
+/* big obvious floor chooser (v0.21.2) */
+.fpick{margin-top:12px;padding:12px;border-radius:14px;border:2px solid #ffd27a;background:rgba(255,210,122,.08);display:flex;flex-direction:column;gap:8px}
+.fph{font:900 15px Nunito,sans-serif;letter-spacing:.08em;color:#ffd27a}
+.fprow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fpb{min-width:54px;height:48px;border-radius:12px;border:1px solid #ffffff33;background:#2a2238;color:#fff;font:900 18px Nunito,sans-serif;cursor:pointer}
+.fpb:hover{background:#3a2f50}
+.fpn{min-width:90px;text-align:center;padding:2px 10px;border-radius:12px;background:#0006;border:1px solid #ffd27a88}
+.fpn small{display:block;font:800 10px Nunito,sans-serif;letter-spacing:.1em;color:#ffd27a}
+.fpn b{font:900 30px 'Bebas Neue',Nunito,sans-serif;color:#fff;line-height:1}
+.fpinfo{font:700 13px Nunito,sans-serif;color:#e8e2f0}
+.fpgo{font-size:18px;padding:12px}
+.tmapw{display:flex;flex-direction:column;gap:6px}
+.tmaph{font:900 13px Nunito,sans-serif;letter-spacing:.06em;color:#ffd27a;text-align:center}
+.fprow{flex-wrap:nowrap} .fpb{flex:1;min-width:0;padding:0 4px} .fpn{flex:1.4;min-width:0}

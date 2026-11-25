@@ -25,6 +25,12 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.21.2 – Pick Your Floor
+- Training Tower: big "Choose your floor" box (-10/-1/+1/+10 + Fight Floor X), floor list scrollable and every floor clickable.
+- Sun halo FX on S-gate monsters removed (player feedback: goofy).
+- Rank Exam requires the current rank's gate boss (Floor 10); hint in the Arena (old saves could reach the next rank with an empty gate).
+- Master League rewards: first win XP x20 → x5, repeat x6 → x1.5, Gold x45/x12 → x25/x8. Bots: spamskill Master 1→99 in ~133 bot-min (before ~80), AUTO reaches Master 45 in 1100 min.
+
 ### v0.21.1 – Throne Within Reach
 - Behemoth HP 2.18 → 1.8, S+ gate mult 1.1 → 0.95. Bots (spamskill): Master League reached at ~330–340 min, ~7 % deaths, ~32 close wins per run.
 

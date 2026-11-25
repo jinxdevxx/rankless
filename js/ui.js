@@ -214,6 +214,7 @@ function drawHomeScene(t, dt){
 /* ---------- sheets ---------- */
 function openSheet(id){ UI.sheet = id; $('#sheet').classList.add('on'); renderSheet(); renderHome(); }
 function closeSheet(){ UI.sheet = null; $('#sheet')?.classList.remove('on'); if(UI.screen === 'home') renderHome(); }
+function scrollTowerMap(){ const m = document.getElementById('tmap'), n = m && m.querySelector('.tfl.next'); if(m && n) m.scrollTop = Math.max(0, n.offsetTop - 70); }
 function renderSheet(){
   if(UI.sheet) hidePatchNote();
   if(!UI.sheet) return;
@@ -222,7 +223,8 @@ function renderSheet(){
   $('#sheetTitle').textContent = title;
   const body = $('#sheetBody'), sc = body.scrollTop;
   body.innerHTML = fn();
-  body.scrollTop = UI.lastSheet === UI.sheet ? sc : 0; UI.lastSheet = UI.sheet;   // new tab starts at the top
+  body.scrollTop = UI.lastSheet === UI.sheet ? sc : 0; UI.lastSheet = UI.sheet;
+  if(UI.sheet === 'gates') scrollTowerMap();   // new tab starts at the top
 }
 
 function sheetGates(){
@@ -234,14 +236,25 @@ function sheetGates(){
   const rg = currentGate(), rl = rushLevel(), hs0 = heroStats(), rgold = Math.round(goldFor(rl)*RUSH_GOLD*(1 + hs0.gold/100)), rxp = Math.round(xpFor(rl)*TRAIN_XP*(1 + hs0.xp/100));
   const tb = S.tower.best || 0, tn = tb + 1, tfarm = towerReward(Math.max(1, tb));
   const nextPts = 10 - (tb % 10);
-  const tmap = [tn + 4, tn + 3, tn + 2, tn + 1, tn].map(f => { const md = towerMod(f), rw = towerReward(f), th = THEMES[towerTheme(f)];
-    const tag = f % 10 === 0 ? '<em class="tg boss">💀 BOSS · big chest</em>' : f % 5 === 0 ? '<em class="tg elite">⭐ ELITE · chest</em>' : md ? `<em class="tg">${md.icon} ${md.name}</em>` : '';
-    return `<div class="tfl ${f === tn ? 'next' : ''}" style="--c:${th.accent}"><b>${f}</b><span class="tp">${th.name}</span>${tag}<span class="trw">${ICON.gold}${fmt(rw.gold*(md ? md.gold : 1))} · XP ${fmt(rw.xp*(md ? md.xp : 1))}</span></div>`; }).join('');
+  // every floor you reached is clickable: scroll down for older floors, the next floor is highlighted
+  const floors = []; for(let f = tn + 3; f >= 1; f--) floors.push(f);
+  const tmap = floors.map(f => { const md = towerMod(f), rw = towerReward(f), th = THEMES[towerTheme(f)], open = f <= tn;
+    const tag = f % 10 === 0 ? '<em class="tg boss">💀 BOSS</em>' : f % 5 === 0 ? '<em class="tg elite">⭐ ELITE</em>' : md ? `<em class="tg">${md.icon} ${md.name}</em>` : '';
+    return `<button class="tfl ${f === tn ? 'next' : ''} ${f <= tb ? 'done' : ''} ${open ? '' : 'locked'}" style="--c:${th.accent}" data-a="startTower" data-id="${f}" ${open ? '' : 'disabled'}><b>${f}</b><span class="tp">${th.name}${f <= tb ? ' · ✔' : ''}</span>${tag}<span class="trw">${ICON.gold}${fmt(rw.gold*(md ? md.gold : 1))} · XP ${fmt(rw.xp*(md ? md.xp : 1))}</span></button>`; }).join('');
   const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Every floor pays Gold + XP. New place every 5 floors, ⭐ elite + chest every 5th, 💀 boss every 10th. Every 10 floors: <strong style="color:var(--gold)">+1 talent point</strong> (next in ${nextPts}).</span>
       <div class="tstat"><span>Best floor <b>${tb}</b></span></div>
       <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><b class="cl">Fight ›</b></button>
-      ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb}</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}</div></div>
-    <div class="tmap">${tmap}</div></div>`;
+      ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb} (your best)</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}
+      </div>
+      ${tb >= 1 ? (() => { const pf = Math.min(tn, Math.max(1, UI.pickFloor || tb)), md = towerMod(pf), rw = towerReward(pf);
+        return `<div class="fpick"><div class="fph">🎯 CHOOSE YOUR FLOOR</div>
+        <div class="fprow"><button class="fpb" data-a="pickFloor" data-d="-10">−10</button><button class="fpb" data-a="pickFloor" data-d="-1">−1</button>
+          <div class="fpn"><small>FLOOR</small><b>${pf}</b></div>
+          <button class="fpb" data-a="pickFloor" data-d="1">+1</button><button class="fpb" data-a="pickFloor" data-d="10">+10</button></div>
+        <div class="fpinfo">${THEMES[towerTheme(pf)].name}${pf % 10 === 0 ? ' · 💀 Boss' : pf % 5 === 0 ? ' · ⭐ Elite' : md ? ` · ${md.icon} ${md.name}` : ''} · ${ICON.gold}${fmt(rw.gold*(md ? md.gold : 1))} · XP ${fmt(rw.xp*(md ? md.xp : 1))}</div>
+        <button class="btn primary fpgo" data-a="startTower" data-id="${pf}">▶ FIGHT FLOOR ${pf}</button>
+        <small class="muted">Too hard? Press −1 or −10 and fight an easier floor. Or tap any floor in the list.</small></div>`; })() : ''}</div>
+    <div class="tmapw"><div class="tmaph">👇 TAP A FLOOR TO FIGHT IT · scroll for more</div><div class="tmap" id="tmap">${tmap}</div></div></div>`;
   const rush = '' && `<div class="bt" style="margin-bottom:6px">Farm · unlimited · ${rg.name}, enemies like your best floor</div><div class="farmrow">
     <div class="rushcard"><div class="dic">${ICON.gold}</div><div><b>Gold Rush</b><small>No loot, about <b>${fmt(rgold)}</b>+ Gold per win. Buy spirits and enhance gear.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="gold">Farm Gold</button></div>
     <div class="rushcard xp"><div class="dic">${ICON.hero}</div><div><b>Training</b><small>No loot, about <b>${fmt(rxp)}</b>+ XP per win. Stuck on a floor? Level up here.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="xp">Train</button></div></div>`;
@@ -282,13 +295,17 @@ function sheetMaster(){
       <div class="hinfo"><small>MASTER LV ${nx}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
       <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
 }
+/* the rank exam needs: every hunter of the league beaten AND the gate boss (floor 10) of your current rank */
+function rankGate(rank){ return GATES.find(g => g.rank === rank); }
+function examReady(rank){ const g = rankGate(rank), list = HUNTERS[rank] || [];
+  return (S.arena[rank]||0) >= list.length && (!g || (S.gates[g.id]||0) >= FLOORS); }
 function sheetArena(){
   const rank = S.rank, list = HUNTERS[rank], exam = EXAMS[rank];
   if(rank === 'M') return sheetMaster();
   if(!list) return `<div class="empty">You have conquered every arena so far.</div>`;
   const done = S.arena[rank]||0, tp = teamPower();
   const card = (h, i, isExam) => {
-    const beaten = !isExam && i < done, open = isExam ? done >= list.length : i <= done;
+    const beaten = !isExam && i < done, open = isExam ? examReady(rank) : i <= done;
     const p = Math.round(floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2)) * (REC_MULT[rank] || 1));
     return `<div class="hcard ${isExam?'exam':''} ${beaten?'beaten':''} ${open?'':'locked'}">
       <img src="${hunterPortrait(h)}" alt="">
@@ -300,7 +317,7 @@ function sheetArena(){
   };
   return `<div class="arena-head"><div class="rank big r-${rank}">${rankBadge(rank)}</div><div><h3>${rankLabel(rank)}-Rank League</h3>
     <p>Defeat every hunter to unlock the ${exam.next === 'M' ? '<b>Master Trial</b>. Win it to enter the <b>Master League</b> (Lv 1–99).' : `Rank Exam. Passing it promotes you to <b>${rankLabel(exam.next)}-Rank</b> and opens a new gate.`}</p></div></div>
-    ${list.map((h,i) => card(h,i,false)).join('')}${card(exam,0,true)}`;
+    ${list.map((h,i) => card(h,i,false)).join('')}${(() => { const g = rankGate(rank); return g && (S.gates[g.id]||0) < FLOORS ? `<div class="examhint">🔒 Rank Exam also needs: <b>clear Floor ${FLOORS} of ${esc(g.name)}</b> (${S.gates[g.id]||0}/${FLOORS} floors)</div>` : ''; })()}${card(exam,0,true)}`;
 }
 
 /* ---------- Stats tab: big numbers, stat points, talent tree ---------- */
@@ -594,7 +611,7 @@ function nextArenaFight(){
   const rank = S.rank, list = HUNTERS[rank]; if(!list) return null;
   const done = S.arena[rank] || 0;
   if(done < list.length) return [rank, done, false];
-  return EXAMS[rank] ? [rank, -1, true] : null;
+  return EXAMS[rank] && examReady(rank) ? [rank, -1, true] : null;
 }
 /* where did your damage come from? helps to decide what to level and skill */
 function dmgBreakdown(){
@@ -728,7 +745,7 @@ function act(a, el){
     case 'closeSheet': closeSheet(); break;
     case 'quickGate': { const g = currentGate(); startGate(g.id, nextFloor(g)); break; }
     case 'startGate': startGate(el.dataset.g, +el.dataset.f); break;
-    case 'startArena': { const i = +el.dataset.i; startArena(S.rank, i, i < 0); break; }
+    case 'startArena': { const i = +el.dataset.i; if(i < 0 && !examReady(S.rank)){ toast('Clear the gate boss of your rank first'); break; } startArena(S.rank, i, i < 0); break; }
     case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
       if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
     case 'goTalents': { const el = document.getElementById('talentsHead'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); break; }
@@ -769,6 +786,7 @@ function act(a, el){
       SFX.unlockFx(); toast('NEW SPIRIT SLOT', `You can now use ${n} spirits at once.`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'usePet': { if(!S.pets.owned[id] || S.pets.active.includes(id)) break; if(S.pets.active.length >= S.pets.slots) S.pets.active.pop(); S.pets.active.unshift(id); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
     case 'startTower': UI.sheet = null; startTower(+id); break;
+    case 'pickFloor': { const tb = S.tower.best || 0; UI.pickFloor = Math.min(tb + 1, Math.max(1, (UI.pickFloor || tb || 1) + (+el.dataset.d))); renderSheet(); break; }
     case 'startRush': UI.sheet = null; startRush(id || 'gold'); break;
     case 'party': if(S.comps[id] && !S.party.includes(id) && S.party.length < partySlots()){ S.party.push(id); save(); renderSheet(); renderHome(); } break;
     case 'unparty': S.party = S.party.filter(x => x !== id); save(); renderSheet(); renderHome(); break;

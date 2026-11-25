@@ -43,6 +43,10 @@ const { chromium } = require('playwright');
         if(done < list.length){ startArena(S.rank, done, false); const w=run(); log.push(`${(simTime/60).toFixed(0)}m arena ${S.rank}#${done} ${w?'WIN':'lose'} lv${S.level} P${teamPower()} rec${floorPower(list[done].lv+(list[done].rival?3:2))}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
         else { startArena(S.rank, -1, true); const w=run(); log.push(`${(simTime/60).toFixed(0)}m EXAM ${S.rank} ${w?'WIN':'lose'} lv${S.level} P${teamPower()}`); if(!w){ for(let k=0;k<4;k++){ manage(); startGate(gate.id, 10); run(); } } continue; }
       }
+      if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX){ log.push('MASTER 99 DONE'); break; }
+        startMaster(); const w = run(); log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()}`);
+        if(!w){ for(let k=0;k<3;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); if(run()) S.tower.best = Math.max(S.tower.best||0, 0); } manage(); startTower((S.tower.best||0)+1); run(); }
+        continue; }
       if(full && !list){ log.push('ALL DONE'); break; }
       startGate(gate.id, nf); const w = run();
       if(w){ log.push(`${(simTime/60).toFixed(0)}m ${gate.id}-F${nf} clear lv${S.level} P${teamPower()} rec${recPower(gate.id, nf)} losses=${losses}`); losses=0; }
