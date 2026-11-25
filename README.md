@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.22.1 – Hover & Balance
+- Item hover tooltip (mouse/fine pointer only): name, rarity, iLvl, Power diff, stats, set, beats-at-+N. Touch unchanged (tap opens details).
+- Master foes re-tuned on fresh v0.22 snapshots (M10–M90): ATK ×1.15 × 1.11^(−0.2 × Master Lv) (was 1.0 / −0.3). Long bot with the old value: spamskill Master 1→99 in 59 bot-min, 6 deaths total (too easy). New value: skills win ~85 %, AUTO ~70 %, max hit 40–125 % HP, fights 10–45 s.
+- Master stones: first win 40 + 2×Lv (was 20 + Lv), repeat 12 (was 5). Bot ended the master phase with 7–20 stones after the stone cost change.
+
 ### v0.22.0 – Into the Abyss
 - Abyss Rift (mode `rift`): run mode from rank M. Enemy level = tower best −8 (+0.6/depth), HP carries over (+30% heal per win), 3 boons per win (common/rare M10/mythic M70, Blood Pact curse M40), Second Wind (M50), reroll (M20), Deep Dive (M80). Rift Lord every 10 depths drops a relic (9 relics, Lv 1–10, slots at M1/30/60/90, M99 Ascension ×1.5). Items drop on depth wins.
 - Master unlock roadmap shown in the Rift card (Arena and Gates tab).

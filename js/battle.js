@@ -60,7 +60,7 @@ function enemyUnit(type, L, slot){
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 /* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
-let MASTER_HM = 9, MASTER_AM = 1.0, MASTER_SLOPE = .3;
+let MASTER_HM = 9, MASTER_AM = 1.15, MASTER_SLOPE = .2;
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
@@ -822,7 +822,7 @@ function finishBattle(win){
   } else {
     if(win){
       if(BT.master){ const lv = BT.master; if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
-        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 5 : 1.5));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 20 + lv : 5;
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 5 : 1.5));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 40 + 2*lv : 12;   // v0.22.1: stones matter again (enhance + awakening)
         if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; r.masterUp = lv; }
         r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
       } else {

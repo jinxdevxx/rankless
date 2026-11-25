@@ -920,3 +920,33 @@ Something gave you a second chance.
 <span class="hl">Clear gates. Grab loot. Rise.</span></div>
     <button class="btn primary big" data-a="introDone">ENTER THE GATE</button>`);
 }
+
+/* hover tooltip for items (mouse only): the most important info without clicking (v0.22.1) */
+function itemTipHtml(it, eq){
+  const r = RARITY[it.rar], b = itemBase(it), diff = eq ? 0 : powerGain(it), bp = eq ? 0 : beatsAtPlus(it);
+  return `<div class="itip" style="--r:${r.color}"><b>${esc(it.name)}${it.plus ? ` +${it.plus}` : ''}</b>
+    <small>${r.name} ${SLOT_INFO[it.slot].name} · iLvl ${it.ilvl}${eq ? ' · EQUIPPED' : ''}</small>
+    ${eq ? '' : `<div class="${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '▲' : '▼'} ${fmt(Math.abs(diff))} Power</div>`}
+    <div class="itl">${Object.entries(b).map(([k, v]) => `<div>${statLine(k, v)}</div>`).join('')}${it.affixes.map(a => `<div class="afx">${statLine(a.k, a.v)}</div>`).join('')}</div>
+    ${it.set && SETS[it.set] ? `<div style="color:${SETS[it.set].color}">Set: ${SETS[it.set].name}</div>` : ''}
+    ${eq ? '' : bp === 0 ? '<div class="up">Better than yours now</div>' : bp > 0 ? `<div class="mid">Beats yours at +${bp}</div>` : '<div class="down">Worse even at +15</div>'}
+    <em>Click for actions</em></div>`;
+}
+(function(){
+  if(!window.matchMedia || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  const tip = document.createElement('div'); tip.id = 'itemTip'; document.body.appendChild(tip);
+  let cur = null;
+  const place = e => { const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 16, y = e.clientY + 16;
+    if(x + w > innerWidth - 8) x = e.clientX - w - 16; if(y + h > innerHeight - 8) y = Math.max(8, innerHeight - h - 8);
+    tip.style.left = x + 'px'; tip.style.top = y + 'px'; };
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest && e.target.closest('.icard[data-id]');
+    if(!el){ if(cur){ cur = null; tip.classList.remove('on'); } return; }
+    if(el === cur) return; cur = el;
+    const f = typeof findItem === 'function' ? findItem(el.dataset.id) : null;
+    if(!f){ tip.classList.remove('on'); return; }
+    tip.innerHTML = itemTipHtml(f.it, f.eq); tip.classList.add('on'); place(e);
+  });
+  document.addEventListener('mousemove', e => { if(cur) place(e); });
+  document.addEventListener('click', () => { cur = null; tip.classList.remove('on'); }, true);
+})();

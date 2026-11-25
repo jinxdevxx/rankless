@@ -3,6 +3,8 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Hover tooltip on items with the key info (v0.22.1)
+- [ ] Spamskill bot reaches Rank B in 24 bot-min (target 30–90): check early pacing next round
 - [x] Legion: no progress after Lv 15 → Spirit Awakening ★1–10 (v0.22.0)
 - [x] Legion: Put in slot replaced random spirit → Remove buttons, fills free slot only (v0.22.0)
 - [x] Master League one-shots (hits up to 12× hero HP) fixed (v0.22.0)

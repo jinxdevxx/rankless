@@ -978,3 +978,11 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .awk{display:flex;flex-direction:column;gap:2px;margin:6px 0;font:700 13px Nunito,sans-serif;color:#e8e2f0}
 .awk b{color:#ffd27a;letter-spacing:2px;font-size:16px} .stars{color:#ffd27a} .inslot{color:#7fffd4}
 .awkbtn{background:linear-gradient(90deg,#c77dff,#ffd27a)!important;color:#1a0f24!important}
+/* item hover tooltip (v0.22.1) */
+#itemTip{position:fixed;z-index:9999;pointer-events:none;opacity:0;transition:opacity .12s;max-width:260px}
+#itemTip.on{opacity:1}
+.itip{padding:10px 12px;border-radius:12px;border:2px solid var(--r);background:rgba(16,12,24,.97);box-shadow:0 8px 24px rgba(0,0,0,.5);font:700 12px Nunito,sans-serif;color:#e8e2f0;display:flex;flex-direction:column;gap:3px}
+.itip>b{font:900 15px Nunito,sans-serif;color:var(--r)} .itip small{color:#b9b0c9;font-weight:700}
+.itip .up{color:#7fffa0;font-weight:900} .itip .down{color:#ff7a8a;font-weight:900} .itip .mid{color:#ffd27a;font-weight:900}
+.itip .itl{margin:4px 0;padding:4px 0;border-top:1px solid #ffffff1a;border-bottom:1px solid #ffffff1a} .itip .afx{color:#9fd0ff}
+.itip em{font-style:normal;color:#8a829a;font-size:11px}
