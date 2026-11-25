@@ -793,3 +793,18 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 @keyframes pnOut{to{opacity:0;transform:translateX(-30px)}}
 @keyframes pnBar{from{width:100%}to{width:0}}
 @media (max-width:640px){ #patchNote{top:68px;bottom:auto;left:12px;max-width:240px;padding:8px 12px 10px} #patchNote b{font-size:17px} }
+
+.tnode.key{border-style:dashed;background:linear-gradient(120deg,rgba(255,255,255,.04),rgba(24,19,32,.9))}
+.tnode.key .tn{color:var(--c)} .tnode.key.has{background:color-mix(in srgb,var(--c) 26%,#181320);border-style:solid}
+
+.towercard .tr{flex-direction:row;flex-wrap:wrap;justify-content:flex-start;margin-top:10px}
+.tbtn2 .cl{font:400 26px "Bebas Neue",sans-serif;letter-spacing:.05em}
+.tmap{display:flex;flex-direction:column;gap:4px;min-width:300px;position:relative;padding-left:14px;border-left:3px solid rgba(247,199,90,.35)}
+.tfl{display:grid;grid-template-columns:38px 1fr auto;align-items:center;gap:2px 8px;padding:6px 10px;border-radius:10px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);font-size:12px}
+.tfl b{grid-row:1/3;font:400 26px "Bebas Neue",sans-serif;color:var(--c);text-align:center}
+.tfl .tp{font-weight:900;color:#fff} .tfl .trw{grid-column:2/4;color:var(--muted)}
+.tfl .tg{font-style:normal;font-weight:900;font-size:11px;color:#c9d6ee;justify-self:end} .tfl .tg.boss{color:#ff8f8f} .tfl .tg.elite{color:var(--gold)}
+.tfl.next{background:linear-gradient(100deg,rgba(247,199,90,.25),rgba(0,0,0,.25));border-color:var(--gold);box-shadow:0 0 16px -6px var(--gold)}
+.tfl.next::before{content:"▶";position:absolute;left:-12px;color:var(--gold);font-size:12px}
+.tfl{position:relative}
+@media (max-width:760px){ .tmap{min-width:0} }

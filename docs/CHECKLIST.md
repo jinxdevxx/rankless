@@ -15,7 +15,8 @@ Add new player feedback here as a new point, so it is never forgotten.
 6d. **Item window**: actions visible without scrolling on phones; salvage refunds 65% of enhance spending.
 7a. **Power is honest**: if your Power ≥ Recommended, you usually win (bots: median power at first clear ≈ recommended). Bosses never one-shot a player at recommended power.
 7b. **Spam works**: mashing SPACE never deals less damage than slow presses and still blocks/parries; pure spam bot (`node tools/bot_balance.js void spam 240`) reaches Rank B without walls; BREAK bar fills on bosses/elites.
-7c. **Stats tab**: big numbers (Max HP, ATK, DEF, Power), stat points and talent tree work; talents raise stats.
+7c. **Stats tab**: big numbers (Max HP, ATK, DEF, Power), stat points and talent tree v2 work (10 ranks, keystones have visible effect); talents can't be maxed quickly but every level gives a meaningful choice. RECURRING: extend/improve the tree when it feels thin.
+7d. **Tower feels fun**: tower map, places change every 5 floors, modifiers, elites/bosses/chests. RECURRING: add variety when it feels monotone.
 7. **Balance**: full run 3–4 hours to Rank B for a human; `node tools/bot_balance.js flame spamskill 240` 30–90 min; no floor with >10 losses in a row; nothing unwinnable at the start.
 8. **Simple, not complicated**: no new menus or currencies without a reason. Simplifications stay switchable (Simple Mode in Esc menu).
 8b. **Quiet updates**: update = one click + reload; afterwards only the small left note (auto-hides 10 s / on navigation); patch notes in Esc menu.

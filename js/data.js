@@ -43,30 +43,39 @@ const ENHANCE_RATE = [1,1,1,1,1,.9,.8,.7,.6,.5,.4,.3,.25,.2,.15];
 const MAX_PLUS = 15;
 
 /* ---------- champion ---------- */
-/* ---------- Talent tree: separate points (1 per level from Lv 3), 3 branches, 4 talents each, max 5 ranks.
-   A talent opens when you spent 5 points per earlier tier in that branch. ---------- */
-const TALENT_MAX = 5, TALENT_TIER = 5;
+/* ---------- Talent tree v2: 3 branches × (4 talents with 10 ranks + 2 keystones).
+   Points: 1 per level from Lv 3, +1 per 10 Training Tower floors, +2 per rank exam passed.
+   Far more ranks than points, so you specialise; the tower keeps giving points for the long run. ---------- */
+const TALENT_MAX = 10;
 const TALENTS = {
   might:  {name:'Might',   color:'#ff8a5c', nodes:[
-    {id:'blade',  name:'Sharp Blade',  stat:'atkP',     per:3,   desc:'+3% ATK'},
-    {id:'eye',    name:'Keen Eye',     stat:'crit',     per:1.2, desc:'+1.2% Crit Rate'},
-    {id:'brutal', name:'Brutal Hits',  stat:'critDmg',  per:6,   desc:'+6% Crit DMG'},
-    {id:'arts',   name:'Rift Arts',    stat:'skill',    per:6,   desc:'+6% Skill DMG'}]},
+    {id:'blade',  name:'Sharp Blade',  stat:'atkP',     per:2,   max:10, req:0,  desc:'+2% ATK'},
+    {id:'eye',    name:'Keen Eye',     stat:'crit',     per:.6,  max:10, req:5,  desc:'+0.6% Crit Rate'},
+    {id:'brutal', name:'Brutal Hits',  stat:'critDmg',  per:4,   max:10, req:10, desc:'+4% Crit DMG'},
+    {id:'arts',   name:'Rift Arts',    stat:'skill',    per:4,   max:10, req:15, desc:'+4% Skill DMG'},
+    {id:'k_berserk', name:'Berserker', key:'berserk',   max:1,   req:20, desc:'KEYSTONE: +25% damage while below 50% HP'},
+    {id:'k_exec',    name:'Executioner', key:'exec',    max:1,   req:30, desc:'KEYSTONE: +50% damage to enemies below 30% HP'}]},
   guard:  {name:'Guard',   color:'#7fd8ff', nodes:[
-    {id:'tough',  name:'Tough',        stat:'hpP',      per:4,   desc:'+4% HP'},
-    {id:'iron',   name:'Iron Skin',    stat:'defP',     per:6,   desc:'+6% DEF'},
-    {id:'leech',  name:'Blood Thirst', stat:'lifesteal',per:.8,  desc:'+0.8% Lifesteal'},
-    {id:'giant',  name:'Giant',        stat:'hpP',      per:5,   desc:'+5% HP'}]},
+    {id:'tough',  name:'Tough',        stat:'hpP',      per:3,   max:10, req:0,  desc:'+3% HP'},
+    {id:'iron',   name:'Iron Skin',    stat:'defP',     per:5,   max:10, req:5,  desc:'+5% DEF'},
+    {id:'leech',  name:'Blood Thirst', stat:'lifesteal',per:.5,  max:10, req:10, desc:'+0.5% Lifesteal'},
+    {id:'giant',  name:'Bulwark',      stat:'dr',       per:1.2, max:10, req:15, desc:'-1.2% damage taken'},
+    {id:'k_second', name:'Second Life', key:'second',   max:1,   req:20, desc:'KEYSTONE: once per fight, a killing blow leaves you at 30% HP'},
+    {id:'k_thorns', name:'Thorns',      key:'thorns',   max:1,   req:30, desc:'KEYSTONE: attackers take 25% of the damage they deal to you'}]},
   fortune:{name:'Fortune', color:'#f7c75a', nodes:[
-    {id:'greed',  name:'Greed',        stat:'gold',     per:6,   desc:'+6% Gold Find'},
-    {id:'scholar',name:'Scholar',      stat:'xp',       per:5,   desc:'+5% XP'},
-    {id:'bond',   name:'Spirit Bond',  stat:'petP',     per:8,   desc:'+8% Spirit damage'},
-    {id:'swift',  name:'Swift',        stat:'spd',      per:3,   desc:'+3% Attack Speed'}]},
+    {id:'greed',  name:'Greed',        stat:'gold',     per:4,   max:10, req:0,  desc:'+4% Gold Find'},
+    {id:'scholar',name:'Scholar',      stat:'xp',       per:3,   max:10, req:5,  desc:'+3% XP'},
+    {id:'bond',   name:'Spirit Bond',  stat:'petP',     per:5,   max:10, req:10, desc:'+5% Spirit damage'},
+    {id:'swift',  name:'Swift',        stat:'spd',      per:2,   max:10, req:15, desc:'+2% Attack Speed'},
+    {id:'k_treasure', name:'Treasure Sense', key:'treasure', max:1, req:20, desc:'KEYSTONE: elite and boss floors drop 1 extra item'},
+    {id:'k_crystal',  name:'Crystal Heart',  key:'crystal',  max:1, req:30, desc:'KEYSTONE: start every fight with 2 extra crystals'}]},
 };
-function talentTotal(){ return Math.max(0, S.level - 2); }
+function talentNodes(){ return Object.values(TALENTS).flatMap(b => b.nodes); }
+function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)); }
 function talentSpent(br){ let n = 0; for(const b in TALENTS) if(!br || b === br) for(const nd of TALENTS[b].nodes) n += (S.talents && S.talents[nd.id]) || 0; return n; }
 function talentFree(){ return talentTotal() - talentSpent(); }
-function talentOpen(br, tier){ return talentSpent(br) >= tier*TALENT_TIER; }
+function talentOpenNode(br, nd){ return talentSpent(br) >= nd.req; }
+function hasKey(k){ return talentNodes().some(nd => nd.key === k && (S.talents && S.talents[nd.id])); }
 const STAT_INFO = {
   str:{name:'Strength', desc:'Raises ATK'},
   vit:{name:'Vitality', desc:'Raises max HP'},
@@ -128,7 +137,7 @@ const ENEMY_TYPES = {
   fang:     {name:'Frost Fang',      style:'beast',    hp:.85, atk:1.2, spd:.95, role:'dps',    pal:{body:'#0e1a22',rim:'#9fe8ff',eye:'#bff6ff'}, comp:{hp:.85,atk:1.0}, desc:'Its bite freezes blood.'},
   specter:  {name:'Shrine Specter',  style:'ghost',    hp:.85, atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#141824',rim:'#bfe9ff',eye:'#ffffff'}, comp:{hp:.85,atk:.65}, desc:'A restless spirit. Heals its weakest ally.'},
   oni:      {name:'Ice Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
-  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:5, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
+  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:4.2, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
 function shardNeed(type){ const t = ENEMY_TYPES[type]; return t.boss ? 40 : t.elite ? 20 : 12; }
 const STAR_COST = [0, 1, 2, 4, 8]; // x shardNeed to reach star i+1
@@ -218,11 +227,20 @@ const ATK_EASE_EXP = .5;
 /* skills vs. basic hits: skills were so strong that players without skills got stuck */
 const SKILL_SCALE = .5, HIT_SCALE = 1.35;
 /* BREAK: every hit on a boss fills its break bar; full = BROKEN (helpless, double damage) */
-const BREAK = {hits:22, eliteHits:12, skill:3, time:4, mult:2};
+const BREAK = {hits:18, eliteHits:10, skill:3, time:4, mult:2};
 const E_EASE = [0, .35, .42, .48, .54, .6, .66, .72, .78, .84, .9];
 /* Training Tower: endless farm floors. Each floor is a bit stronger and pays more Gold + XP.
    Every 5th floor has an elite and a chest on first clear. */
 const TOWER = {lvPer:.9, gold:16, xp:12, ease:.8, chestEvery:5};
+/* floor modifiers keep the climb fresh (elite/boss floors have none) */
+const TOWER_MODS = [
+  {id:'gold',   name:'Golden',      icon:'🪙', desc:'x2 Gold',                       gold:2,   xp:1,   hp:1,   spd:1},
+  {id:'giant',  name:'Giants',      icon:'🗿', desc:'Enemies +40% HP · x1.6 XP',     gold:1,   xp:1.6, hp:1.4, spd:1},
+  {id:'swarm',  name:'Swarm',       icon:'🐜', desc:'+1 enemy per wave · x1.4 rewards', gold:1.4, xp:1.4, hp:1, spd:1, extra:1},
+  {id:'frenzy', name:'Frenzy',      icon:'⚡', desc:'Enemies 25% faster · x1.5 rewards', gold:1.5, xp:1.5, hp:1, spd:1.25},
+  {id:'spirit', name:'Spirit Surge',icon:'✨', desc:'Your spirits deal x2 damage',   gold:1.1, xp:1.1, hp:1, spd:1, pet:2},
+];
+function towerMod(f){ if(f % 5 === 0) return null; return TOWER_MODS[(f*7 + 3) % TOWER_MODS.length]; }
 function towerLevel(f){ return Math.max(1, Math.round(1 + (f - 1)*TOWER.lvPer)); }
 function towerGate(f){ const L = towerLevel(f); return L >= 24 ? GATES[2] : L >= 12 ? GATES[1] : GATES[0]; }
 function towerReward(f){ const L = towerLevel(f); return {gold:Math.round(goldFor(L)*TOWER.gold), xp:Math.round(xpFor(L)*TOWER.xp)}; }

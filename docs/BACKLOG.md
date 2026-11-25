@@ -3,6 +3,9 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Talents maxed too fast: tree v2 with 10 ranks, keystones, more point sources (v0.16.2) – keep extending (recurring)
+- [x] Training Tower needs better design/feeling: tower map + floor modifiers (v0.16.2) – keep improving (recurring)
+- [ ] Pure spammer without skills still wobbles on C-Rank (bot 124–231 min); keep tuning
 - [x] Update flow less intrusive: click to update, small self-hiding note, patch notes via Esc menu (v0.16.1)
 - [x] Training Tower too monotone: new place every 5 floors, mixed monsters, bosses (v0.16.1)
 - [x] Auto attack button for fully automatic farming (v0.16.1)

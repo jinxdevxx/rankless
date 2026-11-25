@@ -198,7 +198,7 @@ function renderSheet(){
   $('#sheetTitle').textContent = title;
   const body = $('#sheetBody'), sc = body.scrollTop;
   body.innerHTML = fn();
-  body.scrollTop = sc;
+  body.scrollTop = UI.lastSheet === UI.sheet ? sc : 0; UI.lastSheet = UI.sheet;   // new tab starts at the top
 }
 
 function sheetGates(){
@@ -208,11 +208,16 @@ function sheetGates(){
       <div class="row"><span class="tries">${'●'.repeat(left)}${'○'.repeat(DAILY_TRIES - left)}</span><span class="sp"></span>
       <button class="btn small ${left ? 'primary' : ''}" data-a="startDaily" data-id="${k}" ${left ? '' : 'disabled'}>${left ? 'Enter' : 'Tomorrow'}</button></div></div>`; }).join('')}</div></div>`;
   const rg = currentGate(), rl = rushLevel(), hs0 = heroStats(), rgold = Math.round(goldFor(rl)*RUSH_GOLD*(1 + hs0.gold/100)), rxp = Math.round(xpFor(rl)*TRAIN_XP*(1 + hs0.xp/100));
-  const tb = S.tower.best || 0, tn = tb + 1, trw = towerReward(tn), tfarm = towerReward(Math.max(1, tb));
-  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Climb floor after floor. New place every 5 floors, monsters from every gate. Every 5th floor: elite + chest, every 10th: boss + big chest.</span>
-      <div class="tstat"><span>Best floor <b>${tb}</b></span><span>Next <b>${tn}</b></span></div></div>
-    <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><span class="cur gold">${ICON.gold}<b>${fmt(trw.gold)}</b></span><span class="cur cxp">XP <b>${fmt(trw.xp)}</b></span></button>
-      ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb}</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}</div></div>`;
+  const tb = S.tower.best || 0, tn = tb + 1, tfarm = towerReward(Math.max(1, tb));
+  const nextPts = 10 - (tb % 10);
+  const tmap = [tn + 4, tn + 3, tn + 2, tn + 1, tn].map(f => { const md = towerMod(f), rw = towerReward(f), th = THEMES[towerTheme(f)];
+    const tag = f % 10 === 0 ? '<em class="tg boss">💀 BOSS · big chest</em>' : f % 5 === 0 ? '<em class="tg elite">⭐ ELITE · chest</em>' : md ? `<em class="tg">${md.icon} ${md.name}</em>` : '';
+    return `<div class="tfl ${f === tn ? 'next' : ''}" style="--c:${th.accent}"><b>${f}</b><span class="tp">${th.name}</span>${tag}<span class="trw">${ICON.gold}${fmt(rw.gold*(md ? md.gold : 1))} · XP ${fmt(rw.xp*(md ? md.xp : 1))}</span></div>`; }).join('');
+  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Every floor pays Gold + XP. New place every 5 floors, ⭐ elite + chest every 5th, 💀 boss every 10th. Every 10 floors: <strong style="color:var(--gold)">+1 talent point</strong> (next in ${nextPts}).</span>
+      <div class="tstat"><span>Best floor <b>${tb}</b></span></div>
+      <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><b class="cl">Fight ›</b></button>
+      ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb}</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}</div></div>
+    <div class="tmap">${tmap}</div></div>`;
   const rush = '' && `<div class="bt" style="margin-bottom:6px">Farm · unlimited · ${rg.name}, enemies like your best floor</div><div class="farmrow">
     <div class="rushcard"><div class="dic">${ICON.gold}</div><div><b>Gold Rush</b><small>No loot, about <b>${fmt(rgold)}</b>+ Gold per win. Buy spirits and enhance gear.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="gold">Farm Gold</button></div>
     <div class="rushcard xp"><div class="dic">${ICON.hero}</div><div><b>Training</b><small>No loot, about <b>${fmt(rxp)}</b>+ XP per win. Stuck on a floor? Level up here.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="xp">Train</button></div></div>`;
@@ -270,9 +275,9 @@ function sheetStats(){
     <button class="pbtn" data-a="stat" data-id="${k}" ${S.points?'':'disabled'}>+</button><button class="pbtn" data-a="stat5" data-id="${k}" ${S.points>=5?'':'disabled'}>+5</button></div>`).join('');
   const free = talentFree();
   const tree = Object.entries(TALENTS).map(([bk, br]) => `<div class="tbranch" style="--c:${br.color}"><div class="tbh"><b>${br.name}</b><small>${talentSpent(bk)} pts</small></div>
-    ${br.nodes.map((nd, tier) => { const r = (S.talents[nd.id]||0), open = talentOpen(bk, tier), can = open && free > 0 && r < TALENT_MAX;
-      return `<button class="tnode ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= TALENT_MAX ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
-        <span class="tn">${nd.name}</span><span class="tr">${r}/${TALENT_MAX}</span><span class="td">${open ? `${nd.desc} per rank${r ? ` · now +${+(nd.per*r).toFixed(1)}` : ''}` : `Spend ${tier*TALENT_TIER} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
+    ${br.nodes.map(nd => { const r = (S.talents[nd.id]||0), open = talentOpenNode(bk, nd), can = open && free > 0 && r < nd.max;
+      return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
+        <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? `${nd.desc}${nd.key ? '' : ' per rank'}${r && !nd.key ? ` · now +${+(nd.per*r).toFixed(1)}` : ''}` : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
   return `<div class="bigstats">${big}</div>
     <div class="cols">
       <div class="box sys"><div class="bt">STAT POINTS <span class="pts ${S.points?'on':''}">${S.points} free</span></div>
@@ -281,7 +286,7 @@ function sheetStats(){
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
     <div class="box"><div class="bt">TALENT TREE <span class="pts ${free?'on':''}">${free} talent point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
-      <div class="hint" style="margin-top:0">1 talent point per level from Lv 3. Each talent has 5 ranks. Spend ${TALENT_TIER} points in a branch to open its next talent.</div>
+      <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks, ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
       <div class="ttree">${tree}</div></div>`;
 }
 function sheetHero(){
@@ -466,7 +471,7 @@ function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
-    : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}</b><span>${THEMES[BT.theme] && THEMES[BT.theme].name ? THEMES[BT.theme].name + ' · ' : ''}Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % 10 === 0 ? ' · BOSS' : BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
+    : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}${BT.mod ? ' · ' + BT.mod.icon + ' ' + BT.mod.name : ''}</b><span>${THEMES[BT.theme] && THEMES[BT.theme].name ? THEMES[BT.theme].name + ' · ' : ''}Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % 10 === 0 ? ' · BOSS' : BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
     : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
@@ -623,7 +628,7 @@ function act(a, el){
     case 'startGate': startGate(el.dataset.g, +el.dataset.f); break;
     case 'startArena': { const i = +el.dataset.i; startArena(S.rank, i, i < 0); break; }
     case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
-      if(talentFree() > 0 && talentOpen(bk, tier) && (S.talents[id]||0) < TALENT_MAX){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
+      if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
     case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
     case 'stat': if(S.points > 0){ S.stats[id]++; S.points--; save(); renderSheet(); renderHome(); } break;
     case 'stat5': if(S.points >= 5){ S.stats[id] += 5; S.points -= 5; save(); renderSheet(); renderHome(); } break;

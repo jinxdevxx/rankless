@@ -133,14 +133,15 @@ function calcStats(src){
   const L = src.level, st = src.stats;
   const g = Math.pow(1.065, L-1), pg = Math.pow(1.055, L-1);
   const o = {atk:12*g + st.str*2.2*pg, hp:170*g + st.vit*24*pg, def:3 + L*1.5,
-    crit:5 + st.sen*.5, critDmg:150, spd:st.agi, atkP:0, hpP:0, defP:0, petP:0, lifesteal:0, skill:st.wil*2, gold:0, xp:0};
+    crit:5 + st.sen*.5, critDmg:150, spd:st.agi, atkP:0, hpP:0, defP:0, petP:0, dr:0, lifesteal:0, skill:st.wil*2, gold:0, xp:0};
   for(const sl of SLOTS){
     const it = src.eq[sl]; if(!it) continue;
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
-  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r) o[nd.stat] += nd.per*r; }
+  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat) o[nd.stat] += nd.per*r; }
+  o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);

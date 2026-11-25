@@ -25,6 +25,12 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.16.2 – Deeper Climb
+- Talent tree v2 (data.js TALENTS): 4 stat talents × 10 ranks + 2 keystones per branch (req 0/5/10/15/20/30 points). Keystones: berserk, exec, second, thorns, treasure, crystal (BT.keys). New stat dr (Bulwark, max 40 %).
+- Talent points: level − 2 + floor(tower best / 10) + 2 × rank index.
+- Training Tower: TOWER_MODS (Golden, Giants, Swarm, Frenzy, Spirit Surge) on normal floors, tower map with the next 5 floors, mod shown in battle title and banner.
+- Sheets reset scroll when switching tabs. BREAK 22 → 18 hits (elites 12 → 10), Matriarch HP 5 → 4.2.
+
 ### v0.16.1 – Smooth Flow
 - Update flow: no popup when an update is found (slim banner with Update button only); after updating a small self-hiding note (10 s, or on any navigation) replaces the big modal; patch notes button in the Esc menu and on the save screen (openPatchNotes).
 - Training Tower: 8 themed places (TOWER_THEMES, scenery variants via THEMES.base), monsters mixed from all reachable gates, elite every 5th floor, boss (60 % HP) every 10th with double chest, floor banner.

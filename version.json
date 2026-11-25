@@ -1,12 +1,12 @@
 {
-  "version": "0.16.1",
+  "version": "0.16.2",
   "date": "2026-11-25",
-  "title": "Smooth Flow",
+  "title": "Deeper Climb",
   "notes": [
-    "Updates are quieter: click Update and the game reloads on the newest version. Afterwards a small note on the left shows what changed and disappears by itself after 10 seconds (or when you open anything). Full patch notes any time: Esc menu > Patch notes, or on the save screen.",
-    "Training Tower looks different every 5 floors (8 places like Crimson Depths, Blossom Shrine, Void Colosseum), mixes monsters from every gate, has an elite every 5th floor and a boss with a big chest every 10th floor.",
-    "NEW: AUTO ATTACK button in fights. Your hero strikes and blocks on their own. Together with AUTO FARM (skills) you can farm fully automatically.",
-    "Arena: after a win you go straight to the next hunter or the rank exam with NEXT FIGHT.",
-    "Recommended Power fine-tuned."
+    "Talent tree v2: each branch now has 4 talents with 10 ranks plus 2 ★ keystones that change how you fight (Berserker, Executioner, Second Life, Thorns, Treasure Sense, Crystal Heart). Far more ranks than points: pick your style.",
+    "More talent points over time: 1 per level, +1 per 10 Training Tower floors, +2 per rank exam.",
+    "Training Tower map: see the next 5 floors with place, rewards, elites, bosses and modifiers.",
+    "Floor modifiers keep the climb fresh: Golden (x2 Gold), Giants, Swarm, Frenzy and Spirit Surge, each with bigger rewards.",
+    "Tabs now always open at the top. Bosses break a bit faster."
   ]
 }

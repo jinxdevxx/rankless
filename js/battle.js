@@ -51,10 +51,11 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)
     : BT.mode === 'tower' ? TOWER.ease*(BT.gate.id === 'E' ? .75 : BT.gate.mult)   // farm fights: a bit softer than your best floor
     : 1;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && BT.mode === 'tower' ? .6 : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && BT.mode === 'tower' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1},
-    maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd,
+    maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 function hunterUnit(h){
@@ -102,11 +103,13 @@ function towerTheme(f){ return TOWER_THEMES[Math.floor((f - 1)/5) % TOWER_THEMES
 function startTower(floor){
   floor = Math.max(1, floor); const gate = towerGate(floor), L = towerLevel(floor);
   const open = GATES.filter(g => g.baseLv <= L + 4), pool = open.flatMap(g => g.enemies), elites = open.map(g => g.elite);
-  const w1 = [pick(pool), pick(pool), pick(pool)];
-  const w2 = floor % 10 === 0 ? [gate.boss, pick(pool)] : [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? pick(elites) : pick(pool)];
+  const mod = towerMod(floor), xtra = mod && mod.extra ? [pick(pool)] : [];
+  const w1 = [pick(pool), pick(pool), pick(pool), ...xtra];
+  const w2 = floor % 10 === 0 ? [gate.boss, pick(pool)] : [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? pick(elites) : pick(pool), ...xtra];
   const theme = towerTheme(floor);
-  BT = newBattle({mode:'tower', floor, gate, L, theme, waves:[w1, w2]});
-  BT.banner = {txt:`FLOOR ${floor} · ${THEMES[theme].name}`, t:1.6, c:THEMES[theme].accent};
+  BT = newBattle({mode:'tower', floor, gate, L, theme, waves:[w1, w2], mod});
+  BT.banner = {txt:`FLOOR ${floor} · ${mod ? mod.icon + ' ' + mod.name.toUpperCase() : THEMES[theme].name}`, t:1.8, c:THEMES[theme].accent};
+  if(mod && mod.pet) for(const u of BT.units) if(u.kind === 'pet') u.atk *= mod.pet;
   spawnWave();
   enterBattle();
 }
@@ -139,6 +142,8 @@ function newBattle(o){
     gold:0, xp:0, kills:0, shards:{}, drops:[], result:null, boss:null, autoT:0}, o);
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
+  b.keys = {}; for(const nd of talentNodes()) if(nd.key && S.talents && S.talents[nd.id]) b.keys[nd.key] = true;
+  b.heroDr = hs.dr || 0; if(b.keys.crystal) b.energy += 2;
   ((S.pets && S.pets.active) || []).forEach((id, i) => { const lv = S.pets.owned[id]; if(lv && PETS[id]) b.units.push(prep(petUnit(id, lv, i + 1))); });
   return b;
 }
@@ -266,6 +271,8 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.kind === 'hero' && att.blocked){ dmg *= .5; att.blocked = false; }   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
+  if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; }
+  if(tgt.kind === 'hero' && BT.heroDr) dmg *= 1 - BT.heroDr/100;
   if((tgt.boss || tgt.elite) && att.side === 'p'){
     if(tgt.brokenT > 0) dmg *= BREAK.mult;
     else { tgt.breakM = (tgt.breakM||0) + (opt.skill ? BREAK.skill : 1);
@@ -278,6 +285,10 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
+  if(tgt.kind === 'hero' && dmg > 0){
+    if(BT.keys.thorns && att.side === 'e' && !att.dead){ const th = dmg*.25; att.hp -= th; addText(att, fmt(th), '#9fd8ff', 16); if(att.hp <= 0) killUnit(att, tgt); }
+    if(tgt.hp <= 0 && BT.keys.second && !BT.secondUsed){ BT.secondUsed = true; tgt.hp = tgt.maxHp*.3; addText(tgt, 'SECOND LIFE', '#9ff0b8', 30); BT.flashT = .12; BT.slowmo = .5; }
+  }
   if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
   if(dmg > 0 && att.side === 'p' && (crit || opt.skill)){ BT.hitstop = Math.max(BT.hitstop||0, crit && opt.skill ? .07 : .035); BT.zoom = Math.max(BT.zoom||0, opt.skill ? .03 : .018); }
   if(dmg > 0){
@@ -652,6 +663,7 @@ function finishBattle(win){
       const isBoss = isBossFloor(f), isElite = f === 5 || f === 8 || f === 9 || f > FLOORS;
       let n = isBoss ? 3 : isElite ? 2 : (Math.random() < .55 ? 1 : 0) + (Math.random() < .2 ? 1 : 0);
       if(r.first) n += 1;
+      if((isBoss || isElite) && BT.keys.treasure) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400;
       for(let i=0;i<n;i++){ const it = randomItem(BT.L + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }
       r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) + (isBoss ? 15 : isElite ? 5 : 0);
@@ -662,7 +674,8 @@ function finishBattle(win){
     }
   } else if(BT.mode === 'tower'){
     if(win){ const f = BT.floor, tr = towerReward(f); r.first = f > (S.tower.best||0); S.tower.best = Math.max(S.tower.best||0, f);
-      r.gold = Math.round(r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1)); r.xp = Math.round(r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1));
+      const md = BT.mod || {gold:1, xp:1};
+      r.gold = Math.round((r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1))*md.gold); r.xp = Math.round((r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1))*md.xp);
       if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += (8 + Math.round(f*1.5))*(f % 10 === 0 ? 2 : 1); r.diamonds += (f % 10 === 0 ? 2 : 1) + Math.floor(f/25); }
     }
   } else if(BT.mode === 'rush'){
