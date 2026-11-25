@@ -610,7 +610,47 @@ function drawSpirit(c, x, y, r, o){
   c.fillStyle = '#1a1030'; for(const ex of [.1, .3]){ c.beginPath(); c.ellipse(r*ex, -r*.05, r*.06, r*.1, 0, 0, 7); c.fill(); }
   c.restore();
 }
+/* hero auras (cosmetic). layer 'back' is drawn behind the body, 'front' in front of it */
+function drawAura(c, id, x, y, h, t, layer){
+  if(!id || id === 'none' || !AURAS[id]) return;
+  const col = AURAS[id].color; c.save(); c.translate(x, y); c.lineCap = 'round';
+  if(id === 'rankless' && layer === 'back'){   // slowly turning rune circle on the ground + rising golden motes
+    c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 14; c.globalAlpha = .75; c.lineWidth = 2;
+    c.beginPath(); c.ellipse(0, 0, h*.42, h*.09, 0, 0, 7); c.stroke(); c.globalAlpha = .45; c.beginPath(); c.ellipse(0, 0, h*.52, h*.115, 0, 0, 7); c.stroke();
+    c.globalAlpha = .9; c.fillStyle = col; for(let i = 0; i < 8; i++){ const a = t*.6 + i*Math.PI/4; c.save(); c.translate(Math.cos(a)*h*.47, Math.sin(a)*h*.1); c.rotate(a); c.fillRect(-2, -4, 4, 8); c.restore(); }
+    for(let i = 0; i < 7; i++){ const ph = (t*.45 + i/7) % 1; c.globalAlpha = .8*(1 - ph); c.beginPath(); c.arc(Math.sin(i*2.3 + t)*h*.3, -ph*h*1.1, 2.2, 0, 7); c.fill(); } }
+  else if((id === 'abyss' || id === 'inferno') && layer === 'back'){   // flame tongues rising around the body
+    const c1 = id === 'abyss' ? '#b05cff' : '#ff5a3c', c2 = id === 'abyss' ? '#e6c8ff' : '#ffd27a';
+    c.shadowColor = c1; c.shadowBlur = 18;
+    for(let i = 0; i < 9; i++){ const ph = (t*1.3 + i*.37) % 1, xx = (i - 4)*h*.075 + Math.sin(t*3 + i)*h*.02, hh = h*(.5 + .4*Math.sin(i*1.7 + t*2)**2)*(1 - ph*.3);
+      const g = c.createLinearGradient(0, 0, 0, -hh); g.addColorStop(0, c1 + 'cc'); g.addColorStop(.6, c2 + '66'); g.addColorStop(1, c2 + '00');
+      c.fillStyle = g; c.globalAlpha = .9; c.beginPath(); c.moveTo(xx - h*.07, 0); c.quadraticCurveTo(xx - h*.04, -hh*.6, xx + Math.sin(t*4 + i)*h*.04, -hh); c.quadraticCurveTo(xx + h*.05, -hh*.6, xx + h*.07, 0); c.closePath(); c.fill(); } }
+  else if(id === 'wings' && layer === 'back'){   // translucent spirit wings
+    c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 20; const flap = Math.sin(t*2.2)*.12;
+    for(const s of [-1, 1]){ c.save(); c.translate(-h*.04, -h*.68); c.scale(s, 1); c.rotate(-.35 + flap);
+      for(let k = 0; k < 4; k++){ c.globalAlpha = .28 - k*.04; c.beginPath(); c.ellipse(h*(.18 + k*.07), -h*(.05 + k*.05), h*(.2 - k*.02), h*.05, -.5 - k*.25, 0, 7); c.fill(); } c.restore(); } }
+  else if(id === 'tempest' && layer === 'front'){   // crackling lightning around the body
+    c.strokeStyle = '#e8f8ff'; c.shadowColor = col; c.shadowBlur = 14; c.lineWidth = 1.8; const fl = Math.floor(t*14);
+    for(let i = 0; i < 3; i++){ if((fl + i) % 4 === 0) continue; const a = ((fl*53 + i*97) % 628)/100; let px = Math.cos(a)*h*.18, py = -h*.5 + Math.sin(a)*h*.3;
+      c.globalAlpha = .85; c.beginPath(); c.moveTo(px, py); for(let k = 0; k < 4; k++){ px += Math.cos(a)*h*.06 + ((k % 2) ? 5 : -5); py += Math.sin(a)*h*.05 + ((k % 2) ? -4 : 4); c.lineTo(px, py); } c.stroke(); } }
+  else if((id === 'voidorbs' || id === 'prism') && layer === 'front'){   // orbiting orbs / relic gems with trails
+    const cols = id === 'prism' ? ['#ff8ad8', '#7fe8ff', '#ffd27a', '#9dff8a', '#c77dff'] : ['#ff3d6a', '#14060c', '#ff3d6a'];
+    for(let i = 0; i < cols.length; i++){ for(let tr = 5; tr >= 0; tr--){ const a = t*1.6 - tr*.09 + i*Math.PI*2/cols.length, ox = Math.cos(a)*h*.34, oy = -h*.5 + Math.sin(a)*h*.12;
+      c.globalAlpha = tr ? .12*(6 - tr)/6 : .95; c.fillStyle = cols[i]; c.shadowColor = id === 'prism' ? cols[i] : '#ff3d6a'; c.shadowBlur = tr ? 0 : 12;
+      c.beginPath(); if(id === 'prism' && !tr){ c.moveTo(ox, oy - 9); c.lineTo(ox + 6, oy); c.lineTo(ox, oy + 9); c.lineTo(ox - 6, oy); c.closePath(); } else c.arc(ox, oy, tr ? 4 : 7, 0, 7); c.fill(); } } }
+  else if(id === 'shadow' && layer === 'back'){   // dark smoke tendrils and glowing eyes in the smoke
+    for(let i = 0; i < 6; i++){ const ph = (t*.5 + i/6) % 1, xx = Math.sin(i*2.1)*h*.3, r = h*(.08 + ph*.14);
+      c.globalAlpha = .45*(1 - ph); c.fillStyle = '#0a0814'; c.beginPath(); c.arc(xx + Math.sin(t + i)*8, -ph*h*.9, r, 0, 7); c.fill(); }
+    c.globalAlpha = .5 + .3*Math.sin(t*3); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 12; for(const s of [-1, 1]){ c.beginPath(); c.ellipse(s*h*.36, -h*.62, 3, 1.6, 0, 0, 7); c.fill(); } }
+  c.restore();
+}
 function drawUnitArt(c, u, x, y, h, t, pose, flash, alpha){
+  const aura = u.kind === 'hero' && !flash && typeof S !== 'undefined' && S.cosmetic ? S.cosmetic.aura : null;
+  if(aura) drawAura(c, aura, x, y, h, t, 'back');
+  drawUnitArtInner(c, u, x, y, h, t, pose, flash, alpha);
+  if(aura) drawAura(c, aura, x, y, h, t, 'front');
+}
+function drawUnitArtInner(c, u, x, y, h, t, pose, flash, alpha){
   const o = {t:t + (u.seed||0), face:u.side === 'p' ? 1 : -1, pose, flash, alpha,
     body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura, fx:u.art.fx};
   if(u.art.style === 'spirit') drawSpirit(c, x, y, h*.55, o);

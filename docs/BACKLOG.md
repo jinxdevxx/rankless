@@ -3,6 +3,9 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Endgame after Master 99: Paragon ladder, auras, Rift milestones (v0.23.0)
+- [ ] Master League far too fast (colleague: Master 99 in <3 h). Measured: whole league ~26 min at x3. Proposal sent to player, waiting for target (M99 after ~4 h at x3?)
+- [ ] Play time numbers must be given in REAL time at x3 (bot-min ÷ 3), not ×3
 - [x] Hover tooltip on items with the key info (v0.22.1)
 - [ ] Spamskill bot reaches Rank B in 24 bot-min (target 30–90): check early pacing next round
 - [x] Legion: no progress after Lv 15 → Spirit Awakening ★1–10 (v0.22.0)

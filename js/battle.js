@@ -176,7 +176,7 @@ function startDaily(kind){
   enterBattle();
 }
 function startMaster(){
-  const lv = Math.min(MASTER_MAX, (S.master.lv||0) + 1), h = masterFoe(lv);
+  const para = (S.master.lv||0) >= MASTER_MAX, lv = para ? MASTER_MAX + (S.paragon||0) + 1 : Math.min(MASTER_MAX, (S.master.lv||0) + 1), h = para ? paragonFoe((S.paragon||0) + 1) : masterFoe(lv);
   BT = newBattle({mode:'arena', rank:'M', idx:lv, exam:false, master:lv, hunter:h, theme:'t_void', L:h.lv, waves:[]});
   const hu = prep(hunterUnit(h)); BT.units.push(hu); BT.boss = hu;
   (h.comps||[]).forEach((type,i) => BT.units.push(prep(compUnit(type, i+1, h.lv, 1 + h.gear, 1, 'e'))));
@@ -797,6 +797,7 @@ function finishBattle(win){
       r.first = d > (S.rift.best||0); S.rift.best = Math.max(S.rift.best||0, d);
       if(d % 5 === 0){ r.stones += 10 + d*2; r.diamonds += d % 10 === 0 ? 2 : 1; }
       if(d % 10 === 0) r.relic = dropRelic() || 'max';
+      if(r.first && RIFT_MILESTONES[d]){ r.diamonds += RIFT_MILESTONES[d].diamonds; r.riftMilestone = d; }
       const nIt = d % 10 === 0 ? 2 : d % 5 === 0 ? 1 : (Math.random() < .35 ? 1 : 0);   // Rift loot scales with your level
       for(let i = 0; i < nIt; i++) r.items.push(randomItem(BT.L + (d % 10 === 0 ? 2 : 0), .4 + d*.03 + (d % 10 === 0 ? 1.2 : 0), 'M'));
       if(r.relic === 'max') r.diamonds += 5;
@@ -821,9 +822,9 @@ function finishBattle(win){
     }
   } else {
     if(win){
-      if(BT.master){ const lv = BT.master; if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
+      if(BT.master){ const lv = BT.master; if(lv > MASTER_MAX){ if(lv - MASTER_MAX > (S.paragon||0)){ S.paragon = lv - MASTER_MAX; r.first = true; r.paragonUp = S.paragon; } } else if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
         r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 5 : 1.5));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 40 + 2*lv : 12;   // v0.22.1: stones matter again (enhance + awakening)
-        if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; r.masterUp = lv; }
+        if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; if(!r.paragonUp) r.masterUp = lv; }
         r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
       } else {
       const h = BT.hunter, rank = BT.rank;

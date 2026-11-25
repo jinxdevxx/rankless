@@ -25,6 +25,12 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.23.0 – Paragon
+- Paragon ladder: after Master 99 `startMaster` fights `paragonFoe(p)` (= masterFoe(99 + p)); each new level +1 % ATK and +1 % HP (calcStats `paragon`), Diamonds like master levels.
+- Auras (cosmetic, `S.cosmetic.aura`, `drawAura` back/front layers in battle and on the home screen): 8 auras unlocked by Rift depth 25/50/100, Master 99, Awakening ★10, Paragon 10/25, all relics.
+- Rift milestones depth 25/50/75/100: +10/20/30/50 Diamonds.
+- Analysis (no balance change yet): play time conversion was wrong. Bot minutes are x1 game time; players use x3 → real time ≈ bot-min ÷ 3. v0.22.1 skills bot: Master League at 373 bot-min (~2.1 h at x3), Master 99 at 451 (~2.5 h at x3); the Master League itself takes 78 bot-min (~26 min at x3) because hero power grows ×350 during it.
+
 ### v0.22.1 – Hover & Balance
 - Item hover tooltip (mouse/fine pointer only): name, rarity, iLvl, Power diff, stats, set, beats-at-+N. Touch unchanged (tap opens details).
 - Master foes re-tuned on fresh v0.22 snapshots (M10–M90): ATK ×1.15 × 1.11^(−0.2 × Master Lv) (was 1.0 / −0.3). Long bot with the old value: spamskill Master 1→99 in 59 bot-min, 6 deaths total (too easy). New value: skills win ~85 %, AUTO ~70 %, max hit 40–125 % HP, fights 10–45 s.

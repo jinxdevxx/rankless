@@ -1,10 +1,11 @@
 {
-  "version": "0.22.1",
+  "version": "0.23.0",
   "date": "2026-11-25",
-  "title": "Hover & Balance",
+  "title": "Paragon",
   "notes": [
-    "Items: hover with the mouse to see name, Power change, stats, set and whether it beats your gear. Click still opens all actions.",
-    "Master League re-balanced with fresh test characters: masters hit harder again but never one-shot, fights last 10-45 s.",
-    "Master League wins give more Mana Stones (for enhancing and Spirit Awakening)."
+    "NEW: Paragon ladder after Master 99. It never ends: every Paragon level gives +1% ATK and +1% HP forever.",
+    "NEW: Auras for your hero (Champion tab): Rankless Runes, Abyss Flame, Inferno, Spirit Wings, Tempest, Relic Prism, Void Orbs, Shadow Monarch. Earned through endgame milestones.",
+    "NEW: Abyss Rift milestones at depth 25 / 50 / 75 / 100 with Rift Diamonds and auras.",
+    "Master 99 no longer says the game is over: Paragon, Rift and auras are next."
   ]
 }

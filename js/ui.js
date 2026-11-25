@@ -205,8 +205,10 @@ function drawHomeScene(t, dt){
   c.save(); c.strokeStyle = a.color; c.globalAlpha = .5; c.shadowColor = a.color; c.shadowBlur = 20; c.lineWidth = 2;
   c.beginPath(); c.ellipse(hx, fy, hh*.32, hh*.05, 0, 0, 7); c.stroke(); c.globalAlpha = .2; c.beginPath(); c.ellipse(hx, fy, hh*.45, hh*.075, 0, 0, 7); c.stroke(); c.restore();
   const w = S.eq.weapon;
+  const aur = UI.screen !== 'create' && S.cosmetic ? S.cosmetic.aura : null; if(aur) drawAura(c, aur, hx, fy, hh, t, 'back');
   drawHumanoid(c, hx, fy, hh, {t, face:1, body:'#07060e', rim:a.color, eye:a.color2,
     blade: UI.screen === 'create' ? '#d8e2f0' : w ? RARITY[w.rar].color : '#d8e2f0', hair: UI.screen === 'create' ? UI.createHair : S.hair, aura:true, glow:22});
+  if(aur) drawAura(c, aur, hx, fy, hh, t, 'front');
   // aura particles
   if(Math.random() < dt*30) PARTS.push({k:'ember', x:hx + rand(-hh*.2, hh*.2), y:fy - rand(0, hh*.3), vx:rand(-8,8), vy:rand(-30,-70), life:rand(1.5,3), max:3, c:a.color});
 }
@@ -311,7 +313,10 @@ function sheetMaster(){
     ${(() => { const cur = lv ? masterTitle(lv) : null, nextM = MASTER_TITLES_BY_LV.slice().reverse().find(([m]) => m > lv), nm = (Math.floor(lv/10) + 1)*10;
       return `<div class="mtitles">${cur ? `<span class="mt" style="--c:${cur.color}">Title: <b>${cur.name}</b></span>` : ''}${nextM ? `<span class="mt next" style="--c:${nextM[2]}">Next title at Lv ${nextM[0]}: <b>${nextM[1]}</b></span>` : ''}${nm <= MASTER_MAX ? `<span class="mt" style="--c:#ffd27a">Lv ${nm}: <b>+2 talent points</b> + 5 Diamonds</span>` : ''}</div>`; })()}
     <div class="mladder">${ladder}</div>
-    ${lv >= MASTER_MAX ? '<div class="empty">You are the strongest Breaker alive. Level 99 Master.</div>' : `<div class="hcard ${h.rival ? 'exam' : ''}">
+    ${lv >= MASTER_MAX ? (() => { const pp = S.paragon||0, ph = paragonFoe(pp + 1), pPow = Math.round(floorPower(ph.lv + 3) * REC_MULT.M);
+      return `<div class="paracard"><div><small>BEYOND MASTER 99</small><b>✦ Paragon ${pp}</b><span>The ladder never ends. Every Paragon level: <b>+1% ATK and +1% HP</b> forever (now +${pp}%). Paragon 10 and 25 unlock auras.</span></div></div>
+      <div class="hcard ${ph.rival ? 'exam' : ''}"><img src="${hunterPortrait(ph)}" alt=""><div class="hinfo"><small>PARAGON ${pp + 1}</small><b>${esc(ph.name)}</b><span>${esc(ph.title)} · ${AFF[ph.aff].name}</span><em>"${esc(ph.line)}"</em></div>
+      <div class="hside"><span class="pw ${tp >= pPow ? 'ok' : 'hard'}">${fmt(pPow)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`; })() : `<div class="hcard ${h.rival ? 'exam' : ''}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>MASTER LV ${nx}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
       <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
@@ -348,7 +353,7 @@ function talentNext(nd, r){
   if(r >= nd.max) return `Maxed · +${+now.toFixed(1)}% ${name}`;
   const sh = TALENT_SHOW[nd.stat], cur = heroStats();
   const t2 = Object.assign({}, S.talents, {[nd.id]: r + 1});
-  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics});
+  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets, relics:S.relics, paragon:S.paragon});
   const d = sh ? nx[sh[0]] - cur[sh[0]] : 0, abs = sh && (sh[0] === 'atk' || sh[0] === 'hp' || sh[0] === 'def');
   const gain = abs ? `+${fmt(d)} ${sh[1]}` : `+${(+d.toFixed(1))}${sh ? sh[1] : ''}`;
   const pw = powerOf(nx) - powerOf(cur);
@@ -394,6 +399,11 @@ function sheetSkills(){
     + mrow(3, a.ult.name, 'ULT', a.ult.desc);
   return `<div class="box sys"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
+function auraBox(){
+  const cur = (S.cosmetic && S.cosmetic.aura) || 'none';
+  return `<div class="box"><div class="bt">AURAS <small class="muted">(cosmetic · earned in the endgame)</small></div><div class="auras">${Object.entries(AURAS).map(([id, au]) => { const ok = au.ok();
+    return `<button class="aura ${cur === id ? 'sel' : ''} ${ok ? '' : 'locked'}" style="--c:${au.color}" ${ok ? `data-a="setAura" data-id="${id}"` : 'disabled'}><i></i><b>${au.name}</b><small>${ok ? (cur === id ? 'WEARING' : 'Tap to wear') : '🔒 ' + au.how}</small></button>`; }).join('')}</div></div>`;
+}
 function sheetHero(){
   const hs = heroStats(), a = AFF[S.aff];
   const stats = Object.entries(STAT_INFO).map(([k,v]) => `<div class="stat"><span class="sk">${v.name}</span><span class="sv">${S.stats[k]}</span><span class="sd">${v.desc}</span>
@@ -414,7 +424,7 @@ function sheetHero(){
       return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
   ${enchantBox()}
   ${jobBox()}
-  <div class="box"><div class="bt">SKILLS</div><div class="hint" style="margin:0">Your skills, Ki costs and Skill Mastery have their own tab now.</div><button class="btn primary" data-a="sheet" data-id="skills">Open Skills</button></div>`;
+  <div class="box"><div class="bt">SKILLS</div><div class="hint" style="margin:0">Your skills, Ki costs and Skill Mastery have their own tab now.</div><button class="btn primary" data-a="sheet" data-id="skills">Open Skills</button></div>` + auraBox();
 }
 
 /* a big, readable cost line: what you have vs. what you need */
@@ -541,7 +551,7 @@ function itemDetail(id){
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
-          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets, relics:S.relics});
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets, relics:S.relics, paragon:S.paragon});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
@@ -634,7 +644,7 @@ function updateBattleHud(){
 
 /* the next arena opponent after a win: next hunter of your rank, then the rank exam */
 function nextArenaFight(){
-  if(S.rank === 'M') return (S.master.lv||0) < MASTER_MAX ? ['M', -2, false] : null;
+  if(S.rank === 'M') return ['M', -2, false];   // after 99 the Paragon ladder continues
   const rank = S.rank, list = HUNTERS[rank]; if(!list) return null;
   const done = S.arena[rank] || 0;
   if(done < list.length) return [rank, done, false];
@@ -684,7 +694,9 @@ function showResult(r){
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
     ${r.masterUp && MASTER_TITLES_BY_LV.some(([m]) => m === r.masterUp) ? `<div class="rankup" style="border-color:${masterTitle(r.masterUp).color}"><small>NEW TITLE</small><b style="color:${masterTitle(r.masterUp).color}">${masterTitle(r.masterUp).name}</b><span>You earned a new Master title.</span></div>` : ''}
-    ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'The very top. Legend.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
+    ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'Master 99! The Paragon ladder, the Abyss Rift and auras wait for you.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
+    ${r.paragonUp ? `<div class="rankup" style="border-color:#c77dff"><small>PARAGON UP</small><b>✦ Paragon ${r.paragonUp}</b><span>+1% ATK and +1% HP forever (total +${r.paragonUp}%).</span></div>` : ''}
+    ${r.riftMilestone ? `<div class="rankup chest"><small>RIFT MILESTONE</small><b>Depth ${r.riftMilestone}!</b><span>+${RIFT_MILESTONES[r.riftMilestone].diamonds} Rift Diamonds${Object.values(AURAS).some(a => a.how === 'Reach Rift depth ' + r.riftMilestone) ? ' · NEW AURA unlocked (Champion tab)' : ''}</span></div>` : ''}
     ${r.chest ? `<div class="rankup chest"><small>TOWER CHEST · FLOOR ${BT.floor}</small><b>🎁 Bonus loot!</b><span>+${r.stones} Mana Stones · +${r.diamonds} Rift Diamond${r.diamonds > 1 ? 's' : ''}</span></div>` : ''}
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${rankLabel(RANKS[RANKS.indexOf(r.rankUp)-1])} → ${r.rankUp === 'M' ? 'MASTER' : rankLabel(r.rankUp)}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
@@ -854,6 +866,7 @@ function act(a, el){
     case 'leave': leaveBattle(); break;
     case 'startMaster': UI.sheet = null; startMaster(); break;
     case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
+    case 'setAura': { if(AURAS[id] && AURAS[id].ok()){ S.cosmetic = S.cosmetic || {}; S.cosmetic.aura = id; save(); renderSheet(); } break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
     case 'riftStart': { cancelAuto(); UI.sheet = null; closeSheet(); const run = newRiftRun(id === 'deep'); save(); startRift(run.depth + 1); break; }
     case 'riftContinue': { cancelAuto(); UI.sheet = null; closeSheet(); if(S.rift.run){ S.rift.run.choices = null; startRift(S.rift.run.depth + 1); } break; }

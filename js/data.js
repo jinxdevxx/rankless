@@ -500,3 +500,20 @@ const RELICS = {
 const RELIC_MAX = 10;
 function relicSlots(){ return masterHas(1) ? 1 + (masterHas(30) ? 1 : 0) + (masterHas(60) ? 1 : 0) + (masterHas(90) ? 1 : 0) : 0; }
 function relicValue(id, lv){ return RELICS[id].per*lv*(masterHas(99) ? 1.5 : 1); }
+
+/* ================= after Master 99: Paragon + Auras (v0.23.0) ================= */
+/* Paragon: the master ladder never ends. Every Paragon level: +1% ATK and +1% HP forever. */
+function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.title = `Paragon ${p} Challenger`; h.rival = p % 10 === 0; h.line = p % 10 === 0 ? 'Ten more steps beyond the top. Prove it.' : 'There is no ceiling. Only the next step.'; return h; }
+/* Auras: cosmetic, earned through endgame milestones */
+const AURAS = {
+  none:     {name:'No aura',        color:'#9fb4d0', how:'Always',                        ok:() => true},
+  abyss:    {name:'Abyss Flame',    color:'#b05cff', how:'Reach Rift depth 25',           ok:() => (S.rift.best||0) >= 25},
+  rankless: {name:'Rankless Runes', color:'#ffd27a', how:'Reach Master Lv 99',            ok:() => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX},
+  inferno:  {name:'Inferno',        color:'#ff5a3c', how:'Reach Rift depth 50',           ok:() => (S.rift.best||0) >= 50},
+  wings:    {name:'Spirit Wings',   color:'#7fe8ff', how:'Awaken a spirit to ★10',        ok:() => Object.values((S.pets && S.pets.stars) || {}).some(v => v >= 10)},
+  tempest:  {name:'Tempest',        color:'#4cc9ff', how:'Reach Paragon 10',              ok:() => (S.paragon||0) >= 10},
+  prism:    {name:'Relic Prism',    color:'#ff8ad8', how:'Own all 9 relics',              ok:() => Object.keys(RELICS).every(id => (S.relics.owned[id]||0) > 0)},
+  voidorbs: {name:'Void Orbs',      color:'#ff3d6a', how:'Reach Rift depth 100',          ok:() => (S.rift.best||0) >= 100},
+  shadow:   {name:'Shadow Monarch', color:'#8a7dff', how:'Reach Paragon 25',              ok:() => (S.paragon||0) >= 25},
+};
+const RIFT_MILESTONES = {25:{diamonds:10}, 50:{diamonds:20}, 75:{diamonds:30}, 100:{diamonds:50}};

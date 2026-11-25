@@ -986,3 +986,13 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .itip .up{color:#7fffa0;font-weight:900} .itip .down{color:#ff7a8a;font-weight:900} .itip .mid{color:#ffd27a;font-weight:900}
 .itip .itl{margin:4px 0;padding:4px 0;border-top:1px solid #ffffff1a;border-bottom:1px solid #ffffff1a} .itip .afx{color:#9fd0ff}
 .itip em{font-style:normal;color:#8a829a;font-size:11px}
+
+/* Paragon + Auras (v0.23.0) */
+.paracard{margin:6px 0 10px;padding:14px;border-radius:16px;border:2px solid #c77dff;background:linear-gradient(135deg,rgba(120,60,200,.45),rgba(20,10,35,.8))}
+.paracard small{font:900 11px Nunito,sans-serif;letter-spacing:.12em;color:#c77dff} .paracard b{display:block;font:400 32px 'Bebas Neue',sans-serif;color:#fff}
+.paracard span{font:600 14px Nunito,sans-serif;color:#e8e2f0} .paracard span b{display:inline;font:900 14px Nunito,sans-serif;color:#e3b8ff}
+.auras{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.aura{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:12px;border:1px solid #ffffff22;background:#1c1528;color:#e8e2f0;text-align:left;cursor:pointer;font:inherit}
+.aura i{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,var(--c) 0,transparent 70%);box-shadow:0 0 14px var(--c)}
+.aura b{font:900 13px Nunito,sans-serif} .aura small{font:700 11px Nunito,sans-serif;color:#b9b0c9}
+.aura.sel{border:2px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 50%,transparent)} .aura.locked{opacity:.45;cursor:default}
