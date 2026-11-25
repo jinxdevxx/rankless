@@ -664,7 +664,8 @@ function finishBattle(win){
   // apply
   S.gold += r.gold; S.stones += r.stones; S.diamonds = (S.diamonds||0) + r.diamonds;
   r.levels = addXP(r.xp);
-  for(const it of r.items){ const res = addItem(it); if(res === 'salvaged'){ it.salvaged = true; r.salvaged++; } else if(res === 'equipped') it.equipped = true; }
+  r.salvStones = 0; r.salvGold = 0;
+  for(const it of r.items){ const res = addItem(it); if(res === 'salvaged'){ it.salvaged = true; r.salvaged++; const v = it.salvValue || salvageValue(it); r.salvStones += v.stones; r.salvGold += v.gold; } else if(res === 'equipped') it.equipped = true; }
   r.unlocked = checkUnlocks(false);
   BT.result = r;
   save();

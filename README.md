@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.15.1 – No More Junk
+- Drops that are junk (isJunk: never beat the equipped item even at +15) are auto-salvaged in storeItem (setting autoJunk, default on); result screen shows the salvage income.
+- isJunk no longer spares set pieces (consistent with the item window; equipBest handles sets).
+- Big salvage button with Stones/Gold preview.
+- COMMON_UPGRADE: Common rolls become Rare with 60 % (D) / 85 % (C) chance.
+- Frost Matriarch HP 8.5 → 7.5, ATK 1.9 → 1.8. Bot 53–83 min to Rank B.
+
 ### v0.15.0 – Spirit Legion
 - Legion reworked into the Spirit Legion: 5 magic spirits (PETS in data.js), bought with Gold, levelled with Gold (max Lv 15), ranged bolts only, untargetable, passive bonus per spirit. Slots: 1 free, slot 2 = 5,000, slot 3 = 25,000 Gold. Soul shard drops removed; old bound monsters refunded as Gold (migratePets).
 - New repeatable farm modes in the Gates tab: Gold Rush (RUSH_GOLD) and Training (TRAIN_XP), 2 waves at 85 % of your best floor's strength, no loot.

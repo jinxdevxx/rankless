@@ -730,3 +730,16 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 @media (max-width:900px){ .farmrow{grid-template-columns:1fr} }
 
 @media (max-width:640px){ #toasts .toast:nth-last-child(n+3){display:none} }
+
+/* ---------- salvage useless (v0.15.1) ---------- */
+.junkbtn{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 10px;padding:12px 16px;border-radius:14px;cursor:pointer;text-align:left;color:#fff;
+  background:linear-gradient(100deg,#8a2a36,#5a1a26);border:1px solid #ff8f8f;box-shadow:0 0 22px -6px rgba(255,110,110,.7);animation:jpulse 2s ease-in-out infinite}
+.junkbtn:hover{filter:brightness(1.15)}
+.junkbtn .jl b{display:block;font:400 24px "Bebas Neue",sans-serif;letter-spacing:.05em}
+.junkbtn .jl small{color:#ffd0cc;font-size:13px}
+.junkbtn .jr{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.junkbtn .cur{font-size:24px}
+@keyframes jpulse{50%{box-shadow:0 0 30px -4px rgba(255,110,110,.95)}}
+.salvline{margin:6px auto;font:700 14px Nunito,sans-serif;color:#c9e6c9}
+.salvline b{font:400 20px "Bebas Neue",sans-serif;color:#fff}
+@media (max-width:640px){ .junkbtn{flex-wrap:wrap} .junkbtn .jr{margin-left:0} }

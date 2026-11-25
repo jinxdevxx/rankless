@@ -24,7 +24,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'classic'}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'classic', autoJunk:true}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
@@ -101,8 +101,11 @@ function makeItem(slot, ilvl, rar, set){
     ...(set ? {set} : {}),
   };
 }
+/* higher gates drop fewer Commons: a Common roll is upgraded to Rare with this chance */
+const COMMON_UPGRADE = {E:0, D:.6, C:.85};
 function randomItem(ilvl, bonus=0, gateId){
-  const rar = rollRarity(bonus);
+  let rar = rollRarity(bonus);
+  if(rar === 0 && Math.random() < (COMMON_UPGRADE[gateId] || 0)) rar = 1;
   const set = gateId && SET_OF_GATE[gateId] && (rar >= 3 || (rar === 2 && Math.random() < .5)) ? SET_OF_GATE[gateId] : undefined;
   return makeItem(pick(SLOTS), ilvl, rar, set);
 }
@@ -180,6 +183,7 @@ function addItem(it){
   return storeItem(it);
 }
 function storeItem(it){
+  if(S.settings.autoJunk !== false && isJunk(it)){ const v = salvageValue(it); S.stones += v.stones; S.gold += v.gold; it.salvValue = v; return 'salvaged'; }
   if(Math.max(S.settings.autoSalvage, S.settings.simple ? 0 : -1) >= it.rar){ const v = salvageValue(it); S.stones += v.stones; S.gold += v.gold; return 'salvaged'; }
   if(S.inv.length >= MAX_INV){
     // bag full: salvage the weakest unlocked item to make room
@@ -206,8 +210,6 @@ function beatsAtPlus(item){
 /* useless = can never beat the equipped item, not even fully enhanced (locked items are kept) */
 function isJunk(it){
   if(it.locked || !S.eq[it.slot]) return false;
-  // set pieces stay while you own pieces of that set in at least 2 different slots (a set bonus is possible)
-  if(it.set){ const slots = new Set([...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)].filter(x => x.set === it.set).map(x => x.slot)); if(slots.size >= 2) return false; }
   return beatsAtPlus(it) === -1;
 }
 /* equip the best possible combination from bag + worn gear.

@@ -73,6 +73,7 @@ function openMenu(){
     <div class="msets">
       ${tg('simple','Simple Mode')}
       <small class="muted" style="display:block;margin:-4px 0 6px">Enhancing never fails and Common junk is salvaged automatically. Turn off for full control.</small>
+      ${tg('autoJunk','Auto-salvage useless drops')}
       ${tg('sfx','Sound effects')}
       ${tg('music','Music')}
       ${tg('autoEquip','Auto-equip better gear')}

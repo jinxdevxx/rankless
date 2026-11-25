@@ -325,7 +325,9 @@ function sheetBag(){
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
       <button class="btn small" data-a="salvageBelow" data-id="1">Salvage Rare</button>
       <button class="btn small primary" data-a="autoEquip">Equip best</button></div>
-    ${(() => { const junk = S.inv.filter(isJunk); return junk.length ? `<div class="bagbar junkbar"><span>✖ <b>${junk.length}</b> item${junk.length > 1 ? 's are' : ' is'} worse than your gear even at +${MAX_PLUS} (marked ✖).</span><span class="sp"></span><button class="btn small danger" data-a="salvageJunk">Salvage useless (${junk.length})</button></div>` : ''; })()}
+    ${(() => { const junk = S.inv.filter(isJunk); if(!junk.length) return ''; let st = 0, gd = 0; for(const it of junk){ const v = salvageValue(it); st += v.stones; gd += v.gold; }
+      return `<button class="junkbtn" data-a="salvageJunk"><span class="jl"><b>SALVAGE ${junk.length} USELESS ITEM${junk.length > 1 ? 'S' : ''}</b><small>Worse than your gear even at +${MAX_PLUS} (marked ✖)</small></span>
+        <span class="jr"><span class="cur stone">${ICON.stone}<b>+${fmt(st)}</b></span><span class="cur gold">${ICON.gold}<b>+${fmt(gd)}</b></span></span></button>`; })()}
     <div class="grid-items">${(() => { return items.map(i => itemCard(i, false)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
 }
 
@@ -498,6 +500,7 @@ function showResult(r){
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
     <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
     ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
+    ${r.salvaged ? `<div class="salvline">♻ ${r.salvaged} useless drop${r.salvaged > 1 ? 's' : ''} auto-salvaged: <b>+${fmt(r.salvStones)}</b> ${ICON.stone} <b>+${fmt(r.salvGold)}</b> ${ICON.gold}</div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}

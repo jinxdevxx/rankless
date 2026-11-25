@@ -3,6 +3,9 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Salvage useless left a ring marked 'worse even at +15' (set exception); now consistent (v0.15.1)
+- [x] Useless Common drops at higher levels: auto-salvage useless drops + fewer Commons in D/C (v0.15.1)
+- [x] Salvage button must show the reward clearly and look good (v0.15.1)
 - [x] Legion useless + ugly melee: Spirit Legion of ranged magic pets, bought and levelled with Gold, slots bought with Gold, no random drops (v0.15.0)
 - [x] Active gold farming possible (Gold Rush, unlimited) (v0.15.0)
 - [x] Training must be repeatable, not daily (Training, unlimited) (v0.15.0)

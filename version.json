@@ -1,14 +1,13 @@
 {
-  "version": "0.15.0",
+  "version": "0.15.1",
   "date": "2026-11-25",
-  "title": "Spirit Legion",
+  "title": "No More Junk",
   "notes": [
-    "LEGION REWORKED: the Legion is now made of magic spirits. They float behind you, only cast ranged bolts, can't be hurt and each gives a strong bonus (ATK, HP, Crit, Gold Find, Lifesteal).",
-    "Spirits are bought with Gold, not dropped. Level them up with Gold. You start with 1 slot and can buy slot 2 and 3. Your old monsters were turned into Gold.",
-    "NEW: Gold Rush and Training in the Gates tab. Play them as often as you like for lots of Gold or XP (no loot). Stuck on a floor? Train and come back.",
-    "Easier start: E-Rank enemies are softer, so you progress fast even by just spamming SPACE. D and C Rank are tougher, that's where gear, skills and spirits matter.",
-    "Item window is compact: Equip, Lock and Salvage sit at the top, no scrolling.",
-    "Salvage now returns 65% of the Gold and Mana Stones you spent on enhancing that item.",
-    "Defeat screen tells you exactly what helps (Training, Gold Rush, skills, AUTO FARM, spirits)."
+    "Useless drops (worse than your gear even at +15) are salvaged automatically right after the fight. The victory screen shows what you got for them.",
+    "Salvage useless now really removes every item marked ✖, set pieces included (Equip best already picks sets when they help).",
+    "The salvage button is big and shows the Mana Stones and Gold you get at a glance.",
+    "Commons get rarer in higher gates: in D-Rank most Commons become Rares, in C-Rank almost all do.",
+    "Setting in the menu: Auto-salvage useless drops (on by default).",
+    "C-Rank boss slightly softer."
   ]
 }
