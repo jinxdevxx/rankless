@@ -8,14 +8,14 @@ Open requests from the player come first. Every development round starts here.
 - [x] Clear in-game update notification (v0.5.0)
 - [x] Save slots, Esc menu, export/import save codes (v0.5.0)
 - [x] Update notice at the very top center (v0.5.1)
-- [~] Keep improving looks: more detailed anime-style characters and monsters (first pass in v0.5.1)
+- [~] Keep improving looks (ongoing)
 
 - [x] Sound effects and music (v0.5.2)
 - [x] Active combat: strike with Space / tap, parry with timing (v0.6.0)
 - [x] Crystal / skill display explained with label and live hint (v0.6.0)
 - [ ] Skills should come often enough for dopamine but stay balanced (v0.6.0 first pass, keep watching)
-- [ ] New art direction: less "cyber / neon / Star Wars", more appealing light anime look with real colors, faces and outlines
-- [ ] Redesign the UI to match (warmer, cleaner, more professional)
+- [x] New art direction: warm illustrated anime look with colors, faces, outlines (v0.7.0, keep polishing)
+- [x] UI redesign to match: warm gold, rounded, friendlier fonts (v0.7.0)
 - [ ] Keep balancing after every gameplay change (bot runs)
 
 ## Next up

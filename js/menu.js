@@ -59,7 +59,7 @@ function openMenu(){
   const inBattle = UI.screen === 'battle' && BT && !BT.over;
   const tg = (k, label) => `<label class="tgl"><input type="checkbox" data-a="menuToggle" data-id="${k}" ${S.settings[k]?'checked':''}><span></span>${label}</label>`;
   showModal(`<div class="menu">
-    <div class="bt">[ ${inBattle ? 'PAUSED' : 'MENU'} ]</div>
+    <div class="bt">${inBattle ? 'PAUSED' : 'MENU'}</div>
     <div class="mgrid">
       <button class="btn primary" data-a="menuClose">Resume</button>
       <button class="btn" data-a="menuSave">Save game</button>
@@ -68,7 +68,7 @@ function openMenu(){
       <button class="btn" data-a="checkUpdate">Check for updates</button>
       <button class="btn" data-a="menuMain">Main menu</button>
     </div>
-    <div class="bt" style="margin-top:16px">[ SETTINGS ]</div>
+    <div class="bt" style="margin-top:16px">SETTINGS</div>
     <div class="msets">
       ${tg('sfx','Sound effects')}
       ${tg('music','Music')}
@@ -87,7 +87,7 @@ function closeMenu(){ UI.menuOpen = false; closeModal(); if(UI.screen === 'battl
 function showExport(){
   save();
   const code = exportCode();
-  showModal(`<div class="bt">[ EXPORT SAVE CODE ]</div>
+  showModal(`<div class="bt">EXPORT SAVE CODE</div>
     <p>Keep this code somewhere safe. Paste it into <b>Import save code</b> on any device to get this save back.</p>
     <textarea id="codeBox" readonly rows="5">${esc(code)}</textarea>
     <div class="row"><button class="btn" data-a="menuBack">Back</button><span class="sp"></span><button class="btn primary" data-a="copyCode">Copy code</button></div>`, true);
@@ -101,7 +101,7 @@ function copyCode(silent){
 }
 function showImport(target){
   UI.importTarget = target;
-  showModal(`<div class="bt">[ IMPORT SAVE CODE ]</div>
+  showModal(`<div class="bt">IMPORT SAVE CODE</div>
     <p>Paste a save code that starts with <b>RANKLESS1:</b>${target === 'current' ? '. This replaces the save in this slot.' : '.'}</p>
     <textarea id="codeIn" rows="5" placeholder="RANKLESS1:..."></textarea>
     <div class="row"><button class="btn" data-a="${target === 'current' ? 'menuBack' : 'closeModal'}">Cancel</button><span class="sp"></span><button class="btn primary" data-a="doImport">Load save</button></div>`, true);
@@ -125,7 +125,7 @@ function menuAct(a, el){
     case 'slotNew': enterSlot(+id); return true;
     case 'slotImport': showImport(id); return true;
     case 'slotDelete': { const s = readSlot(+id);
-      showModal(`<div class="bt">[ DELETE SAVE ]</div><h3 class="bad">Delete ${esc(s ? s.name : 'this save')}?</h3><p class="muted">Slot ${id} will be emptied. This cannot be undone. Export a save code first if you want a backup.</p>
+      showModal(`<div class="bt">DELETE SAVE</div><h3 class="bad">Delete ${esc(s ? s.name : 'this save')}?</h3><p class="muted">Slot ${id} will be emptied. This cannot be undone. Export a save code first if you want a backup.</p>
         <div class="row"><button class="btn" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn danger" data-a="slotDeleteYes" data-id="${id}">Delete</button></div>`); return true; }
     case 'slotDeleteYes': deleteSlot(+id); closeModal(); renderSlots(); toast('DELETED', `Slot ${id} is empty now.`); return true;
     case 'menu': openMenu(); return true;

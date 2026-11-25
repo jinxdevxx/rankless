@@ -33,7 +33,7 @@ const ICON = {
 function toast(title, body='', cls=''){
   const el = document.createElement('div');
   el.className = 'toast ' + cls;
-  el.innerHTML = `<b>[ ${esc(title)} ]</b>${body ? `<span>${esc(body)}</span>` : ''}`;
+  el.innerHTML = `<b>${esc(title)}</b>${body ? `<span>${esc(body)}</span>` : ''}`;
   $('#toasts').appendChild(el);
   setTimeout(() => el.classList.add('out'), 2600);
   setTimeout(() => el.remove(), 3100);
@@ -152,7 +152,7 @@ function showNextUnlock(){
   const k = S.pendingUnlocks[0]; if(!k) return;
   const u = UNLOCKS[k];
   SFX.unlockFx();
-  showModal(`<div class="unlock"><div class="bt">[ NEW FEATURE UNLOCKED ]</div>
+  showModal(`<div class="unlock"><div class="bt">NEW FEATURE UNLOCKED</div>
     <div class="uicon">${ICON[u.icon]}</div><h3>${u.name}</h3><p>${u.desc}</p>
     <div class="row c"><button class="btn" data-a="unlockLater">Later</button><button class="btn primary" data-a="unlockOpen" data-id="${k}">Open ${u.name}</button></div></div>`);
 }
@@ -240,12 +240,12 @@ function sheetHero(){
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
   const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i><span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
-    <div class="box sys"><div class="bt">[ STATUS ] <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
+    <div class="box sys"><div class="bt">STATUS <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
       <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
-    <div class="box"><div class="bt">[ COMBAT ] <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
+    <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
   </div>
-  <div class="box"><div class="bt">[ EQUIPMENT ]</div><div class="slots">${slots}</div></div>
-  <div class="box"><div class="bt">[ SKILLS · ${a.name.toUpperCase()} ]</div>${skills}</div>`;
+  <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div></div>
+  <div class="box"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
 
 function itemCard(it, eq){
@@ -295,7 +295,7 @@ function sheetLegion(){
         ${inParty ? '<span class="tag">IN PARTY</span>' : ''}
       </div></div>`;
   }).join('');
-  return `<div class="box sys"><div class="bt">[ PARTY ] <span class="pts on">${S.party.length} / ${slots}</span></div><div class="pslots">${party}</div>
+  return `<div class="box sys"><div class="bt">PARTY <span class="pts on">${S.party.length} / ${slots}</span></div><div class="pslots">${party}</div>
     <div class="hint">Monsters drop <b>Soul Shards</b>. Collect enough to bind them. More shards raise their stars. Rank up to unlock more party slots.</div></div>
     <div class="mlist">${cards || '<div class="empty">Defeat monsters in gates to collect Soul Shards.</div>'}</div>`;
 }
@@ -397,7 +397,7 @@ function showResult(r){
   const win = r.win, g = BT.gate;
   const loot = r.items.map((it,i) => `<button class="icard drop ${it.salvaged?'salv':''}" style="--r:${RARITY[it.rar].color};animation-delay:${i*.12}s" data-a="${it.salvaged?'':'item'}" data-id="${it.id}">
     ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.salvaged?'<span class="sv">SALVAGED</span>':''}${it.equipped?'<span class="sv eqd">EQUIPPED</span>':''}</button>`).join('');
-  const unl = (r.unlocked||[]).map(k => `<div class="rankup unl"><small>[ NEW FEATURE UNLOCKED ]</small><b>${ICON[UNLOCKS[k].icon]} ${UNLOCKS[k].name}</b><span>${UNLOCKS[k].desc}</span>
+  const unl = (r.unlocked||[]).map(k => `<div class="rankup unl"><small>NEW FEATURE UNLOCKED</small><b>${ICON[UNLOCKS[k].icon]} ${UNLOCKS[k].name}</b><span>${UNLOCKS[k].desc}</span>
     <button class="btn primary small" data-a="unlockOpen" data-id="${k}">Open ${UNLOCKS[k].name}</button></div>`).join('');
   const shards = Object.entries(r.shards||{}).map(([k,v]) => `<span class="shard"><img src="${monsterPortrait(k,false)}" alt="">+${v}</span>`).join('');
   let btns = '';
@@ -411,7 +411,7 @@ function showResult(r){
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : esc(BT.hunter.name)}</div>
-    ${r.rankUp ? `<div class="rankup"><small>[ RANK EXAM PASSED ]</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
+    ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(r.gold)}</b></span><span class="cur cxp">XP <b>+${fmt(r.xp)}</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b>+${r.stones}</b></span>`:''}</div>
     ${r.levels ? `<div class="lvup">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
@@ -496,19 +496,19 @@ function act(a, el){
     case 'auto': S.settings.autoSkill = !S.settings.autoSkill; syncFarmUI(); save(); break;
     case 'farm': S.settings.farm = {off:'repeat', repeat:'push', push:'off'}[S.settings.farm]; syncFarmUI(); save(); break;
     case 'stopFarm': S.settings.farm = 'off'; cancelAuto(); syncFarmUI(); save(); break;
-    case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">[ RETREAT ]</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
+    case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
     case 'retry': { cancelAuto(); if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
     case 'settings': openMenu(); break;
-    case 'settingsOld': showModal(`<div class="bt">[ SETTINGS ]</div>
+    case 'settingsOld': showModal(`<div class="bt">SETTINGS</div>
       <p class="muted">Version <b>${esc(window.GAME_VERSION||'dev')}</b>. Your progress is saved automatically in this browser.</p>
       <div class="row" style="margin-top:0"><button class="btn small" data-a="checkUpdate">Check for updates</button></div>
-      ${window.GAME_PATCH && window.GAME_PATCH.notes && window.GAME_PATCH.notes.length ? `<div class="bt" style="margin-top:14px">[ CURRENT PATCH ]</div>${patchNotesHtml(window.GAME_PATCH)}` : ''}
+      ${window.GAME_PATCH && window.GAME_PATCH.notes && window.GAME_PATCH.notes.length ? `<div class="bt" style="margin-top:14px">CURRENT PATCH</div>${patchNotesHtml(window.GAME_PATCH)}` : ''}
       <div class="row"><button class="btn danger" data-a="resetAsk">Delete save</button><span class="sp"></span><button class="btn" data-a="closeModal">Close</button></div>`); break;
-    case 'resetAsk': showModal(`<div class="bt">[ WARNING ]</div><h3 class="bad">Delete all progress?</h3><p class="muted">This cannot be undone.</p>
+    case 'resetAsk': showModal(`<div class="bt">WARNING</div><h3 class="bad">Delete all progress?</h3><p class="muted">This cannot be undone.</p>
       <div class="row"><button class="btn" data-a="closeModal">Cancel</button><span class="sp"></span><button class="btn danger" data-a="resetYes">Delete everything</button></div>`); break;
     case 'resetYes': deleteSlot(SLOT); showMainMenu(); break;
     case 'collectOffline': closeModal(); renderHome(); break;
@@ -517,7 +517,7 @@ function act(a, el){
     case 'toggleSetting': S.settings[id] = !S.settings[id]; if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); save(); renderSheet(); renderHome(); break;
     case 'doUpdate': doUpdate(); break;
     case 'checkUpdate': checkForUpdate(true); break;
-    case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">[ NEW PATCH ]</div>${patchNotesHtml(UPDATE_INFO)}
+    case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">NEW PATCH</div>${patchNotesHtml(UPDATE_INFO)}
       <div class="row"><button class="btn" data-a="closeModal">Later</button><span class="sp"></span><button class="btn primary" data-a="doUpdate">Update now</button></div>`); break;
   }
 }
@@ -549,7 +549,7 @@ document.addEventListener('keydown', e => {
 
 function intro(){
   const a = AFF[S.aff];
-  showModal(`<div class="bt">[ THE CONTRACT HAS BEEN SIGNED ]</div>
+  showModal(`<div class="bt">THE CONTRACT HAS BEEN SIGNED</div>
     <div class="story">You were the weakest Breaker in the city.
 Something gave you a second chance.
 

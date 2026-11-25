@@ -33,7 +33,7 @@ function offlineRewards(){
   let salv = 0; for(const it of items) if(addItem(it) === 'salvaged'){ it.salvaged = true; salv++; }
   save();
   const h = hrs >= 1 ? `${hrs.toFixed(1)} hours` : `${Math.round(hrs*60)} minutes`;
-  showModal(`<div class="bt">[ OFFLINE FARMING REPORT ]</div>
+  showModal(`<div class="bt">OFFLINE FARMING REPORT</div>
     <h3>Welcome back, ${esc(S.name)}</h3>
     <p class="muted">Your shadow kept farming for ${h}.</p>
     <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(gold)}</b></span><span class="cur cxp">XP <b>+${fmt(xp)}</b></span><span class="cur stone">${ICON.stone}<b>+${stones}</b></span></div>
@@ -52,7 +52,7 @@ function showUpdateBanner(info){
   UPDATE_INFO = info;
   let el = document.getElementById('updBanner');
   if(!el){ el = document.createElement('div'); el.id = 'updBanner'; document.body.appendChild(el); }
-  el.innerHTML = `<div class="upd-txt"><small>[ NEW PATCH AVAILABLE ]</small><b>v${esc(info.version)} · ${esc(info.title||'Update')}</b></div>
+  el.innerHTML = `<div class="upd-txt"><small>NEW PATCH AVAILABLE</small><b>v${esc(info.version)} · ${esc(info.title||'Update')}</b></div>
     <button class="btn small" data-a="patchInfo">What's new</button>
     <button class="btn primary small" data-a="doUpdate">Update now</button>`;
   el.classList.add('on');
@@ -75,7 +75,7 @@ async function checkForUpdate(manual){
 }
 function showUpdatePopup(info){
   UI.updatePopupPending = false;
-  showModal(`<div class="unlock"><div class="bt">[ NEW PATCH AVAILABLE ]</div><div class="uicon">${ICON.gate}</div>
+  showModal(`<div class="unlock"><div class="bt">NEW PATCH AVAILABLE</div><div class="uicon">${ICON.gate}</div>
     <h3>v${esc(info.version)}</h3>${patchNotesHtml(info)}
     <div class="row c"><button class="btn" data-a="closeModal">Later</button><button class="btn primary" data-a="doUpdate">Update now</button></div></div>`);
 }
@@ -85,7 +85,7 @@ function whatsNew(){
   if(!info || !S.created || info.version === 'dev') return false;
   if(S.seenVersion === info.version) return false;
   S.seenVersion = info.version; save();
-  showModal(`<div class="bt">[ PATCH INSTALLED ]</div><h3 class="pn-title">What's new</h3>${patchNotesHtml(info)}
+  showModal(`<div class="bt">PATCH INSTALLED</div><h3 class="pn-title">What's new</h3>${patchNotesHtml(info)}
     <div class="row"><span class="sp"></span><button class="btn primary" data-a="closeModal">Let's go</button></div>`);
   return true;
 }

@@ -1,13 +1,11 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "date": "2026-11-25",
-  "title": "Active Combat",
+  "title": "New Look",
   "notes": [
-    "You fight now: press SPACE, tap the screen or hit STRIKE to attack yourself. Your own strikes charge crystals much faster than auto attacks.",
-    "Parry: when an enemy is about to hit you, a red ! appears above it. Press SPACE in that moment to block, counter, stun it and earn a full crystal. Mashing does not parry, timing does.",
-    "Skills come often now (about every 2-3 seconds when you fight actively). Keys: 1/2/3 or Q/W/E for skills, R for the Ultimate.",
-    "The crystal bar is labelled and shows a live hint about what to do next.",
-    "Stuns can no longer lock enemies forever (short immunity after each stun).",
-    "Rebalanced for active play: enemies hit harder and last longer, Arena fights take about 15 seconds. Playing actively is rewarded."
+    "Completely new art direction: warm dusk skies with clouds, cherry blossoms in the city, an evening shrine in the snow and a sunset arena.",
+    "Characters are drawn in color now: faces with eyes, coats in your power's color, boots, belts, ink outlines and cel shading. Your katana is real steel.",
+    "Monsters have colored bodies and outlines instead of neon glow.",
+    "New menu design: warm gold instead of cyan, rounded buttons, friendlier fonts, no more sci-fi brackets."
   ]
 }

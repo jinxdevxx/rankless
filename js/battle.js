@@ -517,11 +517,11 @@ function renderBattle(t, dt){
       c.save(); c.globalAlpha = .9; c.strokeStyle = '#ff3d5e'; c.lineWidth = 3;
       c.beginPath(); c.arc(cx, cy, (14 + rem*26)*Math.max(.7,k), 0, 7); c.stroke();
       c.fillStyle = rem < .5 ? '#ffd166' : '#ff3d5e'; c.beginPath(); c.arc(cx, cy, 13*Math.max(.7,k), 0, 7); c.fill();
-      c.fillStyle = '#1a0a10'; c.font = `700 ${Math.round(22*Math.max(.7,k))}px Teko, sans-serif`; c.textAlign = 'center'; c.fillText('!', cx, cy + 8*Math.max(.7,k));
+      c.fillStyle = '#1a0a10'; c.font = `700 ${Math.round(22*Math.max(.7,k))}px "Bebas Neue", sans-serif`; c.textAlign = 'center'; c.fillText('!', cx, cy + 8*Math.max(.7,k));
       c.restore();
       const hh = BT.hero; c.save(); c.strokeStyle = 'rgba(255,61,94,.7)'; c.lineWidth = 2; c.beginPath(); c.ellipse(hh.x, hh.y, 46*k*(1+rem*.4), 10*k, 0, 0, 7); c.stroke(); c.restore();
     }
-    if(!u.dead && u.stun > 0){ c.fillStyle = '#ffd166'; c.font = `700 ${16*k}px Teko`; c.textAlign = 'center'; c.fillText('★ ★', u.x + Math.sin(t*8)*6, u.y - h - 18*k); }
+    if(!u.dead && u.stun > 0){ c.fillStyle = '#ffd166'; c.font = `700 ${16*k}px "Bebas Neue"`; c.textAlign = 'center'; c.fillText('★ ★', u.x + Math.sin(t*8)*6, u.y - h - 18*k); }
   }
   // projectiles
   for(const p of BT.projs){ c.save(); c.shadowColor = p.c; c.shadowBlur = 18; c.fillStyle = p.c; c.beginPath(); c.arc(p.x, p.y, 7*k, 0, 7); c.fill();
@@ -530,18 +530,18 @@ function renderBattle(t, dt){
   // texts
   for(const tx of BT.texts){
     const a = clamp(tx.life/tx.max*1.8, 0, 1), sc = tx.crit ? 1 + Math.max(0, tx.life - .7)*2 : 1;
-    c.globalAlpha = a; c.font = `${tx.crit ? 'italic ' : ''}700 ${tx.size*sc}px Teko, sans-serif`; c.textAlign = 'center';
+    c.globalAlpha = a; c.font = `${tx.crit ? 'italic ' : ''}700 ${tx.size*sc}px "Bebas Neue", sans-serif`; c.textAlign = 'center';
     c.lineWidth = 4; c.strokeStyle = 'rgba(0,0,0,.85)'; c.strokeText(tx.txt, tx.x, tx.y);
     c.fillStyle = tx.c; c.fillText(tx.txt, tx.x, tx.y);
   }
   c.globalAlpha = 1;
   // combo
   if(BT.combo >= 5){
-    c.textAlign = 'right'; c.font = `italic 700 ${Math.round(46*Math.max(.7,k))}px Teko`;
+    c.textAlign = 'right'; c.font = `italic 700 ${Math.round(46*Math.max(.7,k))}px "Bebas Neue"`;
     c.lineWidth = 5; c.strokeStyle = 'rgba(0,0,0,.7)';
     const y = VW < VH ? VH*.18 : VH*.2;
     c.strokeText(`${BT.combo}`, VW - 24, y); c.fillStyle = BT.combo > 50 ? '#ff2e88' : BT.combo > 20 ? '#ffd166' : '#fff'; c.fillText(`${BT.combo}`, VW - 24, y);
-    c.font = `600 ${Math.round(16*Math.max(.7,k))}px Rajdhani`; c.fillStyle = '#cfd6ff'; c.fillText('HIT COMBO', VW - 24, y + 18);
+    c.font = `600 ${Math.round(16*Math.max(.7,k))}px Nunito`; c.fillStyle = '#cfd6ff'; c.fillText('HIT COMBO', VW - 24, y + 18);
   }
   if(BT.flashT > 0){ c.fillStyle = `rgba(255,255,255,${BT.flashT*2})`; c.fillRect(-20,-20,VW+40,VH+40); }
   c.restore();
@@ -552,7 +552,7 @@ function drawHpBar(c, u, k){
   c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(x-1, y-1, w+2, h+2);
   c.fillStyle = u.side === 'p' ? '#5dff9b' : '#ff3d5e'; c.fillRect(x, y, w*clamp(u.hp/u.maxHp,0,1), h);
   if(u.shield > 0){ c.fillStyle = 'rgba(159,216,255,.8)'; c.fillRect(x, y-3, w*clamp(u.shield/u.maxHp,0,1), 2); }
-  if(u.kind === 'enemy' && u.elite){ c.fillStyle = '#ffb02e'; c.font = `700 ${12*Math.max(.8,k)}px Rajdhani`; c.textAlign = 'center'; c.fillText('ELITE', u.x, y - 4); }
+  if(u.kind === 'enemy' && u.elite){ c.fillStyle = '#ffb02e'; c.font = `700 ${12*Math.max(.8,k)}px Nunito`; c.textAlign = 'center'; c.fillText('ELITE', u.x, y - 4); }
 }
 function drawFx(c, k, t){
   for(const f of BT.fx){
@@ -607,9 +607,9 @@ function drawCutin(c, ci, t){
   c.restore();
   c.textAlign = 'center'; c.shadowColor = ci.color; c.shadowBlur = 30; c.fillStyle = '#fff';
   const fs = Math.min(W*.075, 92);
-  c.font = `italic 700 ${fs}px Teko, sans-serif`;
+  c.font = `italic 700 ${fs}px "Bebas Neue", sans-serif`;
   c.fillText(ci.name, W*.14 + (1-inA)*120, fs*.3);
-  c.shadowBlur = 0; c.font = `600 ${Math.max(12, fs*.2)}px "JetBrains Mono", monospace`; c.fillStyle = ci.color2;
-  c.fillText(`[ ${S.name.toUpperCase()} · ULTIMATE ]`, W*.14, fs*.3 + fs*.45);
+  c.shadowBlur = 0; c.font = `600 ${Math.max(12, fs*.2)}px Nunito, sans-serif`; c.fillStyle = ci.color2;
+  c.fillText(`${S.name.toUpperCase()} · ULTIMATE`, W*.14, fs*.3 + fs*.45);
   c.restore();
 }
