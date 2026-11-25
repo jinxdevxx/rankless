@@ -1102,3 +1102,4 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 @media (max-width:640px){ .b-party{top:auto!important;bottom:calc(150px + var(--safe-b))!important;left:8px!important;min-width:0} .pc.hcard2{padding:5px 8px;max-width:190px} .hcard2 .hc-top b{font-size:13px} .hc-buffs span{font-size:9px} }
 @media (max-width:640px){ .b-party{bottom:calc(196px + var(--safe-b))!important} .skb kbd{display:none!important} .skb b{padding-top:0!important;font-size:10px!important} }
 @media (max-width:640px){ #bTitle span{display:none} #bTitle b{font-size:20px} }
+.hinfo .wareq{display:block;font-size:12px;color:#ff8fa3;margin-top:3px;font-weight:800}

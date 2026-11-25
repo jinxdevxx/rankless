@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.27.1 – Into Yomi
+- Region 3 on hold: `REGIONS[2].soon`, `regionOpen` returns false for soon regions, saves in world 3 go back to world 1, Tengu tree stats/keystones and the tree box are inactive.
+- World arena gating: `worldArenaReady(r, i)` needs the boss of circle i (opponent 1 open). `WORLD_ARENA_P[2]` = 31 + 6i (slightly above the matching circle's last floor). `WORLD_ARENA_LINES` per fighter.
+- Own creatures: `REGION_MOBS[2]` names per type, `REGION_BOSSES[2]` per circle, `regionMobName`.
+- Art: brute / oni / warden redrawn (hunch + bone spikes + stitches, horns + mane + tiger cloth + kanabo, kabuto + crest + menpo + sode + naginata); smaller heart core instead of the chest sigil.
+- Bot: YOMI mode fights the Yomi Arena when the next fighter is open (2 tries, then a circle step).
+
 ### v0.27.0 – Worlds
 - Worlds (`S.world`): the map travels between worlds. World ≥ 2 swaps Home (badge, CTAs, background theme), Gates (`sheetRegion`) and Arena (`sheetWorldArena`). Region code generalized (`REG`, `REG_REQ`, `regState/regFree`, `regionGateOpen`, region palettes, region towers `S.tower.y2/y3`).
 - World arenas (`WORLD_ARENA`, `worldFoe`, `startWorldArena`): 10 fighters per world on the Paragon scale (Yomi p 14–68, Takamagahara p 72–135); first wins give region currency (champion 10), Diamonds, loot at hero level, unique roll. Strict lifesteal budget applies.

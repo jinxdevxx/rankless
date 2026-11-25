@@ -40,6 +40,7 @@ function normalizeSave(s){
   const out = Object.assign(defaultSave(), s);
   if(!Array.isArray(s.mastery)) s.mastery = [0,0,0,0];
   for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets','tower','talents','master']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+  if((out.world||1) > 1 && !regionOpen(out.world)) out.world = 1;   // region on hold / locked -> back to Neo-Tokyo
   return out;
 }
 function readMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY)) || {last:null}; }catch(e){ return {last:null}; } }
@@ -151,7 +152,7 @@ function calcStats(src){
   if(src.relics) for(const id of src.relics.active || []){ const lv = src.relics.owned[id]; if(lv && RELICS[id]) o[RELICS[id].stat] += relicValue(id, lv); }
   if(src.paragon){ o.atkP += src.paragon; o.hpP += src.paragon; }
   if(src.yomi && src.yomi.tree) for(const nd of YOMI_TREE){ const r = src.yomi.tree[nd.id]||0; if(r && nd.stat){ o[nd.stat] += nd.per*r; if(nd.stat2) o[nd.stat2] += nd.per*r; } }   // Shinigami Arts
-  if(src.takama && src.takama.tree) for(const nd of TENGU_TREE){ const r = src.takama.tree[nd.id]||0; if(r && nd.stat){ o[nd.stat] += nd.per*r; if(nd.stat2) o[nd.stat2] += nd.per*r; } }   // Tengu Arts
+  if(!REGIONS[2].soon && src.takama && src.takama.tree) for(const nd of TENGU_TREE){ const r = src.takama.tree[nd.id]||0; if(r && nd.stat){ o[nd.stat] += nd.per*r; if(nd.stat2) o[nd.stat2] += nd.per*r; } }   // Tengu Arts
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }

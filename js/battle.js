@@ -207,7 +207,7 @@ function kamiTick(dt){
 }
 /* arena of another world */
 function startWorldArena(r, i){
-  if(i > worldArenaDone(r) || !regionOpen(r)) return;
+  if(i > worldArenaDone(r) || !regionOpen(r) || !worldArenaReady(r, i)) return;
   const h = worldFoe(r, i);
   BT = newBattle({mode:'arena', rank:'M', idx:i, exam:false, worldArena:r, hunter:h, theme:REG[r].gates[0].theme, L:h.lv, waves:[]});
   const hu = prep(hunterUnit(h)); hu.auraC = REG[r].color; BT.units.push(hu); BT.boss = hu;
@@ -230,7 +230,7 @@ function newBattle(o){
   const hs = heroStats();
   b.keys = {}; for(const nd of talentNodes()) if(nd.key && S.talents && S.talents[nd.id]) b.keys[nd.key] = true;
   for(const nd of YOMI_TREE) if(nd.key && S.yomi && S.yomi.tree[nd.id]) b.keys[nd.key] = true;   // Shinigami Arts keystones
-  for(const nd of TENGU_TREE) if(nd.key && S.takama && S.takama.tree[nd.id]) b.keys[nd.key] = true;   // Tengu Arts keystones
+  if(!REGIONS[2].soon) for(const nd of TENGU_TREE) if(nd.key && S.takama && S.takama.tree[nd.id]) b.keys[nd.key] = true;   // Tengu Arts keystones
   b.galeCd = 0; b.invulnT = 0;
   b.scytheCd = 0;
   b.ufx = {}; for(const sl of SLOTS){ const it = S.eq[sl]; if(it && it.uniq && UNIQUES[it.uniq]) b.ufx[UNIQUES[it.uniq].fx] = true; }   // unique item effects
@@ -263,7 +263,7 @@ function spawnWave(){
   wave.forEach(type => {
     const u = prep(enemyUnit(type, BT.L, ENEMY_TYPES[type].boss ? 0 : slot++));
     if(BT.mode === 'tower' || BT.mode === 'rift') decorateTowerMob(u);
-    if(BT.gate && BT.gate.region >= 2){ const pl = REG[BT.gate.region].palette; u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, pl.body, .5), rim:pl.rim, eye:pl.eye, fx:pl.fx}); u.auraC = u.boss || u.elite ? pl.rim : null; u.name = REG[BT.gate.region].prefix + u.name; }   // region look
+    if(BT.gate && BT.gate.region >= 2){ const pl = REG[BT.gate.region].palette; u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, pl.body, .5), rim:pl.rim, eye:pl.eye, fx:pl.fx}); u.auraC = u.boss || u.elite ? pl.rim : null; u.name = regionMobName(BT.gate.region, type, u, BT.gate); }   // region look + own creature names
     if(u.boss){ BT.boss = u; slot = 1; }
     BT.units.push(u);
   });

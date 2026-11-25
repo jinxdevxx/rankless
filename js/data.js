@@ -582,7 +582,7 @@ function kamiFoe(i){ const t = KAMI_TRIALS[i], h = paragonFoe(10*(i + 1));
 const REGIONS = [
   {id:1, name:'Neo-Tokyo',    sub:'Hunter City',      color:'#ffd27a', icon:'🏙', desc:'Gates E to S+, the Master League, the Abyss Rift and the Kami Trials.'},
   {id:2, name:'Yomi',         sub:'Land of the Dead', color:'#ff4d6d', icon:'⛩', desc:'The underworld below the Rift. Nine Circles of Yomi, Soul Embers and the Shinigami Arts.'},
-  {id:3, name:'Takamagahara', sub:'Plain of Heaven',  color:'#ffe9a8', icon:'☁', desc:'The plain of the gods above the clouds. Seven Celestial Palaces, Divine Feathers and the Tengu Arts.'},
+  {id:3, name:'Takamagahara', sub:'Plain of Heaven',  color:'#ffe9a8', icon:'☁', soon:true, desc:'The plain of the gods above the clouds. Seven Celestial Palaces, Divine Feathers and the Tengu Arts.'},
   {id:4, name:'Ryūgū-jō',     sub:'Dragon Palace',    color:'#7fffd4', icon:'🐉', soon:true, desc:'The palace of the Dragon King at the bottom of the sea.'},
   {id:5, name:'Mugen',        sub:'The Endless',      color:'#c77dff', icon:'∞', soon:true, desc:'Beyond every map. Nobody has come back.'},
 ];
@@ -598,7 +598,7 @@ const TAKAMA_REQ = [
   [() => `Paragon 60 (${S.paragon||0}/60) · Arena tab`, () => (S.paragon||0) >= 60],
 ];
 const REG_REQ = {2: YOMI_REQ, 3: TAKAMA_REQ};
-function regionOpen(id){ return id === 1 || (REG_REQ[id] ? REG_REQ[id].every(([, f]) => f()) : false); }
+function regionOpen(id){ if(REGIONS[id - 1] && REGIONS[id - 1].soon) return false; return id === 1 || (REG_REQ[id] ? REG_REQ[id].every(([, f]) => f()) : false); }
 /* Nine Circles of Yomi: 10 floors each, a boss on floor 10. Circle N opens when circle N-1's boss is beaten. */
 const YOMI_CIRCLES = [
   ['Yomotsu Hirasaka', 'The slope where the living world ends.',      ['husk','wraith','shade'],     'oni',      'warden'],
@@ -611,6 +611,13 @@ const YOMI_CIRCLES = [
   ['Black Shrine',     'A shrine to gods nobody remembers.',            ['eclipse','hunterx','oracle'],'behemoth', 'abyssking'],
   ['Throne of Izanami','The queen of the dead waits on her throne.',    ['hunterx','eclipse','oracle'],'behemoth', 'emperor'],
 ];
+/* v0.27.1: Yomi has its own creatures (no more 'Yomi Ice Oni'): name per monster type + one named lord per circle */
+const REGION_MOBS = {2: {husk:'Gaki', wraith:'Yurei', shade:'Kage', specter:'Onryo', spitter:'Nure-onna', golem:'Bone Golem', fang:'Hell Hound', reaver:'Shura Blade',
+  brute:'Gashadokuro', lich:'Shikome Witch', stalker:'Kasha', oni:'Hell Oni', harpy:'Ubume', sage:'Oni Sage', sunoni:'Red Oni General', priest:'Death Priest',
+  eclipse:'Tsuchigumo', colossus:'Giant Spider', oracle:'Well Spirit', hunterx:'Shinigami', titan:'Kappa Lord', behemoth:'Bone Behemoth'}};
+const REGION_BOSSES = {2: ['Warden of the Slope','Sanzu Ferry Captain','King of Bones','Lantern Shogun','Oni Empress Ibaraki','Jorogumo Queen','The Weeping Mother','The Nameless God','Izanami, Queen of the Dead']};
+function regionMobName(r, type, u, gate){ if(u.boss && gate && gate.circle && REGION_BOSSES[r]) return REGION_BOSSES[r][gate.circle - 1];
+  return (REGION_MOBS[r] && REGION_MOBS[r][type]) || REG[r].prefix + u.name; }
 function yomiLv(i){ return 135 + i*6; }   // v0.27: +6 per circle (+8 made circle 4 a 5-hour wall)   // v0.27: harder (players found Yomi too easy)   // circle i (0-8): base level, +1 per floor
 const YOMI_GATES = YOMI_CIRCLES.map(([name, desc, enemies, elite, boss], i) => ({id:'Y' + (i + 1), region:2, circle:i + 1, rank:'M', name:`Circle ${i + 1} · ${name}`, desc,
   get baseLv(){ return yomiLv(i); }, mult:1, recMult:.3, theme:'yomi', enemies, elite, boss}));
@@ -705,7 +712,13 @@ const WORLD_ARENA = {
       ["Fujin's Herald",'Carries the bag of winds','storm'],['Raiko the Drummer','Beats the thunder drums','storm'],['Kuzunoha','Nine-tailed fox sage','void'],
       ["Hachiman's Guard",'The war god’s chosen','blood'],['Yumi the Archer','Never misses a star','flame'],['Ame-no-Uzume','Dances the sun back into the sky','flame'],['Omoikane','God of wisdom, last of the arena','void']],
 };
-const WORLD_ARENA_P = {2: i => 14 + i*6, 3: i => 72 + i*7};   // paragon-equivalent strength of each opponent
+const WORLD_ARENA_P = {2: i => 31 + i*6, 3: i => 80 + i*8};   // v0.27.1: each opponent is the 'exam' after the matching circle (a bit above its last floor)
+const WORLD_ARENA_LINES = {2: ['Pay the toll or swim, living one.','My lanterns burn for the lost. Tonight, for you.','I am hungry. I am always hungry.','Your fists are loud. Mine are silent.',
+  'Kneel, and I may let you serve my father.','Step into my web. It is warm here.','I can see you from every corner of this hall.','Your breath freezes before it leaves you.',
+  'Leave your clothes. Leave your name. Leave.','You came all this way to fall here.']};
+// v0.27.1: the arena of a world follows its gates: opponent i (2..10) needs the boss of circle/palace i-1 (opponent 1 is open at once)
+function worldArenaGate(r, i){ return i === 0 ? null : REG[r].gates[Math.min(i, REG[r].gates.length) - 1]; }
+function worldArenaReady(r, i){ const g = worldArenaGate(r, i); return !g || (S.gates[g.id]||0) >= FLOORS; }
 function worldFoe(r, i){ const [name, title, aff] = WORLD_ARENA[r][i], h = paragonFoe(WORLD_ARENA_P[r](i));
-  return Object.assign(h, {name, title:`${title} · ${REG[r].label} Arena`, aff, rival:i === 9, hair:i % 3, worldR:r, worldIdx:i, line: i === 9 ? 'You came all this way to fall here.' : 'This world does not belong to you.'}); }
+  return Object.assign(h, {name, title:`${title} · ${REG[r].label} Arena`, aff, rival:i === 9, hair:i % 3, worldR:r, worldIdx:i, line: (WORLD_ARENA_LINES[r] && WORLD_ARENA_LINES[r][i]) || (i === 9 ? 'You came all this way to fall here.' : 'This world does not belong to you.')}); }
 function worldArenaDone(r){ return (S.warena && S.warena[r]) || 0; }

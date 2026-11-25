@@ -54,10 +54,14 @@ const { chromium } = require('playwright');
       }
       if(window.__YOMI && S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX){ S.rift.best = Math.max(S.rift.best||0, 30);   // the bot doesn't play the Rift; the Yomi test assumes depth 30
         if(regionOpen(2) && (window.__yt = (window.__yt||0) + 1) % 2 === 0){
+          const ai = worldArenaDone(2); window.__wal = window.__wal || {};
+          if(ai < 10 && worldArenaReady(2, ai) && (window.__wal[ai]||0) % 3 !== 2){ startWorldArena(2, ai); const w = run(); if(!w) window.__wal[ai] = (window.__wal[ai]||0) + 1;
+            log.push(`${(simTime/60).toFixed(0)}m YARENA ${ai + 1} ${WORLD_ARENA[2][ai][0]} ${w ? 'WIN' : 'lose'} lv${S.level} P${teamPower()} rec${recParagon(WORLD_ARENA_P[2](ai))} para${S.paragon}`); if(w) continue; }
+          else if(window.__wal[ai] !== undefined && (window.__wal[ai]||0) % 3 === 2) window.__wal[ai]++;   // after 2 losses do a circle step, then try again
           let ci = 0; while(ci < 8 && (S.gates['Y' + (ci + 1)]||0) >= FLOORS) ci++; const gid = 'Y' + (ci + 1), fl = Math.min(FLOORS, (S.gates[gid]||0) + 1);
           if(yomiCircleOpen(ci)){ startGate(gid, fl); const w = run(); log.push(`${(simTime/60).toFixed(0)}m YOMI ${gid}-F${fl} ${w ? 'clear' : 'lose'} lv${S.level} P${teamPower()} souls${S.yomi.souls}`);
             if(!w){ for(let k = 0; k < 2; k++){ manage(); startTower(Math.max(1, S.tower.y2||1), 2); run(); } manage(); startTower((S.tower.y2||0) + 1, 2); run(); }   // farm the Yomi Tower like a player
-            const order = ['y_reap','y_bone','y_soul','y_reap','y_bone','k_harvest','y_gaze','k_scythe','y_ghost','y_doom']; let g = 0;
+            const order = ['y_reap','y_bone','y_soul','y_reap','y_bone','k_harvest','y_gaze','k_scythe','y_ghost','y_doom','y_mark','y_hunt','k_ferry','y_limit']; let g = 0;
             while(soulsFree() > 0 && g++ < 50){ const id = order.find(x => { const nd = YOMI_TREE.find(n => n.id === x); return (S.yomi.tree[x]||0) < nd.max && soulsSpent() >= nd.req; }); if(!id) break; S.yomi.tree[id] = (S.yomi.tree[id]||0) + 1; }
             continue; } } }
       if(S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX && kamiCleared() < KAMI_TRIALS.length && (S.paragon||0) >= paragonCap()){

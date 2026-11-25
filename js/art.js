@@ -542,23 +542,62 @@ function drawMonster(c, style, x, y, h, o){
       c.restore(); }
     eyes([[8,-50],[16,-48]], 4);
   } else if(style === 'brute' || style === 'warden' || style === 'oni'){
-    limb(c,-10,-46,-14+wk*1.5,0,9,6); limb(c,10,-46,14-wk*1.5,0,9,6);
-    poly(c,[[-24,-104+bob],[26,-100+bob],[20,-50],[-18,-46]]);
-    c.beginPath(); c.arc(14,-110+bob,10,0,7); c.fill(); if(c._ol) c.stroke();
-    const fist = pose === 'lunge' ? [48,-70] : [30,-18];
-    limb(c,22,-96+bob, (22+fist[0])/2+6, (-96+fist[1])/2, 9, 7); limb(c,(22+fist[0])/2+6,(-96+fist[1])/2, fist[0], fist[1], 7, 9);
-    limb(c,-20,-96+bob,-30,-58,8,6); limb(c,-30,-58,-28,-24,6,8);
-    if(style === 'brute'){ c.save(); c.shadowBlur = 0; c.fillStyle = R; c.globalAlpha = .35;
-      for(const [bx,by,br2] of [[-12,-90,5],[-4,-78,4],[6,-92,4],[-16,-70,3],[12,-74,3]]){ c.beginPath(); c.arc(bx,by+bob,br2,0,7); c.fill(); if(c._ol) c.stroke(); } c.restore(); }
-    if(style === 'oni'){ poly(c,[[8,-118+bob],[4,-134+bob],[13,-120+bob]]); poly(c,[[18,-118+bob],[24,-133+bob],[22,-117+bob]]);
-      c.save(); c.strokeStyle = B; c.lineWidth = 7; c.beginPath(); c.moveTo(fist[0],fist[1]); c.lineTo(fist[0]+ (pose==='lunge'?40:10), fist[1] - (pose==='lunge'?10:60)); c.stroke(); c.restore(); }
-    if(style === 'warden'){
-      c.save(); c.fillStyle = R; for(let i=0;i<5;i++) poly(c,[[4+i*5,-118+bob],[6+i*5,-132-(i===2?8:0)+bob],[8+i*5,-118+bob]]); c.restore();
-      c.save(); c.strokeStyle = R; c.shadowColor = R; c.shadowBlur = 16; c.lineWidth = 4;
-      const tx = fist[0], ty = fist[1]; c.beginPath(); c.moveTo(tx-6, ty+30); c.lineTo(tx+14, ty-80); c.stroke();
-      c.beginPath(); c.moveTo(tx+6,ty-74); c.lineTo(tx+20,ty-100); c.moveTo(tx+14,ty-80); c.lineTo(tx+16,ty-106); c.moveTo(tx+22,ty-78); c.lineTo(tx+30,ty-98); c.stroke(); c.restore();
-    }
-    eyes([[16,-113+bob],[21,-112+bob]], 4);
+    // v0.27.1 redesign: brute = hunched bone giant, oni = horned demon with kanabo club, warden = armored samurai lord with naginata
+    const hn = style === 'brute' ? 10 : 0, ty0 = -100 + bob + hn, hx = 16 + hn*.7, hy = -114 + bob + hn*1.4;
+    const dark = o.flash ? '#ffffff' : mixHex(B, '#000000', .38), metal = o.flash ? '#ffffff' : mixHex(B, '#1a1a24', .55);
+    const fist = pose === 'lunge' ? [52,-72] : [32,-22];
+    // legs + feet
+    limb(c,-10,-50,-15+wk*1.5,-5,12,8); limb(c,12,-50,16-wk*1.5,-5,12,8);
+    c.save(); c.fillStyle = dark; for(const fx2 of [-15+wk*1.5, 16-wk*1.5]){ c.beginPath(); c.ellipse(fx2 + 3, -3, 10, 5, 0, 0, 7); c.fill(); if(c._ol) c.stroke(); } c.restore();
+    // weapon behind the body (warden's naginata pole)
+    if(style === 'warden'){ c.save(); c.strokeStyle = metal; c.lineWidth = 4; c.beginPath(); c.moveTo(fist[0] - 10, fist[1] + 36); c.lineTo(fist[0] + 16, fist[1] - 92); c.stroke(); c.restore(); }
+    // back arm
+    limb(c,-20,ty0 + 4,-32,-62,10,8); limb(c,-32,-62,-30,-28,8,10);
+    c.save(); c.fillStyle = dark; c.beginPath(); c.arc(-30,-25,8,0,7); c.fill(); if(c._ol) c.stroke(); c.restore();
+    // brute: bone spikes along the hunched back
+    if(style === 'brute'){ c.save(); c.fillStyle = o.flash ? '#ffffff' : '#e8dfcc'; for(let k2 = 0; k2 < 4; k2++) poly(c,[[-24 + k2*7, ty0 + 2 - k2*2],[-32 + k2*7, ty0 - 14 - k2*2],[-18 + k2*7, ty0 - 2 - k2*2]]); c.restore(); }
+    // torso: broad chest, tapering belly
+    c.beginPath(); c.moveTo(-26, ty0); c.quadraticCurveTo(4, ty0 - 14, 32, ty0 + 2); c.quadraticCurveTo(28, -72 + bob, 22, -52); c.quadraticCurveTo(2, -44, -18, -50); c.quadraticCurveTo(-32, -74 + bob, -26, ty0); c.closePath(); c.fill(); if(c._ol) c.stroke();
+    if(!o.flash){ c.save(); c.globalAlpha = .22; c.strokeStyle = '#000'; c.lineWidth = 1.6;   // pecs + abs
+      c.beginPath(); c.arc(-4, ty0 + 10, 9, .25, Math.PI - .25); c.stroke(); c.beginPath(); c.arc(15, ty0 + 10, 9, .25, Math.PI - .25); c.stroke();
+      for(let k2 = 0; k2 < 3; k2++){ c.beginPath(); c.moveTo(-4, -72 + k2*6 + bob*.5); c.lineTo(12, -72 + k2*6 + bob*.5); c.stroke(); }
+      c.globalAlpha = .18; c.fillStyle = '#fff'; c.beginPath(); c.ellipse(4, ty0 + 4, 16, 4, -.1, 0, 7); c.fill(); c.restore(); }
+    if(style === 'brute' && !o.flash){ c.save(); c.strokeStyle = '#1a0f12'; c.lineWidth = 1.2;   // stitched scar across the chest
+      c.beginPath(); c.moveTo(-16, ty0 + 8); c.lineTo(20, -64 + bob); c.stroke(); for(let k2 = 0; k2 < 6; k2++){ const px = -14 + k2*6.5, py = ty0 + 9 + (k2/5)*(-64 + bob - ty0 - 9); c.beginPath(); c.moveTo(px - 2, py - 3); c.lineTo(px + 2, py + 3); c.stroke(); } c.restore(); }
+    // belt + loincloth (oni: tiger fur)
+    c.save(); c.fillStyle = style === 'oni' ? (o.flash ? '#ffffff' : '#e8a93a') : style === 'warden' ? metal : (o.flash ? '#ffffff' : '#4a3626');
+    poly(c,[[-20,-56],[24,-56],[25,-47],[-20,-45]]); poly(c,[[-12,-47],[16,-47],[12,-26 + wk],[-7,-28 - wk]]);
+    if(!o.flash){ if(style === 'oni'){ c.strokeStyle = '#1a0f0a'; c.lineWidth = 2.2; for(let k2 = 0; k2 < 4; k2++){ c.beginPath(); c.moveTo(-8 + k2*6, -46); c.quadraticCurveTo(-5 + k2*6, -40, -7 + k2*6, -33); c.stroke(); } }
+      if(style === 'warden'){ c.fillStyle = R; c.beginPath(); c.arc(2, -51, 3, 0, 7); c.fill(); c.fillStyle = metal; for(const sx2 of [-18, 8]) poly(c,[[sx2,-46],[sx2 + 12,-46],[sx2 + 11,-30],[sx2 + 1,-30]]); } }
+    c.restore();
+    // front arm: shoulder, forearm, fist
+    const sx = 20, sy = ty0 + 8, ex = (sx + fist[0])/2 + 6, ey = (sy + fist[1])/2;
+    limb(c, sx, sy, ex, ey, 11, 9); limb(c, ex, ey, fist[0], fist[1], 9, 10);
+    if(style === 'warden'){ c.save(); c.fillStyle = metal; for(let k2 = 0; k2 < 3; k2++) poly(c,[[sx - 12, sy - 8 + k2*6],[sx + 14, sy - 6 + k2*6],[sx + 12, sy + k2*6],[sx - 12, sy - 2 + k2*6]]); c.restore(); }
+    else { c.save(); c.fillStyle = dark; c.beginPath(); c.ellipse(sx, sy - 2, 13, 9, -.2, 0, 7); c.fill(); if(c._ol) c.stroke(); c.restore(); }
+    c.save(); c.fillStyle = dark; c.beginPath(); c.arc(fist[0], fist[1], 9, 0, 7); c.fill(); if(c._ol) c.stroke(); c.restore();
+    // oni: wild mane behind the head
+    if(style === 'oni'){ c.save(); c.fillStyle = o.flash ? '#ffffff' : mixHex(R, '#000000', .45); c.beginPath(); c.moveTo(hx - 4, hy - 14);
+      for(let k2 = 0; k2 < 6; k2++){ const a = -2.2 + k2*.42, rr = 22 + (k2 % 2)*6 + Math.sin(t*4 + k2)*1.5; c.lineTo(hx - 6 + Math.cos(a)*rr, hy + 2 + Math.sin(a)*rr*.9); c.lineTo(hx - 6 + Math.cos(a + .2)*12, hy + 2 + Math.sin(a + .2)*11); }
+      c.lineTo(hx - 10, hy + 16); c.closePath(); c.fill(); if(c._ol) c.stroke(); c.restore(); }
+    // head + jaw
+    c.beginPath(); c.ellipse(hx, hy, 12.5, 13.5, 0, 0, 7); c.fill(); if(c._ol) c.stroke();
+    c.save(); c.fillStyle = dark; c.beginPath(); c.moveTo(hx - 5, hy + 6); c.quadraticCurveTo(hx + 7, hy + 17, hx + 14, hy + 5); c.lineTo(hx + 8, hy + 3); c.closePath(); c.fill(); if(c._ol) c.stroke(); c.restore();
+    if(style !== 'warden'){ c.save(); c.fillStyle = o.flash ? '#ffffff' : '#f4efe2'; poly(c,[[hx + 3,hy + 9],[hx + 5,hy + 0],[hx + 7,hy + 9]]); poly(c,[[hx + 10,hy + 8],[hx + 12,hy - 1],[hx + 13.5,hy + 7]]); c.restore(); }
+    if(style === 'oni'){ c.save(); c.fillStyle = o.flash ? '#ffffff' : '#f1e6cf';   // curved horns
+      for(const [bx, dir] of [[hx - 6, -1], [hx + 6, 1]]){ c.beginPath(); c.moveTo(bx - 3, hy - 9); c.quadraticCurveTo(bx + dir*8, hy - 22, bx + dir*4, hy - 33); c.quadraticCurveTo(bx + dir*2, hy - 20, bx + 3, hy - 10); c.closePath(); c.fill(); if(c._ol) c.stroke(); } c.restore(); }
+    if(style === 'warden'){ c.save(); c.fillStyle = metal;   // kabuto helmet, crescent crest, menpo mask
+      c.beginPath(); c.moveTo(hx - 15, hy - 1); c.quadraticCurveTo(hx - 14, hy - 20, hx, hy - 20); c.quadraticCurveTo(hx + 14, hy - 20, hx + 15, hy - 1); c.lineTo(hx + 19, hy + 2); c.lineTo(hx - 19, hy + 2); c.closePath(); c.fill(); if(c._ol) c.stroke();
+      c.fillStyle = o.flash ? '#ffffff' : '#ffd27a'; c.beginPath(); c.moveTo(hx - 2, hy - 18); c.quadraticCurveTo(hx - 16, hy - 30, hx - 12, hy - 42); c.quadraticCurveTo(hx - 8, hy - 30, hx, hy - 22); c.quadraticCurveTo(hx + 8, hy - 30, hx + 14, hy - 42); c.quadraticCurveTo(hx + 18, hy - 30, hx + 3, hy - 18); c.closePath(); c.fill(); if(c._ol) c.stroke();
+      c.fillStyle = dark; c.beginPath(); c.moveTo(hx - 6, hy + 3); c.lineTo(hx + 14, hy + 2); c.lineTo(hx + 10, hy + 13); c.lineTo(hx - 2, hy + 13); c.closePath(); c.fill(); if(c._ol) c.stroke();
+      if(!o.flash){ c.strokeStyle = '#f4efe2'; c.lineWidth = 1; for(let k2 = 0; k2 < 4; k2++){ c.beginPath(); c.moveTo(hx + k2*3, hy + 7); c.lineTo(hx + k2*3, hy + 10); c.stroke(); } } c.restore(); }
+    if(style === 'oni'){ c.save();   // kanabo: tapered iron club with studs
+      const ang = pose === 'lunge' ? -.15 : -1.35, L = 78, ux = Math.cos(ang), uy = Math.sin(ang), px = -uy, py = ux, bx = fist[0] - ux*10, by = fist[1] - uy*10;
+      c.fillStyle = metal; c.beginPath(); c.moveTo(bx + px*3, by + py*3); c.lineTo(bx + ux*L + px*9, by + uy*L + py*9); c.quadraticCurveTo(bx + ux*(L + 8), by + uy*(L + 8), bx + ux*L - px*9, by + uy*L - py*9); c.lineTo(bx - px*3, by - py*3); c.closePath(); c.fill(); if(c._ol) c.stroke();
+      c.fillStyle = o.flash ? '#ffffff' : '#d9d2c4'; for(let k2 = 0; k2 < 5; k2++){ const d = 34 + k2*9, w2 = 3 + d/L*5; for(const sgn of [-1, 1]){ c.beginPath(); c.arc(bx + ux*d + px*w2*sgn, by + uy*d + py*w2*sgn, 1.8, 0, 7); c.fill(); } } c.restore(); }
+    if(style === 'warden'){ c.save(); const tx = fist[0] + 16, ty = fist[1] - 92;   // naginata blade
+      c.fillStyle = o.flash ? '#ffffff' : '#e8eef8'; c.shadowColor = R; c.shadowBlur = o.flash ? 0 : 14; c.beginPath(); c.moveTo(tx - 3, ty + 2); c.quadraticCurveTo(tx + 2, ty - 18, tx + 14, ty - 30); c.quadraticCurveTo(tx + 8, ty - 12, tx + 4, ty + 3); c.closePath(); c.fill(); if(c._ol) c.stroke(); c.restore(); }
+    eyes(style === 'warden' ? [[hx - 2, hy - 1], [hx + 7, hy - 1]] : [[hx + 1, hy - 4], [hx + 7, hy - 3]], 4);
   } else if(style === 'ghost'){
     c.translate(0, -16 + Math.sin(t*1.8)*5);
     c.beginPath(); c.moveTo(0,-104); c.quadraticCurveTo(26,-96,22,-50); c.lineTo(24,-10);
@@ -644,13 +683,11 @@ function monsterDetails(c, style, t, R, E, bob, pose, seed){
     c.fillStyle = cg; c.beginPath(); c.arc(0, -36, 22, 0, 7); c.fill(); c.fillStyle = R;
     for(let i = 0; i < 4; i++){ const a = t*1.6 + i*1.57, rx = Math.cos(a)*40, ry = Math.sin(a)*14 - 36; c.globalAlpha = .7; c.beginPath(); c.arc(rx, ry, 3 + (i%2), 0, 7); c.fill(); }
   } else if(style === 'brute' || style === 'warden' || style === 'oni'){
-    // glowing shoulder spikes + chest sigil
-    c.globalAlpha = .95;
-    for(const [sx, sy] of [[-22,-104],[-14,-108],[22,-102]]){ c.beginPath(); c.moveTo(sx - 4, sy + bob); c.lineTo(sx - 2, sy - 14 - hot*4 + bob); c.lineTo(sx + 4, sy + bob); c.closePath(); c.fill(); }
-    c.globalAlpha = Math.min(1, pulse + hot*.4); c.lineWidth = 2.5;
-    c.beginPath(); c.arc(0, -78 + bob, 9, 0, 7); c.stroke();
-    vein([[0,-87+bob],[0,-69+bob]]); vein([[-9,-78+bob],[9,-78+bob]]);
-    vein([[-14,-60],[-10,-52],[-14,-46]], 2); vein([[14,-62],[10,-54],[14,-48]], 2);
+    // v0.27.1: smaller heart core + veins instead of the big chest sigil
+    const cy = -82 + bob + (style === 'brute' ? 10 : 0), cg = c.createRadialGradient(6, cy, 1, 6, cy, 9 + hot*4); cg.addColorStop(0, '#ffffff'); cg.addColorStop(.4, E); cg.addColorStop(1, E + '00');
+    c.globalAlpha = Math.min(1, pulse + hot*.4); c.fillStyle = cg; c.beginPath(); c.arc(6, cy, 9 + hot*4, 0, 7); c.fill();
+    c.fillStyle = R; c.lineWidth = 1.6; vein([[6,cy],[-2,cy + 10],[-6,cy + 20]]); vein([[6,cy],[16,cy + 8],[18,cy + 18]]); vein([[6,cy],[0,cy - 10]]);
+    if(hot){ c.globalAlpha = .9; c.lineWidth = 3; c.beginPath(); c.arc(6, cy, 15 + Math.sin(t*20)*2, 0, 7); c.stroke(); }
   } else if(style === 'ghost'){
     // smoky trail + spectral chains + glowing hood rim
     for(let i = 0; i < 5; i++){ const py = -20 + i*4, px = -30 - i*7 + Math.sin(t*3 + i)*4; c.globalAlpha = .35 - i*.05; c.beginPath(); c.arc(px, py + Math.sin(t*2 + i)*3, 7 - i, 0, 7); c.fill(); }

@@ -121,7 +121,7 @@ function renderHome(){
   if(S.inv.some(i => i.isNew)) todo.push(['bag', 'New gear', 'new']);
   if(isUnlocked('enchant')){ const lv = S.enchant ? S.enchant.lv : 0, c = lv < ENCHANT_MAX ? enchantCost(lv + 1) : null;
     if(c && (S.diamonds||0) >= c.diamonds && S.gold >= c.gold) todo.push(['hero', 'Enchant ready', 'dia']); }
-  if(isUnlocked('gates')){ const d = Object.keys(DAILY).reduce((n,k) => n + dailyLeft(k), 0); if(d > 0) todo.push(['gates', `Daily Gates ${d}×`, 'day']); }
+  if(isUnlocked('gates') && (S.world||1) === 1){ const d = Object.keys(DAILY).reduce((n,k) => n + dailyLeft(k), 0); if(d > 0) todo.push(['gates', `Daily Gates ${d}×`, 'day']); }
   const todoHtml = todo.length ? `<div class="todo">${todo.map(([id, txt, cls]) => `<button class="tchip ${cls}" data-a="sheet" data-id="${id}">${txt}</button>`).join('')}</div>` : '';
   const W = S.world || 1;
   if(W >= 2 && regionOpen(W)){ const RG = REG[W], gs = RG.gates; let gi = 0; while(gi < gs.length - 1 && (S.gates[gs[gi].id]||0) >= FLOORS) gi++; const wd = worldArenaDone(W);
@@ -241,7 +241,7 @@ function renderSheet(){
 /* World map strip (top of the Gates tab) */
 function worldMap(){
   return `<div class="worldmap"><div class="bt">🗺 WORLD MAP · SHINSEKAI</div><div class="regions">${REGIONS.map(rg => { const open = regionOpen(rg.id);
-    const reqs = REG_REQ[rg.id] && !open ? `<span class="rreq">${REG_REQ[rg.id].map(([n, f]) => `${f() ? '✔' : '✖'} ${n()}`).join('<br>')}</span>` : '';
+    const reqs = REG_REQ[rg.id] && !open && !rg.soon ? `<span class="rreq">${REG_REQ[rg.id].map(([n, f]) => `${f() ? '✔' : '✖'} ${n()}`).join('<br>')}</span>` : '';
     const here = (S.world || 1) === rg.id;
     return `<button class="region ${here ? 'sel' : ''} ${open ? '' : 'locked'} ${rg.soon ? 'soon' : ''}" style="--c:${rg.color}" data-a="region" data-id="${rg.id}"><i>${rg.icon}</i><b>${rg.id}. ${rg.name}</b><small>${rg.sub}</small>${rg.soon ? '<em>COMING SOON</em>' : here ? '<em class="here">📍 YOU ARE HERE</em>' : open ? '<em class="go">✈ TRAVEL</em>' : '<em>🔒 LOCKED</em>'}${reqs}</button>`; }).join('<span class="rlink"></span>')}</div><small class="muted">Every world has its own gates, arena and tower. Travel any time; your hero, gear and talents come with you.</small></div>`;
 }
@@ -360,11 +360,11 @@ function examReady(rank){ const g = rankGate(rank), list = HUNTERS[rank] || [];
   return (S.arena[rank]||0) >= list.length && (!g || (S.gates[g.id]||0) >= FLOORS); }
 function sheetWorldArena(r){
   const RG = REG[r], done = worldArenaDone(r), tp = teamPower();
-  const cards = WORLD_ARENA[r].map((_, i) => { const h = worldFoe(r, i), beaten = i < done, open = i <= done, p = recParagon(WORLD_ARENA_P[r](i));
-    return `<div class="hcard ${h.rival ? 'exam' : ''} ${beaten ? 'beaten' : ''} ${open ? '' : 'locked'}"><img src="${hunterPortrait(h)}" alt=""><div class="hinfo"><small>${i === 9 ? 'ARENA CHAMPION' : 'OPPONENT ' + (i + 1)}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
-      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmtPow(p)}</span><button class="btn ${open ? 'primary' : ''}" data-a="startWArena" data-r="${r}" data-id="${i}" ${open ? '' : 'disabled'}>${beaten ? 'Rematch' : 'Fight'}</button></div></div>`; }).join('');
+  const cards = WORLD_ARENA[r].map((_, i) => { const h = worldFoe(r, i), beaten = i < done, ready = worldArenaReady(r, i), open = i <= done && ready, p = recParagon(WORLD_ARENA_P[r](i)), gq = worldArenaGate(r, i);
+    return `<div class="hcard ${h.rival ? 'exam' : ''} ${beaten ? 'beaten' : ''} ${open ? '' : 'locked'}"><img src="${hunterPortrait(h)}" alt=""><div class="hinfo"><small>${i === 9 ? 'ARENA CHAMPION' : 'OPPONENT ' + (i + 1)}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em>${!ready && !beaten ? `<span class="wareq">🔒 Defeat the boss of ${esc(gq.name)} first</span>` : ''}</div>
+      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmtPow(p)}</span><button class="btn ${open ? 'primary' : ''}" data-a="startWArena" data-r="${r}" data-id="${i}" ${open ? '' : 'disabled'}>${beaten ? 'Rematch' : open ? 'Fight' : '🔒'}</button></div></div>`; }).join('');
   return `<div class="arena-head" style="--c:${RG.color}"><div class="rank big" style="color:${RG.color};border-color:${RG.color}">${RG.icon}</div><div><h3>${RG.label} Arena · ${done}/10</h3>
-    <p>The fighters of ${RG.label}. First wins give <b>${RG.curIcon} ${RG.curName}s</b>, Rift Diamonds and loot at your level; the champion gives 10 ${RG.curName}s. Paragon and the Kami Trials are in the Neo-Tokyo arena.</p></div></div>${cards}`;
+    <p>The fighters of ${RG.label}. Every circle boss you defeat opens the next fighter. First wins give <b>${RG.curIcon} ${RG.curName}s</b>, Rift Diamonds and loot at your level; the champion gives 10 ${RG.curName}s. Paragon and the Kami Trials are in the Neo-Tokyo arena.</p></div></div>${cards}`;
 }
 function sheetArena(){
   if((S.world || 1) >= 2 && regionOpen(S.world)) return sheetWorldArena(S.world);
@@ -433,7 +433,7 @@ function sheetStats(mode){
     return `<div class="box yomitree" style="border-color:${R2.color}55"><div class="bt">${R2.icon} ${R2.treeName.toUpperCase()} · REGION ${r} <span class="tpbadge">${R2.curIcon} <b>${sf}</b> ${R2.curName.toUpperCase()}${sf === 1 ? '' : 'S'}</span></div><div class="hint" style="margin-top:0">Earned in ${R2.label} (1 per new floor, 5 per boss). ${sp} spent.</div>
     <div class="ttree"><div class="tbranch" style="--c:${R2.color}"><div class="tbh"><b>${R2.branch}</b><small>${sp} pts</small></div>${R2.tree.map(nd => { const rk = st.tree[nd.id]||0, open = sp >= nd.req, can = open && sf > 0 && rk < nd.max;
       return `<button class="tnode ${nd.key ? 'key' : ''} ${rk ? 'has' : ''} ${open ? '' : 'locked'} ${rk >= nd.max ? 'max' : ''}" data-a="regTalent" data-r="${r}" data-id="${nd.id}" ${can ? '' : 'disabled'}><span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${rk}/${nd.max}</span><span class="td">${open ? nd.desc + (nd.stat && rk ? ` · now +${+(nd.per*rk).toFixed(1)}%` : '') : `Spend ${nd.req} ${R2.curName}s in this tree`}</span></button>${can && nd.max >= 20 && sf >= 2 ? `<button class="btn small t10" data-a="regTalent10" data-r="${r}" data-id="${nd.id}">+${Math.min(10, sf, nd.max - rk)}</button>` : ''}`; }).join('<i class="tlink"></i>')}</div></div></div>`; };
-  const yomiTree = regTree(2) + regTree(3);
+  const yomiTree = regTree(2);   // Takamagahara tree hidden while region 3 is on hold
   if(mode === 'talents') return `${tf ? `<div class="ptsbar"><div class="ptsb tal"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>spend them below</small></div></div>` : ''}
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>

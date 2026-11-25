@@ -5,12 +5,14 @@ Open requests from the player come first. Every development round starts here.
 ## Player requests
 - [x] Each region a real world (own home, gates, arena, tower) (v0.27.0)
 - [x] Region towers (Yomi Tower, Heaven Tower) (v0.27.0)
-- [x] Region 3 Takamagahara with Heaven Arena, Tengu Arts, Heaven's Gale (v0.27.0)
+- [x] Region 3 Takamagahara with Heaven Arena, Tengu Arts, Heaven's Gale (v0.27.0) – put ON HOLD in v0.27.1 until the player gives the go
 - [x] Legion useless → Legion 2.0 abilities + resonance (v0.27.0)
 - [x] Combat screen redesign (v0.27.0) — keep polishing
 - [x] Region trees too small (maxed fast) → +4 nodes, keystones, uncapped Limit Break (v0.27.0)
 - [ ] Re-measure midgame after 80% hit cap (flame/storm/void)
-- [ ] Bot: play Takamagahara + world arenas, calibrate WORLD_ARENA_P
+- [x] Bot plays the Yomi Arena (v0.27.1)
+- [ ] Calibrate Yomi circles + Yomi Arena from bot data
+- [ ] ON HOLD (wait for the player's go): Takamagahara (Region 3)
 - [ ] Yomi/Takama balance: measure Yomi circles + world arenas with the bot, calibrate recommended power (regionEqParagon)
 - [ ] Regions 4 Ryugu-jo and 5 Mugen
 - [ ] NEXT ROUND (measured v0.26.2, flame spamskill): A-F7 wall 26 losses, A-F10 11, S-F6 14; Master League reached at 161 bot-min (~54 min at x3, earlier runs 275–349) → check variance per element, smooth A gate. Pure spam: B at 210 bot-min, max 14 losses.
