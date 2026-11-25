@@ -12,7 +12,7 @@
 
 ## Features
 - 3 save slots, save codes for backup and moving between devices
-- Gates E, D, C with 10 floors each, elites, enraged bosses and reinforcements
+- Gates E, D, C with 10 floors each plus endless Deep Floors, elites, enraged bosses and reinforcements
 - Daily Gates: Gold Vault, Training Grounds, Crystal Mine
 - Loot: 7 slots, 5 rarities, random bonus stats, enhance to +15, item sets (Tidecaller, Railbreaker, Frostbound)
 - Legion: bind monsters with Soul Shards and raise their stars
@@ -23,6 +23,13 @@
 
 ## Changelog
 Every change to the game is listed here. Newest first.
+
+### v0.10.0 – Smoother
+- Deep Floors: endless floors after Floor 10 in every gate, boss every 5 floors (`isBossFloor()`, `nextFloor()` no longer capped).
+- Combat formation: melee enemies stand at the front line, ranged enemies and healers stay back (`E_POS`, `RANGED_BACK`); eased dash and return movement.
+- Arena: weaker hunter multipliers, recommended Power shown, consolation Gold/XP on defeat.
+- `floorPower()` recalibrated on bot playthroughs.
+- Bag: green ▲ on upgrades; item details list stat differences against the equipped item.
 
 ### v0.9.0 – Job Change
 - Job Change unlocks at Rank C with two specializations per power (8 jobs in total).

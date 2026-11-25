@@ -85,7 +85,7 @@ function renderCreate(){
 
 /* ---------- home ---------- */
 function currentGate(){ let g = GATES[0]; for(const x of GATES) if(rankAtLeast(x.rank)) g = x; return g; }
-function nextFloor(g){ return Math.min(FLOORS, (S.gates[g.id]||0) + 1); }
+function nextFloor(g){ return (S.gates[g.id]||0) + 1; }
 
 function renderHome(){
   const a = AFF[S.aff], hs = heroStats();
@@ -112,7 +112,7 @@ function renderHome(){
   else if(list){ const done = arenaDone >= list.length; goalHtml = `<div class="goal"><small>RANK GOAL</small><b>${done ? 'Pass the Rank Exam' : 'Defeat ' + esc(list[arenaDone].name)}</b><span>Rank up to ${EXAMS[S.rank].next} to open a new gate</span><div class="bar"><i style="width:${Math.round(arenaDone/(list.length+1)*100)}%"></i></div></div>`; }
   $('#homeActions').innerHTML = `
     <button class="cta gate fight" data-a="quickGate">
-      <small>${g.rank}-RANK GATE · ${cleared ? 'CLEARED' : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
+      <small>${g.rank}-RANK GATE · ${nf > FLOORS ? `DEEP FLOOR ${nf}` : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
       <span>${g.name}</span>
     </button>
     ${isUnlocked('arena') ? `<button class="cta arena" data-a="sheet" data-id="arena">
@@ -205,8 +205,12 @@ function sheetGates(){
     }
     return `<div class="gatecard ${unlocked?'':'locked'}" style="--a:${T.accent};--b:${T.sky[2]}">
       <div class="gh"><span class="grank r-${g.rank}">${g.rank}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
-      <span class="gprog">${unlocked ? `${cl} / ${FLOORS}` : `${ICON.lock} Rank ${g.rank}`}</span></div>
-      ${unlocked ? `<div class="floors">${floors}</div><div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b></div>` :
+      <span class="gprog">${unlocked ? (cl > FLOORS ? `Deep ${cl}` : `${Math.min(cl, FLOORS)} / ${FLOORS}`) : `${ICON.lock} Rank ${g.rank}`}</span></div>
+      ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = floorPower(g.baseLv + nd - 1);
+          return `<div class="deeprow"><div><b>Deep Floors</b><small>Endless floors with stronger enemies and better loot. Boss every 5 floors. Best: ${cl > FLOORS ? cl : '–'}</small></div>
+          <button class="btn primary" data-a="startGate" data-g="${g.id}" data-f="${nd}">Floor ${nd} <small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>
+          ${cl > FLOORS ? `<button class="btn" data-a="startGate" data-g="${g.id}" data-f="${cl}">Farm ${cl}</button>` : ''}</div>`; })() : ''}
+        <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${RANKS[RANKS.indexOf(g.rank)-1]}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
   }).join('').replace(/^/, daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
@@ -218,7 +222,7 @@ function sheetArena(){
   const done = S.arena[rank]||0, tp = teamPower();
   const card = (h, i, isExam) => {
     const beaten = !isExam && i < done, open = isExam ? done >= list.length : i <= done;
-    const st = synthHunter(h), p = powerOf(st) + (h.comps||[]).length*Math.round(powerOf(st)*.25);
+    const p = floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2));
     return `<div class="hcard ${isExam?'exam':''} ${beaten?'beaten':''} ${open?'':'locked'}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>${isExam ? 'RANK EXAM' : h.rival ? 'RIVAL' : 'Lv ' + h.lv}</small><b>${h.name}</b><span>${h.title} · ${AFF[h.aff].name}</span>
@@ -264,9 +268,9 @@ function jobBox(){
     return `<div class="job ${on ? 'on' : ''}"><b>${sp.name}</b><small>${sp.desc}</small><span class="perk">${sp.perk} · upgrades <i>${sk.name}</i></span>
       ${on ? '<span class="tag">ACTIVE</span>' : `<button class="btn small ${cur ? '' : 'primary'}" data-a="chooseSpec" data-id="${sp.id}" ${cur && S.gold < cost ? 'disabled' : ''}>${cur ? `Switch (${fmt(cost)} Gold)` : 'Choose'}</button>`}</div>`; }).join('')}</div></div>`;
 }
-function itemCard(it, eq){
+function itemCard(it, eq, up){
   return `<button class="icard ${it.isNew?'new':''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
-    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}</button>`;
+    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${up ? '<span class="upg" title="Better than what you wear">▲</span>' : ''}</button>`;
 }
 function sheetBag(){
   const f = UI.bagFilter || 'all';
@@ -281,7 +285,7 @@ function sheetBag(){
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
       <button class="btn small" data-a="salvageBelow" data-id="1">Salvage Rare</button>
       <button class="btn small primary" data-a="autoEquip">Equip best</button></div>
-    <div class="grid-items">${items.map(i => itemCard(i)).join('') || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
+    <div class="grid-items">${(() => { const base = powerOf(heroStats()); return items.map(i => itemCard(i, false, powerWith(i.slot, i) > base)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
 }
 
 function sheetLegion(){
@@ -330,11 +334,15 @@ function itemDetail(id){
         <h3>${esc(it.name)}${it.plus?` <span class="plus">+${it.plus}</span>`:''}</h3>
         ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
       <div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
-        ${it.affixes.map(a => `<div class="aff">${statLine(a.k,a.v)}</div>`).join('')}</div>
+        ${it.affixes.map(a => `<div class="afx">${statLine(a.k,a.v)}</div>`).join('')}</div>
       ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
-      ${!eq && cur ? `<div class="cmp"><small>Currently equipped: <b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b></small></div>` : ''}
+      ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec});
+          const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
+            .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
+          return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}
       <div class="enh"><div><b>Enhance ${it.plus < MAX_PLUS ? `+${it.plus} → +${it.plus+1}` : '(MAX)'}</b>
         ${it.plus < MAX_PLUS ? `<small><span class="${S.gold>=ec.gold?'':'bad'}">${ICON.gold}${fmt(ec.gold)}</span> <span class="${S.stones>=ec.stones?'':'bad'}">${ICON.stone}${fmt(ec.stones)}</span> · Success ${Math.round(er*100)}%</small>` : ''}</div>
         <button class="btn primary" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance</button></div>
@@ -422,7 +430,7 @@ function showResult(r){
   const shards = Object.entries(r.shards||{}).map(([k,v]) => `<span class="shard"><img src="${monsterPortrait(k,false)}" alt="">+${v}</span>`).join('');
   let btns = '';
   if(BT.mode === 'gate'){
-    const canNext = win && BT.floor < FLOORS;
+    const canNext = win;
     btns = `<button class="btn" data-a="leave">Home</button>${win && !isUnlocked('gates') ? '' : `<button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>`}
       ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
   } else if(BT.mode === 'daily'){
@@ -449,7 +457,7 @@ function showResult(r){
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
   if(autoOn){
     let floor = BT.floor;
-    if(S.settings.farm === 'push'){ if(win && floor < FLOORS) floor++; else if(!win && floor > 1) floor--; }
+    if(S.settings.farm === 'push'){ if(win) floor++; else if(floor > 1) floor--; }
     else if(!win && floor > 1) floor--;
     const gid = BT.gate.id;
     UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startGate(gid, floor); }, 2600);

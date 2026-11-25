@@ -1,11 +1,12 @@
 {
-  "version": "0.9.0",
+  "version": "0.10.0",
   "date": "2026-11-25",
-  "title": "Job Change",
+  "title": "Smoother",
   "notes": [
-    "Job Change unlocks at Rank C: pick one of two specializations for your power.",
-    "Flame: Inferno Lord or Phoenix Blade. Storm: Thunder God or Tempest Dancer. Void: Abyss Warden or Void Reaper. Blood: Crimson Berserker or Blood Sovereign.",
-    "Each job gives a passive bonus and makes one skill stronger (more damage, more hits, longer buffs or extra crystals).",
-    "Your job is shown under your name and in the Champion screen. Switching later costs Gold."
+    "Deep Floors: after Floor 10 every gate continues forever (Floor 11, 12, ...). Stronger enemies, better loot, a boss every 5 floors. The best place to farm.",
+    "Combat formation: melee enemies step up to your line and ranged ones stay back, so fights are close and punchy instead of long dashes. Smoother attack movement.",
+    "Fairer Arena: hunters are a bit weaker, their recommended Power is shown, and defeats give some Gold and XP.",
+    "Recommended Power numbers are now realistic (based on test playthroughs).",
+    "Easier gear: a green \u25b2 marks items that are better than what you wear, and item details show exactly what changes (ATK +45, HP -20, ...)."
   ]
 }

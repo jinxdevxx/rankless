@@ -234,7 +234,7 @@ select{background:rgba(10,14,32,.8);border:1px solid var(--line);border-radius:6
 .idet h3{font-size:32px;color:var(--r);text-shadow:0 0 14px color-mix(in srgb,var(--r) 60%,transparent)}
 .cpd{font-family:"Bebas Neue",sans-serif;font-size:22px} .cpd.up{color:var(--good)} .cpd.down{color:var(--bad)}
 .ilines{margin:14px 0;padding:10px 14px;border-radius:10px;background:rgba(4,8,20,.6);font-size:16px;line-height:1.7}
-.ilines .aff{color:#9fd8ff}
+.ilines .afx{color:#9fd8ff}
 .cmp{font-size:14px;color:var(--muted);margin-bottom:10px}
 .enh{display:flex;align-items:center;gap:12px;justify-content:space-between;padding:10px 14px;border:1px solid var(--line);border-radius:10px}
 .enh small{display:flex;gap:10px;align-items:center;color:var(--muted)}
@@ -407,6 +407,19 @@ textarea{width:100%;background:rgba(5,8,20,.85);border:1px solid var(--line2);bo
 .crlbl small{font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:.04em;color:#fff}
 .sk-hint{font-size:13px;color:#c4cde8;background:rgba(6,10,24,.7);padding:4px 10px;border-radius:8px;align-self:flex-end}
 .sk-hint.warn{color:#fff;background:rgba(122,20,40,.85)}
+
+/* ---------- deep floors / item compare ---------- */
+.deeprow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.05);border:1px dashed rgba(247,199,90,.45)}
+.deeprow > div{flex:1;min-width:200px}
+.deeprow b{display:block;font-family:"Bebas Neue",sans-serif;font-weight:400;font-size:24px;letter-spacing:.05em}
+.deeprow small{color:var(--muted);font-size:13px}
+.deeprow .btn small{color:inherit;margin-left:6px;font-size:12px}
+.deeprow .btn small.ok{color:#1f6a3a} .deeprow .btn small.hard{color:#8a1f1f}
+.icard .upg{position:absolute;top:2px;left:5px;font-size:13px;color:var(--good);text-shadow:0 1px 2px #000}
+.diffs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.diffs span{padding:3px 8px;border-radius:8px;background:rgba(255,255,255,.06);font-size:14px}
+.diffs span.up{color:#9ff0b8;background:rgba(80,200,120,.14)}
+.diffs span.down{color:#ffb0a8;background:rgba(220,80,70,.14)}
 
 /* ---------- job change ---------- */
 .jobs{display:grid;grid-template-columns:1fr 1fr;gap:10px}

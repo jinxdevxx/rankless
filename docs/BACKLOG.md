@@ -3,6 +3,10 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Stuck after 10 floors / arena too hard / no way to farm: Deep Floors, fairer arena, realistic Power (v0.10.0)
+- [x] Combat felt odd: formation and smoother movement (v0.10.0)
+- [x] Gear easier to read: upgrade arrows and stat differences (v0.10.0)
+- [ ] Keep making combat rounder and more skill-based (ongoing)
 - [ ] Game shows 404: repo was set to private, GitHub Pages (free plan) only works for public repos. Waiting for the player to make it public or choose other hosting.
 - [x] Simpler, better-looking start (v0.4.0)
 - [x] Manual skills instead of auto, more creative skill resource (v0.5.0: Breaker Crystals)

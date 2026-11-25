@@ -6,13 +6,15 @@ let BT = null;
 
 const UNIT_SIZE = {human:225, husk:178, beast:140, blob:136, brute:250, ghost:200, golem:245, oni:262, warden:330, conductor:285, matriarch:300};
 const P_POS = [[.31,0],[.20,-.05],[.19,.045],[.09,-.01]];
-const E_POS = [[.67,0],[.78,-.05],[.79,.045],[.90,-.01]];
-const BOSS_POS = [.75,.015];
+const E_POS = [[.50,0],[.58,-.05],[.59,.045],[.66,-.01]];
+const RANGED_BACK = .17;   // ranged enemies and healers keep their distance
+const BOSS_POS = [.58,.015];
 
 function bk(){ return VW < VH ? clamp(VW/680, .42, .9) : clamp(Math.min(VH/900, VW/1500), .3, 1.25); }
 function groundY(){ return VW < VH ? VH*.6 : VH*.77; }
 function homeOf(u){
-  const p = u.boss ? BOSS_POS : (u.side === 'p' ? P_POS : E_POS)[u.slot] || [.5,0];
+  const p0 = u.boss ? BOSS_POS : (u.side === 'p' ? P_POS : E_POS)[u.slot] || [.5,0];
+  const p = u.side === 'e' && !u.boss && (u.ranged || u.role === 'healer') ? [p0[0] + RANGED_BACK, p0[1]] : p0;
   return [VW*p[0], groundY() + VH*p[1]*(VW < VH ? .6 : 1)];
 }
 
@@ -44,7 +46,7 @@ function enemyUnit(type, L, slot){
 }
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
-  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 8*boost, am = 1.9*boost;
+  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 5.5*boost, am = 1.6*boost;
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
@@ -58,14 +60,16 @@ function prep(u){
 }
 
 /* ---------- floors ---------- */
+function isBossFloor(f){ return f === FLOORS || (f > FLOORS && (f - FLOORS) % 5 === 0); }
 function floorWaves(gate, f){
   const pool = gate.enemies, waves = [];
-  const nW = f <= 3 ? 1 : f <= 7 ? 2 : 3;
+  const deep = f > FLOORS;
+  const nW = deep ? 3 : f <= 3 ? 1 : f <= 7 ? 2 : 3;
   for(let w=0; w<nW; w++){
     const size = Math.min(4, 2 + (f >= 3 ? 1 : 0) + (f >= 6 && w > 0 ? 1 : 0));
     let wave = Array.from({length:size}, () => pick(pool));
-    if(w === nW-1 && (f === 5 || f === 8 || f === 9)) wave[0] = gate.elite;
-    if(w === nW-1 && f === 10) wave = [gate.boss, pick(pool), pick(pool)];
+    if(w === nW-1 && (f === 5 || f === 8 || f === 9 || deep)) wave[0] = gate.elite;
+    if(w === nW-1 && isBossFloor(f)) wave = [gate.boss, pick(pool), pick(pool)];
     waves.push(wave);
   }
   return waves;
@@ -366,8 +370,9 @@ function stepUnit(u, dt){
       break; }
     case 'dash': {
       const t = u.target; if(!t || t.dead){ u.state = 'back'; u.st = 0; break; }
-      const tx = t.x - dir*(t.size*.35 + 40)*k, p = Math.min(1, u.st/.14);
+      const tx = t.x - dir*(t.size*.35 + 40)*k, p0 = Math.min(1, u.st/.13), p = p0 < .5 ? 2*p0*p0 : 1 - Math.pow(-2*p0 + 2, 2)/2;
       u.x = u.from + (tx - u.from)*p; u.y = hy + (t.y - hy)*p*.5;
+      if(p0 >= 1) { u.x = tx; }
       if(p >= 1){ u.state = 'strike'; u.st = 0;
         const col = u.side === 'p' ? (u.kind === 'hero' ? AFF[S.aff].color : u.art.rim) : u.art.rim;
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
@@ -379,7 +384,8 @@ function stepUnit(u, dt){
     case 'strike': if(u.st > .12){ u.state = 'back'; u.st = 0; u.from = u.x; } break;
     case 'skill': if(u.st > .3){ u.state = 'back'; u.st = 0; u.from = u.x; } break;
     case 'back': {
-      const p = Math.min(1, u.st/.2); u.x = u.from + (hx - u.from)*p; u.y += (hy - u.y)*p;
+      const p0 = Math.min(1, u.st/.22), p = 1 - Math.pow(1 - p0, 3); u.x = u.from + (hx - u.from)*p; u.y += (hy - u.y)*Math.min(1, p0*2);
+      if(p0 >= 1) u.x = hx;
       if(p >= 1){ u.state = 'idle'; u.st = 0; } break; }
     case 'cast': {
       if(u.st >= .35){
@@ -482,7 +488,7 @@ function finishBattle(win){
     if(win){
       r.first = f > (S.gates[g.id]||0);
       S.gates[g.id] = Math.max(S.gates[g.id]||0, f);
-      const isBoss = f === 10, isElite = f === 5 || f === 8 || f === 9;
+      const isBoss = isBossFloor(f), isElite = f === 5 || f === 8 || f === 9 || f > FLOORS;
       let n = isBoss ? 3 : isElite ? 2 : (Math.random() < .55 ? 1 : 0) + (Math.random() < .2 ? 1 : 0);
       if(r.first) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400;
@@ -517,7 +523,7 @@ function finishBattle(win){
       if(first){ r.items.push(randomItem(h.lv, BT.exam ? 2.5 : 1)); }
       if(BT.exam){ S.rank = EXAMS[rank].next; r.rankUp = S.rank; const ng = GATES.find(g => g.rank === S.rank); if(ng) r.newGate = ng.name; }
       else S.arena[rank] = Math.max(S.arena[rank]||0, BT.idx+1);
-    } else { r.gold = 0; r.xp = Math.round(r.xp*.5); }
+    } else { r.gold = Math.round(goldFor(BT.hunter.lv)*6); r.xp = Math.round(r.xp*.5 + xpFor(BT.hunter.lv)*3); }
   }
   // apply
   S.gold += r.gold; S.stones += r.stones;

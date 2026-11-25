@@ -131,7 +131,7 @@ function calcStats(src){
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
-  if(src === S && S.spec){ const sp = specOf(); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
+  if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
     if(sc[id] >= 2) for(const k in st.b2) o[k] += st.b2[k];
@@ -159,7 +159,8 @@ function teamPower(){
   return p;
 }
 /* recommended power for a gate floor */
-function floorPower(L){ return Math.round(enemyAtk(L)*22 + enemyHp(L)*3.2); }
+// recommended Power, calibrated on bot playthroughs (power at which floors were cleared)
+function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 
 /* ---------- inventory helpers ---------- */
 function addItem(it){
