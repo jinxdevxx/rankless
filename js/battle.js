@@ -383,6 +383,7 @@ function stepUnit(u, dt){
       if(p >= 1){ u.state = 'strike'; u.st = 0;
         const col = u.side === 'p' ? (u.kind === 'hero' ? AFF[S.aff].color : u.art.rim) : u.art.rim;
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
+        if(u.kind === 'hero') elemHit(t, u.manual);
         if(u.manual && !t.boss && t.kind === 'enemy' && t.hp/t.maxHp < EXECUTE_AT){
           addText(t, 'EXECUTE', '#ffd27a', 30); BT.slowmo = Math.max(BT.slowmo||0, .22); BT.zoom = Math.max(BT.zoom||0, .04);
           dealDamage(u, t, 0, {}); t.hp = 0; killUnit(t); gainEnergy(.5);
@@ -482,6 +483,18 @@ function stepBattle(dt){
 function addText(u, txt, c, size, crit){
   const k = bk();
   BT.texts.push({x:u.x + rand(-25,25)*k, y:u.y - u.size*k*.95 - rand(0,20)*k, txt, c, size:size*Math.max(.75,k), life:.9, max:.9, vy:70*k, crit});
+}
+/* each blade element hits differently: sparks, embers, arcs, implosion, droplets */
+function elemHit(t, big){
+  const k = bk(), x = t.x, y = t.y - t.size*k*.5, n = big ? 12 : 7, a = AFF[S.aff];
+  switch(S.aff){
+    case 'flame': for(let i = 0; i < n; i++) BT.fx.push({k:'p', x:x + rand(-14,14)*k, y:y + rand(-10,10)*k, vx:rand(-40,40), vy:rand(-160,-60), g:-40, c: i%3 ? '#ffb347' : '#ffe08a', life:rand(.35,.7), max:.7, sz:rand(4,7)}); break;
+    case 'storm': for(let i = 0; i < (big ? 3 : 2); i++){ const ang = rand(0, 6.28), r = rand(30,55)*k; BT.fx.push({k:'bolt', x1:x, y1:y, x2:x + Math.cos(ang)*r, y2:y + Math.sin(ang)*r, c:i ? a.color2 : '#e8f6ff', life:.16, max:.16}); } break;
+    case 'void': BT.fx.push({k:'ring', x, y, r:46*k, R:4*k, c:a.color, life:.28, max:.28});
+      for(let i = 0; i < n; i++){ const ang = rand(0, 6.28), r = rand(40,60)*k; BT.fx.push({k:'p', x:x + Math.cos(ang)*r, y:y + Math.sin(ang)*r, vx:-Math.cos(ang)*r*3.2, vy:-Math.sin(ang)*r*3.2, c: i%2 ? a.color : a.color2, life:.3, max:.3, sz:5}); } break;
+    case 'blood': for(let i = 0; i < n; i++){ const ang = rand(-2.6, -.5); BT.fx.push({k:'p', x, y, vx:Math.cos(ang)*rand(80,220), vy:Math.sin(ang)*rand(80,220), g:700, c: i%2 ? '#c2183a' : '#ff4d6a', life:rand(.4,.7), max:.7, sz:rand(4,7)}); } break;
+    default: for(let i = 0; i < n; i++){ const ang = rand(-1.2, 1.2) + (Math.random() < .5 ? 0 : 3.14); BT.fx.push({k:'p', x, y, vx:Math.cos(ang)*rand(120,280), vy:Math.sin(ang)*rand(120,280) - 40, g:600, c: i%2 ? '#ffffff' : '#ffe6a8', life:rand(.2,.4), max:.4, sz:rand(3,5)}); }
+  }
 }
 function burst(x, y, c, n){
   for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = rand(80,320);
@@ -626,7 +639,7 @@ function drawFx(c, k, t){
   for(const f of BT.fx){
     const p = 1 - f.life/f.max, a = clamp(f.life/f.max, 0, 1);
     c.save();
-    if(f.k === 'p'){ c.globalAlpha = a; c.fillStyle = f.c; c.fillRect(f.x, f.y, 3, 3); }
+    if(f.k === 'p'){ c.globalAlpha = a; c.fillStyle = f.c; const z = (f.sz || 3)*(f.sz ? .5 + a*.5 : 1); if(f.sz){ c.shadowColor = f.c; c.shadowBlur = 8; } c.fillRect(f.x - z/2, f.y - z/2, z, z); if(f.sz) c.shadowBlur = 0; }
     else if(f.k === 'slash'){
       c.translate(f.x, f.y); c.rotate(f.rot); c.globalAlpha = a; c.shadowColor = f.c; c.shadowBlur = 22;
       const r = f.r*(.7 + p*.5), sweep = Math.PI*(.35 + p*.65);

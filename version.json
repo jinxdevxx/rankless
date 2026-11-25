@@ -1,9 +1,9 @@
 {
-  "version": "0.12.3",
+  "version": "0.12.4",
   "date": "2026-11-25",
-  "title": "Ready Check",
+  "title": "Elemental Hits",
   "notes": [
-    "Home screen shows what's ready right now: free stat points, new gear, an enchant you can afford and Daily Gates left. Tap a chip to jump there.",
-    "Phone: the top bar is more compact, so Gold, Stones and Diamonds all fit on screen."
+    "Every blade element now hits differently: Steel throws sparks, Flame sprays embers, Storm crackles with arcs, Void implodes and Blood splashes.",
+    "Your own STRIKEs make a bigger burst than auto attacks."
   ]
 }

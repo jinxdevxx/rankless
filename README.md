@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.12.4 – Elemental Hits
+- Hero hits have element-specific effects: steel sparks, flame embers, storm arcs, void implosion, blood splash.
+- Manual STRIKEs burst bigger than auto attacks.
+
 ### v0.12.3 – Ready Check
 - Home screen "ready" chips: free stat points, new gear, affordable enchant, Daily Gates left. One tap jumps there.
 - Phone: compact top bar, so all three currencies fit.

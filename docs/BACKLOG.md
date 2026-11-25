@@ -35,7 +35,7 @@ Open requests from the player come first. Every development round starts here.
 
 ## Next up (open player wishes, work through in this order)
 1. Combat feel: rounder and more skill-based without being stressful; frequent dopamine moments. (v0.12.0: Flow + Execute added; keep refining)
-2. Visuals: simple but appealing and "gripping"; polish characters, monsters, effects, home screen; keep the warm illustrated style, nothing cyber. (v0.12.1: reward moments done; v0.12.2: monster wind-up + blinking; v0.12.3: home ready chips + compact phone top bar; next: hit effects per element)
+2. Visuals: simple but appealing and "gripping"; polish characters, monsters, effects, home screen; keep the warm illustrated style, nothing cyber. (v0.12.1: reward moments done; v0.12.2: monster wind-up + blinking; v0.12.3: home ready chips + compact phone top bar; v0.12.4: element hit effects; next: monster death animations)
 3. Clarity: every screen must be instantly understandable (big readable numbers, clear costs, obvious next step).
 4. Progression and decisions: meaningful choices in stats, gear, enchantments and jobs; farming must always feel useful.
 5. Balance: full run about 3-4 hours to Rank B; re-check with the bot after every gameplay change.
