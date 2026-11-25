@@ -414,8 +414,10 @@ function syncFarmUI(){
   const adv = isUnlocked('gates');
   $('#bSpeed').textContent = `x${S.settings.speed}`;
   $('#bSpeed').hidden = !adv;
-  $('#bAuto').classList.toggle('on', S.settings.autoSkill); $('#bAuto').hidden = timingMode();
-  $('#bAuto').hidden = !adv;
+  const tm = timingMode();
+  $('#bAuto').textContent = tm ? (S.settings.autoFight ? 'AUTO FIGHT: ON' : 'AUTO FIGHT: OFF') : (S.settings.autoSkill ? 'AUTO FARM: ON' : 'AUTO FARM: OFF');
+  $('#bAuto').classList.toggle('on', tm ? !!S.settings.autoFight : S.settings.autoSkill);
+  $('#bAuto').hidden = false;
   $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
   $('#bFarm').classList.toggle('on', S.settings.farm !== 'off');
   $('#bFarm').hidden = !(adv && BT && BT.mode === 'gate');
@@ -436,8 +438,8 @@ function updateBattleHud(){
   const th = threatsOnHero().length > 0, sb = $('#bSkills .strike');
   if(sb){ sb.classList.toggle('parry', th); sb.querySelector('b').textContent = th ? 'PARRY!' : 'STRIKE'; }
   const hint = $('#bHint'); if(hint){ const need = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy < SKILL_COST[i]);
-    hint.textContent = timingMode() ? (BT.stumble > 0 ? 'Stumbled! Wait for the ring, don\'t mash.' : th ? 'Red ! : press SPACE just before the hit to PARRY' : BT.ring ? 'Press SPACE when the white ring meets the gold circle' : BT.energy >= 1 ? 'Skills ready: press 1 / 2 / 3' : 'Wait for the ring...') : th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? ((BT.flow||0) ? 'Keep the rhythm: steady strikes build FLOW' : 'Strike (Space / tap) in a steady rhythm to build FLOW')
-      : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : need >= 0 ? `Skills light up when you have enough ◆` : 'Use a skill! Back-to-back skills = CHAIN bonus'; hint.classList.toggle('warn', th); }
+    hint.textContent = timingMode() ? (BT.stumble > 0 ? 'Stumbled! Wait for the ring, don\'t mash.' : th ? 'Red ! : press SPACE just before the hit to PARRY' : S.settings.autoFight ? 'AUTO FIGHT is on. Turn it off to land PERFECT hits.' : BT.ring ? 'Press SPACE while the ring is inside the gold zone' : BT.energy >= 1 ? 'Skills ready: press 1 / 2 / 3' : 'Wait for the ring...') : th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? ((BT.flow||0) ? 'Keep the rhythm: steady strikes build FLOW' : 'Strike (Space / tap) in a steady rhythm to build FLOW')
+      : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : (() => { const rd = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy >= SKILL_COST[i]); return BT.ult >= 100 ? 'ULTIMATE ready! Press R (or tap it)' : rd >= 0 ? `Skill ready! Press ${rd + 1} (or tap it)` : need >= 0 ? 'Skills light up when you have enough ◆' : 'Use a skill! Back-to-back skills = CHAIN bonus'; })(); hint.classList.toggle('warn', th); }
   const fl = $('#bFlow'); if(fl){ const n = BT.flow || 0; fl.innerHTML = n ? `FLOW ${'<i></i>'.repeat(n)}${'<s></s>'.repeat(FLOW.max - n)}` : ''; fl.classList.toggle('max', n >= FLOW.max); }
   const ch = $('#bChain'); ch.textContent = S.settings.simple ? '' : BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
   $$('#bSkills .skb').forEach(b => {
@@ -482,7 +484,7 @@ function showResult(r){
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
-    ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the white ring touches the gold circle, then press once.</div>` : ''}
+    ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
@@ -534,7 +536,7 @@ function rewardAnim(r){
 function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
 function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
-  if(timingMode()){ if(!S.flags.tipRing){ S.flags.tipRing = true; S.flags.tipStrike2 = true; setTimeout(() => toast('NEW: TIMING COMBAT', 'A white ring closes in on the enemy. Press SPACE (or tap) when it meets the gold circle: PERFECT hits deal huge damage. Mashing makes you stumble! Old style: Menu > Combat style.', 'gold'), 700); } }
+  if(timingMode()){ if(!S.flags.tipRing){ S.flags.tipRing = true; S.flags.tipStrike2 = true; setTimeout(() => toast('NEW: TIMING COMBAT', 'A white ring closes in on the enemy. Press SPACE (or tap) while it is inside the gold zone: PERFECT hits deal huge damage. Mashing makes you stumble! Just want to farm? Use AUTO FIGHT (top right).', 'gold'), 700); } }
   else if(S.record.kills === 0 || !S.flags.tipStrike2){ S.flags.tipStrike2 = true; setTimeout(() => toast('HOW TO FIGHT', 'Press SPACE or tap the screen to STRIKE. Strikes charge your crystals, crystals power your skills.', 'gold'), 700); } }
 function leaveBattle(){ cancelAuto(); BT = null; showScreen('home'); renderHome(); }
 
@@ -548,7 +550,7 @@ function act(a, el){
     case 'create': {
       const n = $('#cName').value.trim().replace(/[^\w\- ]/g,'').slice(0,14);
       if(!n){ $('#cName').focus(); toast('ERROR','Enter a codename.','red'); return; }
-      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = 'steel'; S.flags.enchantV1 = true; S.hair = randi(0,2); S.seenVersion = window.GAME_VERSION;
+      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = 'steel'; S.flags.enchantV1 = true; S.flags.combatV3 = true; S.hair = randi(0,2); S.seenVersion = window.GAME_VERSION;
       // starter gear
       S.eq.weapon = makeItem('weapon', 1, 0); S.eq.armor = makeItem('armor', 1, 0);   // equip directly (Simple Mode used to salvage them)
       save(); showScreen('home'); renderHome(); intro(); break; }
@@ -602,7 +604,7 @@ function act(a, el){
     case 'strike': heroAction(); break;
     case 'ult': useUlt(); break;
     case 'speed': S.settings.speed = S.settings.speed >= 3 ? 1 : S.settings.speed + 1; syncFarmUI(); save(); break;
-    case 'auto': S.settings.autoSkill = !S.settings.autoSkill; syncFarmUI(); save(); break;
+    case 'auto': if(timingMode()){ S.settings.autoFight = !S.settings.autoFight; if(BT){ BT.stumble = 0; BT.autoAt = 0; } toast(S.settings.autoFight ? 'AUTO FIGHT ON' : 'AUTO FIGHT OFF', S.settings.autoFight ? 'Your hero fights on their own (normal hits only, no PERFECTs). Turn it off to fight with skill.' : 'You are in control: hit the gold zone for PERFECT damage.', 'gold'); } else { S.settings.autoSkill = !S.settings.autoSkill; toast(S.settings.autoSkill ? 'AUTO FARM ON' : 'AUTO FARM OFF', S.settings.autoSkill ? 'Skills and the ultimate fire on their own. Good for farming.' : 'Skills are yours again: press 1 / 2 / 3 and R (or tap them).', 'gold'); } syncFarmUI(); save(); break;
     case 'farm': S.settings.farm = {off:'repeat', repeat:'push', push:'off'}[S.settings.farm]; syncFarmUI(); save(); break;
     case 'stopFarm': S.settings.farm = 'off'; cancelAuto(); syncFarmUI(); save(); break;
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;

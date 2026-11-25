@@ -3,7 +3,9 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
-- [x] Space spam = no skill, auto abilities pop by themselves: new Timing combat (v0.14.0). Keep refining, ask for feedback.
+- [x] Ring combat was too hard and looked bad: removed again, classic Space combat back (v0.14.1)
+- [x] Skills must not fire automatically; AUTO FARM button to switch it on for farming (v0.14.1)
+- [ ] Make classic combat less boring with something CREATIVE but simple (Space spam stays allowed). Ideas: skill combos that are easy to hit, enemy weak points that open up, boss moves you answer with a skill. Small steps, ask for feedback.
 - [x] Legion useless, dies instantly at D/C: companions scale with hero (v0.14.0). Keep checking they matter.
 - [x] New character can't beat Gate 1 (no starter gear bug) (v0.14.0)
 - [ ] Check every round: fresh-start playtest (new character E-F1..F3: timed wins, mashing loses with a clear tip), legion survival, balance bot.

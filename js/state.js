@@ -23,7 +23,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'timing'}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'classic'}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
@@ -240,6 +240,8 @@ function dailyLeft(kind){
 function syncAff(){ S.aff = S.enchant && ELEMENTS.includes(S.enchant.el) ? S.enchant.el : 'steel'; if(S.aff === 'steel') S.spec = null; }
 /* saves hit by the v0.13.0 bug (starter gear salvaged) get it back */
 function fixStarterGear(){ for(const sl of ['weapon','armor']) if(!S.eq[sl]) S.eq[sl] = makeItem(sl, Math.max(1, S.level - 1), 1); }
+/* v0.14.2: back to classic combat; skills are manual again unless the player turns AUTO on */
+function migrateCombat(){ if(S.flags.combatV3) return; S.flags.combatV3 = true; S.settings.combat = 'classic'; S.settings.autoSkill = false; S.settings.autoFight = false; }
 function migrateEnchant(){
   if(S.flags.enchantV1) return;
   S.flags.enchantV1 = true;

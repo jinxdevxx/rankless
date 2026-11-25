@@ -12,7 +12,7 @@ const { chromium } = require('playwright');
         else { const th=threatsOnHero(); if(th.length){ const rem=Math.min(...th.map(u=>u.interval-u.timer)); if(!pp&&rem<=.3){pp=1; if(Math.random()<.6) heroAction();} } else { pp=0; if(BT.ring){ if(!tgt) tgt=Math.random()<.6?rand(.88,1.02):rand(.66,1.1); if(BT.ring.t/BT.ring.dur>=tgt){heroAction(); tgt=0;} } else if(mode==='classic'){ st-=.05; if(st<=0){heroAction(); st=.7;} } } }
         stepBattle(.05); t+=.05; }
       const r = {win:BT.result&&BT.result.win, t:Math.round(t), hp:Math.round(BT.hero.hp/BT.hero.maxHp*100)}; BT=null; return r; }
-    for(const mode of ['classic','timing']) for(const pol of ['spam','timed']) for(const f of [1,2,3]){ let w=0; const rs=[]; for(let i=0;i<5;i++){ const r=play(mode,f,pol); if(r.win) w++; rs.push(r.t+'s/'+r.hp+'%'); } out[mode+' '+pol+' F'+f]=w+'/5 '+rs.join(' '); }
+    for(const mode of ['classic']) for(const pol of ['spam','timed']) for(const f of [1,2,3]){ let w=0; const rs=[]; for(let i=0;i<5;i++){ const r=play(mode,f,pol); if(r.win) w++; rs.push(r.t+'s/'+r.hp+'%'); } out[mode+' '+pol+' F'+f]=w+'/5 '+rs.join(' '); }
     return JSON.stringify(out,null,1); }));
   await b.close();
 })();

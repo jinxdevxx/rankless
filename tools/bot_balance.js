@@ -16,7 +16,7 @@ const { chromium } = require('playwright');
     function run(){ let t=0, tgt=0, pp=0; while(!BT.over && t<240){
       const th = threatsOnHero();
       if(th.length){ const rem = Math.min(...th.map(u=>u.interval-u.timer)); if(!pp && rem <= .3){ pp=1; if(Math.random() < SKILL) heroAction(); } }
-      else { pp=0; if(BT.ring){ if(!tgt) tgt = Math.random() < SKILL ? rand(.88,1.02) : rand(.66,1.1); if(BT.ring.t/BT.ring.dur >= tgt){ heroAction(); tgt=0; } } else tgt=0; }
+      else { pp=0; if(BT.ring){ if(!tgt) tgt = Math.random() < SKILL ? rand(.8,1.08) : rand(.5,1.3); if(BT.ring.t/BT.ring.dur >= tgt){ heroAction(); tgt=0; } } else tgt=0; }
       stepBattle(0.05); t+=0.05; } simTime += t + 4; battles++; const r = BT.result; if(!(r&&r.win)){ window.LR=window.LR||{}; const key=(BT.hero.dead?'dead':'timeout')+' '+(BT.gate?BT.gate.id+BT.floor:'x'); window.LR[key]=(window.LR[key]||0)+1; const b=BT.units.find(u=>u.boss); if(b) window.LR[key+' bossHp']=Math.round(b.hp/b.maxHp*100); window.LR[key+' t']=Math.round(t); } BT=null; return r && r.win; }
     function manage(){
       const ks=['str','vit','str','vit','agi','sen','str','wil'];

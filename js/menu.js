@@ -43,7 +43,7 @@ function enterSlot(id){
   const s = readSlot(id);
   if(!s){ S = defaultSave(); showScreen('create'); renderCreate(); return; }
   S = s;
-  migrateEnchant(); fixStarterGear();
+  migrateEnchant(); fixStarterGear(); migrateCombat();
   checkUnlocks(true);
   if(!S.flags.manualSkills){ S.settings.autoSkill = false; S.flags.manualSkills = true; }
   UI.shownPower = undefined;
@@ -73,8 +73,6 @@ function openMenu(){
     <div class="msets">
       ${tg('simple','Simple Mode')}
       <small class="muted" style="display:block;margin:-4px 0 6px">Enhancing never fails, junk gear is salvaged, your Legion manages itself. Turn off for full control.</small>
-      <label class="mrow">Combat style <select data-a="menuCombat">
-        ${[['timing','Timing (new): hit the ring'],['classic','Classic: strike freely']].map(([v,l]) => `<option value="${v}" ${(S.settings.combat||'timing')===v?'selected':''}>${l}</option>`).join('')}</select></label>
       ${tg('sfx','Sound effects')}
       ${tg('music','Music')}
       ${tg('autoEquip','Auto-equip better gear')}

@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.14.1 – Back to Classic
+- Ring (Timing) combat disabled on player request; code kept dormant (`timingMode()` returns false). Combat style option removed from the menu.
+- Saves migrate once to classic combat with auto skills OFF (flag combatV3).
+- Battle button renamed AUTO FARM (toggles automatic skills + ultimate), always visible, with on/off toast.
+- Hint shows which skill key is ready (1/2/3, R for ultimate).
+- Kept: legion scaling with hero, starter gear fix. Classic bot runs: 52–90 min to Rank B.
+
 ### v0.14.0 – Timing Combat
 - New default combat style: shrinking ring on the front enemy; press on the gold circle (GOOD / PERFECT). Pressing with no ring or too early = stumble (0.5 s, mashing extends it). Perfect hits build FLOW and give extra crystal energy.
 - Parry only in the last 0.38 s before an enemy hit.

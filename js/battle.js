@@ -161,7 +161,7 @@ function heroAction(){
 }
 
 /* timing combat: one button, but WHEN you press is everything */
-function timingAction(h, threats){
+function timingAction(h, threats, auto){
   if(BT.stumble > 0){ BT.stumble = Math.max(BT.stumble, RING.stumble*.6); BT.whiffs = (BT.whiffs||0) + 1; return 'stumble'; }   // mashing keeps you stumbling
   if(threats.length){
     const rem = Math.min(...threats.map(u => u.interval - u.timer));
@@ -171,7 +171,7 @@ function timingAction(h, threats){
   if(!r || r.target.dead) return whiff(h, 'NO OPENING');
   const p = r.t / r.dur;
   if(p < RING.good) return whiff(h, 'TOO EARLY');
-  const perfect = p >= RING.perfect && p <= 1.06;
+  const perfect = !auto && p >= RING.perfect && p <= RING.perfectEnd;
   BT.ring = null; BT.ringDelay = .1;
   h.target = r.target; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; h.hitMult = perfect ? RING.pMult : RING.gMult;
   if(perfect){ BT.flow = Math.min(FLOW.max, (BT.flow||0) + 1); BT.perfects = (BT.perfects||0) + 1; gainEnergy(RING.perfectEnergy);
@@ -189,9 +189,14 @@ function whiff(h, txt){
 function stepRing(dt){
   const h = BT.hero; if(!h || h.dead) return;
   if(BT.stumble > 0){ BT.stumble -= dt; return; }
+  if(S.settings.autoFight){ const th = threatsOnHero();
+    if(th.length){ const rem = Math.min(...th.map(u => u.interval - u.timer)); if(!BT.autoParry && rem <= .3){ BT.autoParry = 1; if(Math.random() < .5) doParry(h, th, bk()); } }
+    else BT.autoParry = 0; }
   if(BT.ring){ const r = BT.ring;
     if(r.target.dead){ BT.ring = null; return; }
-    r.t += dt; if(r.t > r.dur*RING.late){ BT.ring = null; BT.ringDelay = .15; addText(h, 'MISSED', '#8a8fa8', 16); }
+    r.t += dt;
+    if(S.settings.autoFight){ BT.autoAt = BT.autoAt || rand(.75, .95); if(r.t/r.dur >= BT.autoAt){ BT.autoAt = 0; timingAction(h, [], true); return; } }
+    if(r.t > r.dur*RING.late){ BT.ring = null; BT.ringDelay = .15; addText(h, 'MISSED', '#8a8fa8', 16); }
     return; }
   if(h.state !== 'idle' && h.state !== 'back') return;
   BT.ringDelay = (BT.ringDelay ?? .4) - dt; if(BT.ringDelay > 0) return;
@@ -495,7 +500,7 @@ function stepBattle(dt){
   if(!BT.over){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
-    if((window.BOT_AUTO || S.settings.autoSkill && !timingMode()) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
+    if((window.BOT_AUTO || (timingMode() ? S.settings.autoFight : S.settings.autoSkill)) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
       // spend crystals when the gauge is nearly full, most expensive skill first
       if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
@@ -550,15 +555,26 @@ function elemHit(t, big){
   }
 }
 function drawRing(c, u, k){
-  const r = BT.ring, p = Math.min(1.1, r.t / r.dur), x = u.x, y = u.y - u.size*k*.5;
-  const r1 = 30*k, r0 = 110*k, rad = Math.max(r1*.8, r0 - (r0 - r1)*p);
-  const inP = p >= RING.perfect && p <= 1.06, inG = p >= RING.good;
+  // a soft gold target zone sits on the enemy; a bright reticle closes in. Press while it is inside the gold zone.
+  const r = BT.ring, p = r.t / r.dur, x = u.x, y = u.y - u.size*k*.5, t = performance.now()/1000;
+  const r0 = 120*k, r1 = 34*k, rad = p2 => Math.max(6*k, r1 + (r0 - r1)*(1 - p2));
+  const zIn = rad(RING.perfectEnd), zOut = rad(RING.perfect), cur = rad(Math.min(p, 1.3));
+  const inP = !S.settings.autoFight && p >= RING.perfect && p <= RING.perfectEnd, inG = p >= RING.good;
   c.save();
-  c.globalAlpha = .9; c.lineWidth = 4*k; c.strokeStyle = '#ffd27a'; c.setLineDash([6*k, 5*k]);
-  c.beginPath(); c.arc(x, y, r1, 0, 7); c.stroke(); c.setLineDash([]);
-  c.lineWidth = (inP ? 6 : 4)*k; c.strokeStyle = inP ? '#ffd27a' : inG ? '#ffffff' : 'rgba(255,255,255,.75)';
-  c.shadowColor = inP ? '#ffd27a' : '#ffffff'; c.shadowBlur = inP ? 22 : 8;
-  c.beginPath(); c.arc(x, y, rad, 0, 7); c.stroke();
+  // gold zone (perfect window)
+  const g = c.createRadialGradient(x, y, zIn, x, y, zOut);
+  g.addColorStop(0, 'rgba(255,210,122,0)'); g.addColorStop(.5, inP ? 'rgba(255,214,130,.55)' : 'rgba(255,210,122,.22)'); g.addColorStop(1, 'rgba(255,210,122,0)');
+  c.fillStyle = g; c.beginPath(); c.arc(x, y, zOut, 0, 7); c.arc(x, y, zIn, 0, 7, true); c.fill();
+  c.lineWidth = 1.5*k; c.strokeStyle = inP ? 'rgba(255,230,170,.95)' : 'rgba(255,210,122,.5)';
+  c.beginPath(); c.arc(x, y, (zIn + zOut)/2, 0, 7); c.stroke();
+  // closing reticle: ring + four brackets, white -> gold
+  const col = inP ? '#ffe39a' : inG ? '#ffffff' : 'rgba(255,255,255,.7)';
+  c.strokeStyle = col; c.shadowColor = inP ? '#ffcf6a' : 'rgba(255,255,255,.8)'; c.shadowBlur = inP ? 24 : 10;
+  c.lineWidth = (inP ? 4.5 : 3)*k; c.globalAlpha = Math.min(1, .35 + p*1.2);
+  c.beginPath(); c.arc(x, y, cur, 0, 7); c.stroke();
+  c.lineWidth = (inP ? 5 : 3.5)*k; const rot = t*1.4;
+  for(let i = 0; i < 4; i++){ const a = rot + i*Math.PI/2; c.beginPath(); c.arc(x, y, cur + 7*k, a - .22, a + .22); c.stroke(); }
+  if(inP){ c.globalAlpha = 1; c.shadowBlur = 0; c.fillStyle = '#ffe39a'; c.font = `900 ${13*k}px Nunito`; c.textAlign = 'center'; c.fillText('NOW', x, y - zOut - 10*k); }
   c.restore();
 }
 function burst(x, y, c, n){

@@ -1,13 +1,11 @@
 {
-  "version": "0.14.0",
+  "version": "0.14.1",
   "date": "2026-11-25",
-  "title": "Timing Combat",
+  "title": "Back to Classic",
   "notes": [
-    "NEW COMBAT: a white ring closes in on the enemy. Press SPACE (or tap) when it meets the gold circle. PERFECT = huge damage, crystals and FLOW. Mashing makes you stumble, so spamming no longer works.",
-    "Parry is now about timing too: press right before the hit (red !), not early.",
-    "Your hero no longer attacks on their own and skills never fire automatically in Timing combat. Every hit is yours.",
-    "Legion fixed: companions now grow with your hero (they used to be far too weak and died instantly).",
-    "BUG FIX: new characters started with no weapon and armor (Simple Mode salvaged them). Fixed, and broken saves get their gear back.",
-    "Prefer the old style? Menu (Esc) > Combat style > Classic."
+    "Ring combat removed again: fights work like before. Press SPACE to strike as often as you like.",
+    "Skills no longer fire on their own. Press 1 / 2 / 3 and R (or tap them). The hint tells you when a skill is ready.",
+    "New AUTO FARM button (top right): turn it on and skills and the ultimate fire automatically for easy farming, turn it off to fight yourself.",
+    "Kept from 0.14.0: Legion companions grow with your hero, and new characters start with their weapon and armor."
   ]
 }
