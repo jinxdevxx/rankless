@@ -350,6 +350,20 @@ select{background:rgba(10,14,32,.8);border:1px solid var(--line);border-radius:6
 .affs .aff b{font-size:26px}
 .affs .aff small{font-size:14px;color:#c4cde8}
 
+/* ---------- reward moments ---------- */
+.rxp{display:flex;align-items:center;gap:10px;max-width:420px;margin:8px auto 4px;font-family:"Bebas Neue",sans-serif;font-size:18px;color:var(--muted)}
+.rxp .bar{flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.08)}
+.rxp .bar i{width:0;background:linear-gradient(90deg,#f7c75a,#ff8a5c);transition:width .6s cubic-bezier(.2,.8,.2,1);border-radius:5px}
+.rxp.flash .bar{animation:xpflash .6s ease-out}
+@keyframes xpflash{0%{box-shadow:0 0 0 0 rgba(247,199,90,.9)}100%{box-shadow:0 0 0 14px rgba(247,199,90,0)}}
+.lvup{transition:opacity .3s,transform .3s}
+.lvup.pending{opacity:0;transform:scale(.6)}
+.lvup:not(.pending){animation:lvpop .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes lvpop{0%{transform:scale(.6)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.icard.epicglow{overflow:visible}
+.icard.epicglow::before{content:"";position:absolute;inset:-14px;border-radius:50%;z-index:-1;background:conic-gradient(from 0deg,transparent,var(--r),transparent 30%,var(--r),transparent 60%,var(--r),transparent);opacity:.55;animation:spin 3s linear infinite;filter:blur(4px)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 /* ---------- flow ---------- */
 .flow{display:flex;align-items:center;gap:3px;font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:.08em;color:#9ff0b8}
 .flow i,.flow s{display:inline-block;width:8px;height:14px;border-radius:2px;transform:skewX(-12deg)}
@@ -420,8 +434,8 @@ textarea{width:100%;background:rgba(5,8,20,.85);border:1px solid var(--line2);bo
 .cur svg{font-size:20px}
 .cur em{display:none}
 .cur.dia{color:#8fe7ff}
-@media (min-width:900px){ .cur{flex-direction:column;align-items:flex-start;gap:0;padding:4px 14px 4px 34px;line-height:1} .cur svg{position:absolute;left:10px;top:50%;transform:translateY(-50%)}
-  .cur em{display:block;font-style:normal;font-family:Nunito,sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)} }
+@media (min-width:900px){ .curs .cur{flex-direction:column;align-items:flex-start;gap:0;padding:4px 14px 4px 34px;line-height:1} .curs .cur svg{position:absolute;left:10px;top:50%;transform:translateY(-50%)}
+  .curs .cur em{display:block;font-style:normal;font-family:Nunito,sans-serif;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)} }
 .create-note{color:#e9dccd;font-size:15px;margin:12px 0 0}
 .create-note b{color:var(--gold)}
 .enchs{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}

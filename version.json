@@ -1,11 +1,10 @@
 {
-  "version": "0.12.0",
+  "version": "0.12.1",
   "date": "2026-11-25",
-  "title": "Flow & Execute",
+  "title": "Reward Moments",
   "notes": [
-    "FLOW: strike in a steady rhythm to build up to 5 Flow stacks. Each stack adds damage and charges crystals faster. Mashing or getting hit breaks it.",
-    "EXECUTE: enemies below 15% HP get a gold health bar. One strike finishes them instantly with a bonus crystal.",
-    "Live hints teach Flow and Execute during battles.",
-    "Rebalanced around the new mechanics: tougher enemies, slower early levels, bosses less of a wall, Gate D a bit harder and Gate C a bit easier."
+    "Victory screen: rewards count up, an XP bar fills toward your next level, and LEVEL UP pops in with a flash.",
+    "Legendary and Mythic drops get a glowing halo in the loot row.",
+    "Fixed reward chips stacking awkwardly on wide screens."
   ]
 }

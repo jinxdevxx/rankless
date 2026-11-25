@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.12.1 – Reward Moments
+- Result screen: count-up rewards, animated XP bar with level-up flash (`rewardAnim()` in `js/ui.js`).
+- Legendary/Mythic loot halo (`.icard.epicglow`).
+- Top-bar currency layout scoped to `.curs` so reward chips stay on one line.
+
 ### v0.12.0 – Flow & Execute
 - Flow (`FLOW` in `js/data.js`): rhythmic strikes stack up to 5 (+6% DMG and +10% crystal gain per stack); mashing or taking damage resets it. Timing uses a battle clock (`BT.clock`) unaffected by hit-stop/slow motion.
 - Execute (`EXECUTE_AT` = 15%): one strike kills a weakened non-boss enemy, gold HP bar and ground ring, bonus crystal.

@@ -453,7 +453,7 @@ function updateBattleHud(){
 function showResult(r){
   if(!BT) return;
   const win = r.win, g = BT.gate;
-  const loot = r.items.map((it,i) => `<button class="icard drop ${it.salvaged?'salv':''}" style="--r:${RARITY[it.rar].color};animation-delay:${i*.12}s" data-a="${it.salvaged?'':'item'}" data-id="${it.id}">
+  const loot = r.items.map((it,i) => `<button class="icard drop ${it.salvaged?'salv':''} ${it.rar >= 3 ? 'epicglow' : ''}" style="--r:${RARITY[it.rar].color};animation-delay:${i*.12}s" data-a="${it.salvaged?'':'item'}" data-id="${it.id}">
     ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.salvaged?'<span class="sv">SALVAGED</span>':''}${it.equipped?'<span class="sv eqd">EQUIPPED</span>':''}</button>`).join('');
   const unl = (r.unlocked||[]).map(k => `<div class="rankup unl"><small>NEW FEATURE UNLOCKED</small><b>${ICON[UNLOCKS[k].icon]} ${UNLOCKS[k].name}</b><span>${UNLOCKS[k].desc}</span>
     <button class="btn primary small" data-a="unlockOpen" data-id="${k}">Open ${UNLOCKS[k].name}</button></div>`).join('');
@@ -473,8 +473,9 @@ function showResult(r){
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
-    <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(r.gold)}</b></span><span class="cur cxp">XP <b>+${fmt(r.xp)}</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b>+${r.stones}</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b>+${r.diamonds}</b></span>`:''}</div>
-    ${r.levels ? `<div class="lvup">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
+    <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
+    <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
+    ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}
@@ -483,6 +484,7 @@ function showResult(r){
     <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
   $('#bResult').classList.add('on');
+  rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
   if(autoOn){
@@ -492,6 +494,30 @@ function showResult(r){
     const gid = BT.gate.id;
     UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startGate(gid, floor); }, 2600);
   }
+}
+/* result screen: numbers count up, the XP bar fills, level ups burst */
+function rewardAnim(r){
+  const box = $('#bResult'); if(!box) return;
+  box.querySelectorAll('[data-count]').forEach(el => {
+    const to = +el.dataset.count, t0 = performance.now(), dur = 700;
+    const step = now => { const p = Math.min(1, (now - t0)/dur), e = 1 - Math.pow(1 - p, 3); el.textContent = '+' + fmt(to*e); if(p < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  });
+  const bar = box.querySelector('.rxp .bar i'); if(!bar) return;
+  const endPct = clamp(S.xp/xpNeed(S.level), 0, 1)*100;
+  bar.style.width = '0%';
+  setTimeout(() => {
+    if(r.levels){
+      bar.style.width = '100%';
+      setTimeout(() => {
+        box.querySelector('.rxp').classList.add('flash');
+        const lv = box.querySelector('.lvup'); if(lv) lv.classList.remove('pending');
+        const spans = box.querySelectorAll('.rxp > span'); if(spans.length === 2){ spans[0].textContent = 'Lv ' + S.level; spans[1].textContent = 'Lv ' + (S.level + 1); }
+        bar.style.transition = 'none'; bar.style.width = '0%';
+        requestAnimationFrame(() => { bar.style.transition = ''; bar.style.width = endPct + '%'; });
+      }, 650);
+    } else bar.style.width = endPct + '%';
+  }, 250);
 }
 function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
