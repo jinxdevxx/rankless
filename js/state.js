@@ -121,6 +121,7 @@ function itemBase(it){
     const [a,g] = info.base[k];
     out[k] = g === 1 ? a * (1 + it.rar*.25) * (1 + it.plus*.04)
                      : a * Math.pow(g, it.ilvl-1) * m * (1 + it.plus*.08);
+    if(it.asc) out[k] *= 1 + it.asc*ASC_STEP;   // Ascension (endless, Master League)
   }
   return out;
 }
@@ -377,9 +378,14 @@ function rollUnique(src, ilvl, noGod){
 /* recommended power, measured from real wins (v0.25.1). Arena hunters are much weaker than a gate floor of the same level. */
 const ARENA_REC = .4;   // bot passed every exam at 0.31-0.5 of the old gate-style value
 function recMaster(lv){ return Math.round(8.5e6*Math.pow(1.066, lv - 1)); }   // fitted: power at which the bot wins Master Lv (M1 9M, M50 130M, M99 4.7B)
-function recParagon(p){ return Math.round(recMaster(MASTER_MAX)*Math.pow(1.13, p)); }
+function recParagon(p){ return Math.round(recMaster(MASTER_MAX)*Math.pow(1.12, p)); }
 function recKami(i){ return Math.round(recParagon(10*(i + 1))*1.5); }
 /* above 1 trillion power the number switches to a God Level that grows slowly (each x10 power = +10 levels), so it never explodes again */
 const GOD_POWER = 1e12;
 function godLv(p){ return 1 + 10*Math.log10(p/GOD_POWER); }
 function fmtPow(p){ return p >= GOD_POWER ? `神 ${godLv(p).toFixed(1)}` : fmt(p); }
+
+/* Ascension (v0.25.3): endless item upgrade after +15 in the Master League. The endgame sink for Gold + Mana Stones. */
+const ASC_STEP = .04;
+function ascendOpen(it){ return S.rank === 'M' && it.plus >= MAX_PLUS; }
+function ascendCost(it){ const a = it.asc || 0; return {gold:Math.round(goldFor(it.ilvl)*120*Math.pow(1.18, a)), stones:Math.round(60*(a + 1)*Math.pow(1.08, a))}; }

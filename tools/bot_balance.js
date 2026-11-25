@@ -32,7 +32,8 @@ const { chromium } = require('playwright');
       // endgame sinks a human would use: spirit awakening + skill mastery + enhance to +15 in the Master League
       if(S.rank === 'M'){ for(const id of S.pets.active){ let g = 0; while(g++ < 10 && S.pets.owned[id] >= PET_MAX_LV && petStar(id) < petStarCap()){ const c = petStarCost(petStar(id) + 1); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.pets.stars = S.pets.stars || {}; S.pets.stars[id] = petStar(id) + 1; } }
         for(let i = 0; i < 4; i++){ let g = 0; while(g++ < 10 && masteryLv(i) < MASTERY_MAX){ const c = masteryCost(i); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; } }
-        for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 15 && it.plus < 15){ const c = enhanceCost(it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; it.plus++; } } }
+        for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 15 && it.plus < 15){ const c = enhanceCost(it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; it.plus++; } }
+        if(typeof ascendCost === 'function') for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 5 && ascendOpen(it)){ const c = ascendCost(it); if(S.gold < c.gold*2 || S.stones < c.stones*2) break; S.gold -= c.gold; S.stones -= c.stones; it.asc = (it.asc||0) + 1; } } }
       checkUnlocks(true);
       if(isUnlocked('enchant') && !S.enchant && S.diamonds>=2){ S.diamonds-=2; S.enchant={el:ENCH,lv:1}; syncAff(); log.push(`${(simTime/60).toFixed(0)}m ENCHANT ${ENCH}`); }
       if(S.enchant && S.enchant.lv<5){ const c=enchantCost(S.enchant.lv+1); if(S.diamonds>=c.diamonds && S.gold>=c.gold*2){ S.diamonds-=c.diamonds; S.gold-=c.gold; S.enchant.lv++; log.push(`${(simTime/60).toFixed(0)}m ENCH LV${S.enchant.lv}`); } }

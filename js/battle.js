@@ -64,10 +64,10 @@ let MASTER_HM = 13, MASTER_AM = 1.5, MASTER_SLOPE = .06, MASTER_XP = 2.5, MASTER
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
-    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM*(1 + MASTER_HPG*h.master) : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
+    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM*(1 + MASTER_HPG*Math.min(h.master, MASTER_MAX)) : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
-    maxHp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
+    maxHp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.05, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
     role:'dps', lifesteal:st.lifesteal, aiSkill:4, xpVal:xpFor(h.lv)*15, goldVal:0};
 }
 function prep(u){

@@ -1,8 +1,9 @@
 {
-  "version": "0.25.2",
+  "version": "0.25.3",
   "date": "2026-11-25",
-  "title": "Stone and Slime",
+  "title": "Ascension",
   "notes": [
-    "Monster look upgrade: golems are now rock giants with boulder shoulders and glowing cracks, slimes got a glossy shine, drips and a toothy grin, husks wear torn cloaks and bone claws."
+    "NEW: Ascend items. In the Master League, +15 items can be ascended without limit (✦1, ✦2, ...), +4% base stats each. The endgame use for Gold and Mana Stones.",
+    "Paragon fix: the Master League HP growth wrongly applied to Paragon opponents too (about 4x HP). Paragon now has its own curve (+5% per level)."
   ]
 }

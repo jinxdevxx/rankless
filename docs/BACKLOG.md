@@ -11,7 +11,8 @@ Open requests from the player come first. Every development round starts here.
 - [x] Hero / sword look redesigned (v0.25.0)
 - [x] Ultimate name pop-up removed (v0.25.0)
 - [~] Mob graphics in the new hero style: golem, blob, husk done (v0.25.2); next: beast, brute/oni, ghost, warden
-- [ ] Endless gold/stone sink for the endgame (bot ended Paragon runs with 1.25T gold + 28k stones unused)
+- [x] Endless gold/stone sink: item Ascension (v0.25.3)
+- [ ] Verify Paragon curve after HPG cap (bot run in progress)
 - [x] Master Gate balance as farm source (v0.25.1)
 - [x] Recommended power realistic everywhere (v0.25.1)
 - [x] God Level above 1 trillion Power (v0.25.1)

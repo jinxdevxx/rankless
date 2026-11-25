@@ -519,7 +519,7 @@ function jobBox(){
 }
 function itemCard(it, eq, up){
   return `<button class="icard ${it.isNew?'new':''} ${!eq && isJunk(it) ? 'junk' : ''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
-    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${!eq ? (() => { const g = powerGain(it); return `<span class="pgain ${g > 0 ? 'up' : 'down'}" title="Power change if you equip it">${g > 0 ? '+' : '−'}${fmt(Math.abs(g))}</span>`; })() : ''}</button>`;
+    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.asc ? `<span class="plus asc">✦${it.asc}</span>` : it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${!eq ? (() => { const g = powerGain(it); return `<span class="pgain ${g > 0 ? 'up' : 'down'}" title="Power change if you equip it">${g > 0 ? '+' : '−'}${fmt(Math.abs(g))}</span>`; })() : ''}</button>`;
 }
 function sheetBag(){
   const f = UI.bagFilter || 'all';
@@ -588,7 +588,7 @@ function itemDetail(id){
   const canEnh = it.plus < MAX_PLUS && S.gold >= ec.gold && S.stones >= ec.stones;
   showModal(`<div class="idet" style="--r:${r.color}">
       <div class="ihead"><div class="iicon">${ICON[it.slot]}</div><div><small>${r.name} ${SLOT_INFO[it.slot].name} · iLvl ${it.ilvl}</small>
-        <h3>${esc(it.name)}${it.plus?` <span class="plus">+${it.plus}</span>`:''}</h3>
+        <h3>${esc(it.name)}${it.plus?` <span class="plus">+${it.plus}</span>`:''}${it.asc ? ` <span class="plus asc">✦${it.asc}</span>` : ''}</h3>
         ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>0?'up':'down'}">${diff>0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
       <div class="row iact">
         ${eq ? `<button class="btn" data-a="unequip" data-id="${it.slot}">Unequip</button>` :
@@ -612,7 +612,11 @@ function itemDetail(id){
       ${it.plus < MAX_PLUS ? `<div class="upgrade compact"><div class="ut">Enhance <b>+${it.plus} → +${it.plus+1}</b> <small>+8% base stats${er < 1 ? ` · ${Math.round(er*100)}% chance` : ''}</small></div>
         <div class="urow">${haveNeed('gold', 'Gold', S.gold, ec.gold)}${haveNeed('stone', 'Mana Stones', S.stones, ec.stones)}<span class="sp"></span>
         <button class="btn primary" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance</button></div>
-        ${it.plus ? `<small class="muted">Salvage returns 65% of what you spent on enhancing.</small>` : ''}</div>` : '<div class="hint">This item is fully enhanced (+15).</div>'}
+        ${it.plus ? `<small class="muted">Salvage returns 65% of what you spent on enhancing.</small>` : ''}</div>` : ascendOpen(it) ? (() => { const ac = ascendCost(it), ok = S.gold >= ac.gold && S.stones >= ac.stones;
+        return `<div class="upgrade compact asc"><div class="ut">✦ Ascend <b>${it.asc ? '✦' + it.asc : '+15'} → ✦${(it.asc||0) + 1}</b> <small>+4% base stats · no limit</small></div>
+        <div class="urow">${haveNeed('gold', 'Gold', S.gold, ac.gold)}${haveNeed('stone', 'Mana Stones', S.stones, ac.stones)}<span class="sp"></span>
+        <button class="btn primary" data-a="ascend" data-id="${it.id}" ${ok ? '' : 'disabled'}>Ascend</button></div></div>`; })()
+        : `<div class="hint">This item is fully enhanced (+15).${S.rank === 'M' ? '' : ' In the Master League you can <b>Ascend</b> it further.'}</div>`}
     </div>`);
 }
 
@@ -872,6 +876,8 @@ function act(a, el){
     case 'lock': { const f = findItem(id); if(f){ f.it.locked = !f.it.locked; save(); itemDetail(id); renderSheet(); } break; }
     case 'salvage': { const f = findItem(id); if(!f || f.eq || f.it.locked) break; const v = salvageValue(f.it); S.stones += v.stones; S.gold += v.gold;
       S.inv = S.inv.filter(x => x !== f.it); toast('SALVAGED', `+${v.stones} Mana Stones, +${fmt(v.gold)} Gold`); save(); closeModal(); renderSheet(); renderHome(); break; }
+    case 'ascend': { const f = findItem(id); if(!f || !ascendOpen(f.it)) break; const c = ascendCost(f.it); if(S.gold < c.gold || S.stones < c.stones) break;
+      S.gold -= c.gold; S.stones -= c.stones; f.it.asc = (f.it.asc||0) + 1; UI.shownPower = undefined; SFX.unlockFx(); toast('ASCENDED', `${f.it.name} ✦${f.it.asc}: +4% base stats.`, 'gold'); save(); itemDetail(f.it.id); renderHome(); break; }
     case 'enhance': { const f = findItem(id); if(!f) break; const it = f.it, c = enhanceCost(it);
       if(it.plus >= MAX_PLUS || S.gold < c.gold || S.stones < c.stones) break;
       S.gold -= c.gold; S.stones -= c.stones;
