@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.25.1 – God Level
+- God Level: `fmtPow`/`godLv` = 1 + 10·log10(P / 1e12) for P ≥ 1e12 (top bar, gate/arena/master/paragon/kami recommended).
+- Recommended power, measured: gates power/rec at first clear E–A 0.91–1.13, S 0.72, SS 0.54 → REC_MULT S .5→.36, SS .45→.25. Arena exams won at 0.31–0.5 of rec → `ARENA_REC` 0.4. Master League rec was the gate formula (M90: 110B shown, 1.16B enough) → `recMaster` fitted to bot win power (8.5M·1.066^(lv−1)), `recParagon` ×1.13/level, `recKami` ×1.5.
+- Master Gate (snapshots M10–M90, 4 fights per floor): before, F9 unbeatable from M50 and F5 from M70 with 3–6 s deaths, and almost no upgrades. Cause: gate level = hero level while gear lags ~25 levels, plus old set pieces (helm iLvl 55 at Lv 134) that no new item could beat. Now: monster level 60 + 0.65·Master Lv, HP ×0.6, mult .6, loot iLvl = hero level, rarity bonus +1.2 → all floors beatable up to M90, boss floor 7/14 drops are upgrades at M90.
+- `SET_AGE` 30: set pieces more than 30 levels below the hero don't count (`setActive`); item window warns.
+- Master League re-tuned after the gear change (bot from M0 snapshot went 133 → 37 bot-min): ATK ×1.5, slope 0.06, HP +3 %/level. Now 192 bot-min (~64 min at x3); full game ≈ 565 bot-min ≈ 3.1 h at x3 to Master 99.
+
 ### v0.25.0 – Kami Trials
 - Kami Trials (`KAMI_TRIALS`, `startKami`, `kamiTick`): 7 god bosses = paragonFoe(10·n) × HP 1.6 / ATK 1.15 (Amaterasu 1.35 / 1.05) + mechanic (Fujin 2× speed, Raijin 12 % HP thunder / 7 s, Tsukuyomi 2 % heal / 6 s, Izanami −25 % hero HP, Susanoo enrage < 50 %, Hachiman 4 elites, Amaterasu combo). First clear: guaranteed unfound Godforged + Diamonds. Determination +3 % per loss (max 30 %).
 - Paragon: cap 10 × (trials + 1); foes ×1.06^p; paragon XP ×0.6 (was ×2.5; hero went Lv 140 → 197 in 70 paragon levels). Bot from Master 90 snapshot: Paragon now 139 losses on the way (was 0), Kami 1–6 cleared by ~170 bot-min, Kami 3 wall (240+ bot-min, power frozen) fixed by smoother trial levels + Determination; Amaterasu softened after 105 bot losses.

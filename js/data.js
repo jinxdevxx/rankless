@@ -209,10 +209,10 @@ const GATES = [
   {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:.95, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
   /* Master Gate: its level grows with your Master League level, so its loot always keeps up */
-  {id:'M', rank:'M', name:'Master Gate', get baseLv(){ return masterGateLv(); }, mult:.9, theme:'t_storm', enemies:['hunterx','oracle','reaver','stalker'], elite:'colossus', boss:'abyssking',
+  {id:'M', rank:'M', name:'Master Gate', get baseLv(){ return masterGateLv(); }, mult:.6, theme:'t_storm', enemies:['hunterx','oracle','reaver','stalker'], elite:'colossus', boss:'abyssking',
     desc:'A gate that grows with you. Its level follows your Master League level, so the loot always keeps up.'},
 ];
-function masterGateLv(){ return 66 + Math.round((((typeof S !== 'undefined' && S.master && S.master.lv) || 0))*.75); }
+function masterGateLv(){ return 60 + Math.round(.65*((typeof S !== 'undefined' && S.master && S.master.lv) || 0)); }   // v0.25.1: monsters ~ your gear level, loot at your hero level
 const FLOORS = 10;
 const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:null, SS:'eclipse', M:'storm'};   // S: sun halo removed (v0.21.2, looked goofy)
 const MOB_FX = {}; for(const g of GATES) for(const t of [...g.enemies, g.elite, g.boss]) if(!MOB_FX[t]) MOB_FX[t] = GATE_FX[g.id];

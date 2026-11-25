@@ -1,15 +1,13 @@
 {
-  "version": "0.25.0",
+  "version": "0.25.1",
   "date": "2026-11-25",
-  "title": "Kami Trials",
+  "title": "God Level",
   "notes": [
-    "NEW: Kami Trials 神試練 after Master 99. Seven god bosses with their own mechanics: Fujin, Raijin, Tsukuyomi, Izanami, Susanoo, Hachiman, Amaterasu. First clear gives a guaranteed Godforged item.",
-    "Paragon is capped every 10 levels: beat the next Kami Trial to climb on. Paragon opponents get 6% stronger per level and give less XP, so it's a real climb now.",
-    "Determination: every loss against a god gives +3% damage against it (max +30%).",
-    "NEW: Endgame Goals board with progress for trials, Paragon, Rift, relics, uniques, Godforged, awakening and auras.",
-    "Master League and Paragon auto-continue with AUTO on: watch how far you get.",
-    "NEW: Talents have their own tab. Stat points show as a big badge.",
-    "New hero look: layered coat with element lining, armor, spiky anime hair, glowing eyes, curved katana with a glowing edge.",
-    "The Ultimate no longer covers the screen with its name. Missing relics are 4x more likely to drop. Blood Thirst shows when you're at the 12% lifesteal cap."
+    "NEW: above 1 trillion Power the top bar switches to GOD LEVEL 神. It grows slowly (every x10 Power = +10 levels), recommended values switch too.",
+    "Recommended Power is now measured from real wins: S+ arena was 3x too high, S/S+ gates almost 2x, Master League up to 100x. Now it matches.",
+    "Master Gate is the endgame farm: loot at your hero level with better rarity, monsters around your gear level, every floor beatable.",
+    "Set pieces more than 30 levels below you no longer count for the set bonus, so old gear finally gets replaced (the item window warns you).",
+    "Master League re-tuned for the stronger gear: about 1 hour at x3 speed, about 3 hours to Master 99 in total.",
+    "Removed the 'Talents moved to their own tab' boxes."
   ]
 }

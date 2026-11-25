@@ -1032,3 +1032,5 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .tcap{color:#ffd27a}
 
 .spbig{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:4px 0 10px} .spbig small{color:#b9b0c9;font:700 12px Nunito,sans-serif}
+
+.cp.god small{color:#fff1c9} .cp.god b{background:linear-gradient(90deg,#fff1c9,#ffd27a,#c77dff);-webkit-background-clip:text;background-clip:text;color:transparent} .krec{color:#ffd27a!important}

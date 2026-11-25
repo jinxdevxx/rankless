@@ -11,7 +11,10 @@ Open requests from the player come first. Every development round starts here.
 - [x] Hero / sword look redesigned (v0.25.0)
 - [x] Ultimate name pop-up removed (v0.25.0)
 - [ ] Mob graphics: match the new hero style (outline glow, more detail) — next round
-- [ ] Master Gate balance as farm source (measure floors vs master level)
+- [x] Master Gate balance as farm source (v0.25.1)
+- [x] Recommended power realistic everywhere (v0.25.1)
+- [x] God Level above 1 trillion Power (v0.25.1)
+- [ ] RECURRING: after balance changes re-check recommended power vs bot win power (gates, arena, master)
 - [ ] RECURRING: endgame scaling everywhere (talents, legion, relics, items, trials) so progress never stops; every new system needs a sink for points/currencies
 - [x] Title Kami for Master 99 (v0.23.3)
 - [x] Tooltip on equipped gear, no stuck tooltips (v0.23.3)

@@ -101,7 +101,7 @@ function renderHome(){
         <div class="psub">Lv ${S.level} · ${S.rank === 'M' && S.master.lv ? `<b style="color:${masterTitle(S.master.lv).color}">${masterTitle(S.master.lv).name}</b>` : (specOf() ? specOf().name : a.title)}</div>
         <div class="xp"><i style="width:${(S.xp/xpNeed(S.level)*100).toFixed(1)}%"></i></div>
       </div>
-      <div class="cp"><small>POWER</small><b>${fmt(teamPower())}</b></div>
+      <div class="cp ${teamPower() >= GOD_POWER ? 'god' : ''}"><small>${teamPower() >= GOD_POWER ? 'GOD LEVEL 神' : 'POWER'}</small><b>${teamPower() >= GOD_POWER ? godLv(teamPower()).toFixed(1) : fmt(teamPower())}</b></div>
     </div>
     <div class="curs">
       <button class="ibtn" data-a="menu" title="Menu (Esc)">☰</button>
@@ -154,11 +154,12 @@ function renderHome(){
 function animatePower(target){
   const el = document.querySelector('.cp b'); if(!el) return;
   const from = UI.shownPower ?? target; UI.shownPower = target;
-  if(from === target){ el.textContent = fmt(target); return; }
+  const show = v => v >= GOD_POWER ? godLv(v).toFixed(1) : fmt(v);   // God Level above 1 trillion
+  if(from === target){ el.textContent = show(target); return; }
   const t0 = performance.now(), dur = 900;
   el.classList.toggle('up', target > from);
   const step = now => { const p = Math.min(1, (now - t0)/dur), v = from + (target - from)*(1 - Math.pow(1-p, 3));
-    el.textContent = fmt(v); if(p < 1) requestAnimationFrame(step); else setTimeout(() => el.classList.toggle('up', false), 400); };
+    el.textContent = show(v); if(p < 1) requestAnimationFrame(step); else setTimeout(() => el.classList.toggle('up', false), 400); };
   requestAnimationFrame(step);
 }
 
@@ -268,14 +269,14 @@ function sheetGates(){
       const L = g.baseLv + f - 1, rp = recPower(g.id, f), open = unlocked && f <= cl+1;
       const cls = !open ? 'lock' : f <= cl ? 'done' : 'next';
       floors += `<button class="floor ${cls} ${f===10?'boss':''} ${f===5||f===8||f===9?'elite':''}" data-a="startGate" data-g="${g.id}" data-f="${f}" ${open?'':'disabled'}>
-        <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>`;
+        <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmtPow(rp)}</small></button>`;
     }
     return `<div class="gatecard ${unlocked?'':'locked'}" style="--a:${T.accent};--b:${T.sky[2]}">
       <div class="gh"><span class="grank r-${g.rank}">${rankBadge(g.rank)}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
       <span class="gprog">${unlocked ? (cl > FLOORS ? `Deep ${cl}` : `${Math.min(cl, FLOORS)} / ${FLOORS}`) : `${ICON.lock} Rank ${g.rank}`}</span></div>
       ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = recPower(g.id, nd);
           return `<div class="deeprow"><div><b>Deep Floors</b><small>Endless floors with stronger enemies and better loot. Boss every 5 floors. Best: ${cl > FLOORS ? cl : '–'}</small></div>
-          <button class="btn primary" data-a="startGate" data-g="${g.id}" data-f="${nd}">Floor ${nd} <small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>
+          <button class="btn primary" data-a="startGate" data-g="${g.id}" data-f="${nd}">Floor ${nd} <small class="${tp >= rp ? 'ok' : 'hard'}">${fmtPow(rp)}</small></button>
           ${cl > FLOORS ? `<button class="btn" data-a="startGate" data-g="${g.id}" data-f="${cl}">Farm ${cl}</button>` : ''}</div>`; })() : ''}
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${rankLabel(RANKS[RANKS.indexOf(g.rank)-1])}-Rank Exam in the Arena to unlock.</div>`}
@@ -306,7 +307,7 @@ function riftCard(){
 }
 function sheetMaster(){
   const lv = S.master.lv || 0, nx = Math.min(MASTER_MAX, lv + 1), h = masterFoe(nx), tp = teamPower();
-  const p = Math.round(floorPower(h.lv + 3) * REC_MULT.M);
+  const p = recMaster(nx);
   const ladder = [nx + 2, nx + 1, nx, lv].filter(x => x >= 1 && x <= MASTER_MAX).map(x => `<div class="mlv ${x === nx ? 'next' : x <= lv ? 'done' : ''}"><b>${x}</b><span>${x === nx ? 'NEXT' : x <= lv ? 'CLEARED' : ''}${x % 10 === 0 ? ' · 💀 Wall' : ''}</span></div>`).join('');
   return riftCard() + `<div class="arena-head"><div class="rank big r-M">M</div><div><h3>Master League</h3>
     <p>You conquered every rank. Now climb from Master Lv 1 to <b>${MASTER_MAX}</b>. Every new level pays Gold, XP, Mana Stones, a Rift Diamond and an item. Every 10th level is a wall with 5 Diamonds.</p></div></div>
@@ -314,15 +315,15 @@ function sheetMaster(){
     ${(() => { const cur = lv ? masterTitle(lv) : null, nextM = MASTER_TITLES_BY_LV.slice().reverse().find(([m]) => m > lv), nm = (Math.floor(lv/10) + 1)*10;
       return `<div class="mtitles">${cur ? `<span class="mt" style="--c:${cur.color}">Title: <b>${cur.name}</b></span>` : ''}${nextM ? `<span class="mt next" style="--c:${nextM[2]}">Next title at Lv ${nextM[0]}: <b>${nextM[1]}</b></span>` : ''}${nm <= MASTER_MAX ? `<span class="mt" style="--c:#ffd27a">Lv ${nm}: <b>+2 talent points</b> + 5 Diamonds</span>` : ''}</div>`; })()}
     <div class="mladder">${ladder}</div>
-    ${lv >= MASTER_MAX ? (() => { const pp = S.paragon||0, ph = paragonFoe(pp + 1), pPow = Math.round(floorPower(ph.lv + 3) * REC_MULT.M);
+    ${lv >= MASTER_MAX ? (() => { const pp = S.paragon||0, ph = paragonFoe(pp + 1), pPow = recParagon(pp + 1);
       const cap = paragonCap(), capped = pp >= cap;
       return `<div class="paracard"><div><small>BEYOND MASTER 99</small><b>✦ Paragon ${pp}${cap < Infinity ? ` <em class="pcap">/ ${cap}</em>` : ''}</b><span>Every Paragon level: <b>+1% ATK and +1% HP</b> forever (now +${pp}%). Opponents get 3% stronger per level. ${cap < Infinity ? `Beat <b>Kami Trial ${kamiCleared() + 1}</b> to climb past Paragon ${cap}.` : 'All Kami Trials beaten: no limit.'}</span></div></div>${kamiBox()}${endgameBox()}
       ${capped ? `<div class="empty">Paragon ${cap} reached. Beat <b>Kami Trial ${kamiCleared() + 1}</b> above to go on.</div>` : `
       <div class="hcard ${ph.rival ? 'exam' : ''}"><img src="${hunterPortrait(ph)}" alt=""><div class="hinfo"><small>PARAGON ${pp + 1}</small><b>${esc(ph.name)}</b><span>${esc(ph.title)} · ${AFF[ph.aff].name}</span><em>"${esc(ph.line)}"</em></div>
-      <div class="hside"><span class="pw ${tp >= pPow ? 'ok' : 'hard'}">${fmt(pPow)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`; })() : `<div class="hcard ${h.rival ? 'exam' : ''}">
+      <div class="hside"><span class="pw ${tp >= pPow ? 'ok' : 'hard'}">${fmtPow(pPow)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`; })() : `<div class="hcard ${h.rival ? 'exam' : ''}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>MASTER LV ${nx}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
-      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
+      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmtPow(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
 }
 /* the rank exam needs: every hunter of the league beaten AND the gate boss (floor 10) of your current rank */
 function rankGate(rank){ return GATES.find(g => g.rank === rank); }
@@ -335,12 +336,12 @@ function sheetArena(){
   const done = S.arena[rank]||0, tp = teamPower();
   const card = (h, i, isExam) => {
     const beaten = !isExam && i < done, open = isExam ? examReady(rank) : i <= done;
-    const p = Math.round(floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2)) * (REC_MULT[rank] || 1));
+    const p = Math.round(floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2)) * (REC_MULT[rank] || 1) * ARENA_REC);
     return `<div class="hcard ${isExam?'exam':''} ${beaten?'beaten':''} ${open?'':'locked'}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>${isExam ? 'RANK EXAM' : h.rival ? 'RIVAL' : 'Lv ' + h.lv}</small><b>${h.name}</b><span>${h.title} · ${AFF[h.aff].name}</span>
         <em>"${esc(h.line)}"</em></div>
-      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span>
+      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmtPow(p)}</span>
         <button class="btn ${open?'primary':''}" data-a="startArena" data-i="${isExam?-1:i}" ${open?'':'disabled'}>${beaten ? 'Rematch' : isExam ? 'Take Exam' : 'Fight'}</button></div>
     </div>`;
   };
@@ -388,8 +389,7 @@ function sheetStats(mode){
         <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}
         <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
-    </div>
-    <div class="box"><div class="bt">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : ''}</div><div class="hint" style="margin-top:0">The talent tree has its own tab now.</div><button class="btn primary" data-a="sheet" data-id="talents">Open Talents ›</button></div>`;
+    </div>`;
   if(mode === 'talents') return `${tf ? `<div class="ptsbar"><div class="ptsb tal"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>spend them below</small></div></div>` : ''}
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>
@@ -427,7 +427,7 @@ function kamiBox(){
   return `<div class="kamibox"><div class="bt">⛩ KAMI TRIALS 神試練 · ${c}/${KAMI_TRIALS.length} <small class="muted">first clear: guaranteed Godforged item</small></div><div class="kamis">${KAMI_TRIALS.map((t, i) => {
     const done = i < c, open = i === c && pp >= 10*(i + 1), next = i === c;
     return `<div class="kami ${done ? 'done' : ''} ${open ? 'open' : ''} ${!done && !next ? 'locked' : ''}" style="--c:${t.color}"><b>${i + 1}. ${t.name}</b><small>${t.title}</small><span>${done || next ? t.mech : '???'}${next && kamiFails(i) ? ` <b style="color:#7fffa0">Determination +${Math.min(30, 3*kamiFails(i))}%</b>` : ''}</span>
-      ${done ? `<button class="btn small" data-a="startKami" data-id="${i}">✔ Rematch</button>` : open ? `<button class="btn small primary" data-a="startKami" data-id="${i}">⛩ Challenge</button>` : next ? `<em>Reach Paragon ${10*(i + 1)}</em>` : '<em>🔒</em>'}</div>`; }).join('')}</div></div>`;
+      <small class="krec">Recommended: ${fmtPow(recKami(i))}</small>${done ? `<button class="btn small" data-a="startKami" data-id="${i}">✔ Rematch</button>` : open ? `<button class="btn small primary" data-a="startKami" data-id="${i}">⛩ Challenge</button>` : next ? `<em>Reach Paragon ${10*(i + 1)}</em>` : '<em>🔒</em>'}</div>`; }).join('')}</div></div>`;
 }
 /* everything that is still ahead after Master 99, with progress */
 function endgameBox(){
@@ -468,7 +468,7 @@ function sheetHero(){
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
 
   return `<div class="cols">
-    <div class="box sys"><div class="bt">STATS</div><div class="hint" style="margin-top:0">Stat points, all numbers and the talent tree moved to their own tab.</div><button class="btn primary" data-a="sheet" data-id="stats">Open Stats & Talents ${S.points || talentFree() ? `(${S.points + talentFree()} points free)` : ''}</button></div>
+
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
   </div>
   <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div>
@@ -600,6 +600,7 @@ function itemDetail(id){
       ${it.uniq ? `<div class="ufx" style="--r:${r.color}"><b>${it.rar === 6 ? '神 GODFORGED EFFECT' : '★ UNIQUE EFFECT'}</b>${UNIQUES[it.uniq].desc}<small>Passive: ${Object.entries(UNIQUES[it.uniq].stats).map(([k, v]) => statLine(k, v)).join(', ')}</small>${it.ilvl < S.level ? (() => { const c = reforgeCost(it), ok = S.gold >= c.gold && S.stones >= c.stones; return `${costLine('gold', 'Gold', S.gold, c.gold)}${costLine('stone', 'Stones', S.stones, c.stones)}<button class="btn primary" data-a="reforge" data-id="${it.id}" ${ok ? '' : 'disabled'}>⟳ Reforge to iLvl ${S.level} (keeps +${it.plus})</button>`; })() : '<small>Item level matches you. Reforge becomes available when you outlevel it.</small>'}</div>` : ''}
       <div class="icols"><div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
         ${it.affixes.map(a => `<div class="afx">${statLine(a.k,a.v)}</div>`).join('')}</div>
+      ${it.set && SETS[it.set] && !setActive(it) ? `<div class="upot bad">⚠ Set bonus inactive: this piece is too old (iLvl ${it.ilvl}). Set pieces count only from iLvl ${S.level - SET_AGE}. Farm fresh set pieces in the <b>Master Gate</b> or your current gate.</div>` : ''}
       ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}

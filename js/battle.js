@@ -53,18 +53,18 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rift' ? TOWER.ease*.95*(1 + .25*(BT.curse||0))   // Abyss Rift: Blood Pact curses make it harder
     : 1;
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 /* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
-let MASTER_HM = 13, MASTER_AM = 1.3, MASTER_SLOPE = .2, MASTER_XP = 2.5;
+let MASTER_HM = 13, MASTER_AM = 1.5, MASTER_SLOPE = .06, MASTER_XP = 2.5, MASTER_HPG = .03;   // v0.25.1: fresh gear (set-age rule) made heroes ~2.3x stronger late; masters grow with it
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
-    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
+    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? MASTER_HM*(1 + MASTER_HPG*h.master) : 5.5)*boost, am = (h.master ? MASTER_AM*Math.pow(1.11, -MASTER_SLOPE*h.master) : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), hp:st.hp*hm*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.35 : 1.6) : 1), atk:st.atk*am*(h.paragon ? Math.pow(1.06, h.paragon) : 1)*(h.kami ? (h.kami === 'amaterasu' ? 1.05 : 1.15) : 1), def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
@@ -814,8 +814,8 @@ function finishBattle(win){
       let n = isBoss ? 3 : isElite ? 2 : (Math.random() < .55 ? 1 : 0) + (Math.random() < .2 ? 1 : 0);
       if(r.first) n += 1;
       if((isBoss || isElite) && BT.keys.treasure) n += 1;
-      const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400;
-      for(let i=0;i<n;i++){ const it = randomItem(BT.L + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }
+      const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400 + (g.id === 'M' ? 1.2 : 0);   // Master Gate: endgame loot, better rarity
+      for(let i=0;i<n;i++){ const it = randomItem((g.id === 'M' ? Math.max(BT.L, S.level - 1) : BT.L) + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }   // Master Gate loot: your level, so it upgrades lagging gear
       r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) * (g.id === 'M' ? 2 : 1) + (isBoss ? 15 : isElite ? 5 : 0);   // Master Gate: double stones
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));

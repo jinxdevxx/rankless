@@ -111,7 +111,10 @@ function randomItem(ilvl, bonus=0, gateId){
   const set = gateId && SET_OF_GATE[gateId] && (rar >= 3 || (rar === 2 && Math.random() < .5)) ? SET_OF_GATE[gateId] : undefined;
   return makeItem(pick(SLOTS), ilvl, rar, set);
 }
-function setCounts(eq){ const n = {}; for(const sl of SLOTS){ const it = eq[sl]; if(it && it.set) n[it.set] = (n[it.set]||0) + 1; } return n; }
+/* set pieces more than SET_AGE levels below you stop counting (v0.25.1: old low-level set pieces blocked every upgrade) */
+const SET_AGE = 30;
+function setActive(it){ return !!(it && it.set) && it.ilvl >= ((typeof S !== 'undefined' && S.level) || 1) - SET_AGE; }
+function setCounts(eq){ const n = {}; for(const sl of SLOTS){ const it = eq[sl]; if(setActive(it)) n[it.set] = (n[it.set]||0) + 1; } return n; }
 function itemBase(it){
   const out = {}, info = SLOT_INFO[it.slot], m = RARITY[it.rar].mult;
   for(const k in info.base){
@@ -181,7 +184,7 @@ function teamPower(){
 // recommended Power, calibrated on bot playthroughs (power at which floors were cleared)
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
-const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.5, SS:.45, M:.45};   // v0.16.0: median bot power at first clear
+const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.36, SS:.25, M:.45};   // v0.25.1: S/S+ were 1.4x/1.9x too high (bot first clears at 0.72/0.54 of rec)
 function recPower(gateId, floor){ const g = GATES.find(x => x.id === gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] || 1)); }
 
 /* ---------- inventory helpers ---------- */
@@ -370,3 +373,13 @@ function rollUnique(src, ilvl, noGod){
   if(UNIQUE_DROP[src]){ if(Math.random() < uniqueChance(src, 5)){ S.pity.u = 0; const id = pickFrom(5); S.codex[id] = (S.codex[id]||0) + 1; return makeUnique(id, ilvl + 2); } S.pity.u++; }
   return null;
 }
+
+/* recommended power, measured from real wins (v0.25.1). Arena hunters are much weaker than a gate floor of the same level. */
+const ARENA_REC = .4;   // bot passed every exam at 0.31-0.5 of the old gate-style value
+function recMaster(lv){ return Math.round(8.5e6*Math.pow(1.066, lv - 1)); }   // fitted: power at which the bot wins Master Lv (M1 9M, M50 130M, M99 4.7B)
+function recParagon(p){ return Math.round(recMaster(MASTER_MAX)*Math.pow(1.13, p)); }
+function recKami(i){ return Math.round(recParagon(10*(i + 1))*1.5); }
+/* above 1 trillion power the number switches to a God Level that grows slowly (each x10 power = +10 levels), so it never explodes again */
+const GOD_POWER = 1e12;
+function godLv(p){ return 1 + 10*Math.log10(p/GOD_POWER); }
+function fmtPow(p){ return p >= GOD_POWER ? `神 ${godLv(p).toFixed(1)}` : fmt(p); }
