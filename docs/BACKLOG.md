@@ -33,9 +33,16 @@ Open requests from the player come first. Every development round starts here.
 - Daily Gates (v0.8.0)
 - Item sets (v0.8.0)
 
-## Next up
+## Next up (open player wishes, work through in this order)
+1. Combat feel: rounder and more skill-based without being stressful; frequent dopamine moments (watch skill frequency vs. balance).
+2. Visuals: simple but appealing and "gripping"; polish characters, monsters, effects, home screen; keep the warm illustrated style, nothing cyber.
+3. Clarity: every screen must be instantly understandable (big readable numbers, clear costs, obvious next step).
+4. Progression and decisions: meaningful choices in stats, gear, enchantments and jobs; farming must always feel useful.
+5. Balance: full run about 3-4 hours to Rank B; re-check with the bot after every gameplay change.
+6. Abyss Tower (endless challenge) and Red Gates (timed events).
+7. Skill tree, B-Rank gate + arena, Reawaken (prestige).
 
-## Planned
-- Job Change at Rank C, skill tree
-- Abyss Tower (endless), Red Gates (events)
-- B-Rank gate + arena, Reawaken (prestige)
+## Rules for every change
+- Patch notes in version.json, changelog entry in README.md, backlog updated.
+- Short post to the live-update chat (session_011Wi6XdmTvj6QiCVozt4dXx), devlog updated.
+- Bundle changes into few pushes.
