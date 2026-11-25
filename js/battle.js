@@ -149,7 +149,58 @@ function heroAction(){
   if(gap < FLOW.min) BT.flow = 0;
   else if(gap <= FLOW.max_gap){ const before = BT.flow; BT.flow = Math.min(FLOW.max, BT.flow + 1); if(BT.flow === FLOW.max && before < FLOW.max) addText(h, 'MAX FLOW', '#9ff0b8', 26); }
   else BT.flow = Math.max(0, BT.flow - 1);
-  if(threats.length && !spam){
+  if(timingMode()) return timingAction(h, threats);
+  if(threats.length && !spam){ doParry(h, threats, k); return 'parry'; }
+  if(BT.strikeCd > 0) return;
+  const t = frontEnemy(); if(!t) return;
+  BT.strikeCd = STRIKE_CD;
+  if(h.state === 'idle' || h.state === 'back'){ h.target = t; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; }
+  else { dealDamage(h, t, .5, {}); gainEnergy(ENERGY.strike*.5); }
+  if(!S.flags.tutStrike){ S.flags.tutStrike = true; }
+  return 'strike';
+}
+
+/* timing combat: one button, but WHEN you press is everything */
+function timingAction(h, threats){
+  if(BT.stumble > 0){ BT.stumble = Math.max(BT.stumble, RING.stumble*.6); BT.whiffs = (BT.whiffs||0) + 1; return 'stumble'; }   // mashing keeps you stumbling
+  if(threats.length){
+    const rem = Math.min(...threats.map(u => u.interval - u.timer));
+    if(rem <= RING.parry){ doParry(h, threats, bk()); return 'parry'; }
+  }
+  const r = BT.ring;
+  if(!r || r.target.dead) return whiff(h, 'NO OPENING');
+  const p = r.t / r.dur;
+  if(p < RING.good) return whiff(h, 'TOO EARLY');
+  const perfect = p >= RING.perfect && p <= 1.06;
+  BT.ring = null; BT.ringDelay = .1;
+  h.target = r.target; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; h.hitMult = perfect ? RING.pMult : RING.gMult;
+  if(perfect){ BT.flow = Math.min(FLOW.max, (BT.flow||0) + 1); BT.perfects = (BT.perfects||0) + 1; gainEnergy(RING.perfectEnergy);
+    addText(r.target, BT.flow >= FLOW.max ? 'PERFECT ×' + BT.flow : 'PERFECT', '#ffd27a', 26); BT.flashT = Math.max(BT.flashT||0, .03); }
+  else { addText(r.target, 'GOOD', '#cfe3ff', 18); }
+  S.flags.tutStrike = true;
+  return perfect ? 'perfect' : 'good';
+}
+function whiff(h, txt){
+  BT.stumble = RING.stumble; BT.ring = null; BT.ringDelay = .15; BT.whiffs = (BT.whiffs||0) + 1;
+  if(BT.flow) addText(h, 'FLOW LOST', '#ff9b8f', 16);
+  BT.flow = 0; addText(h, txt, '#ff9b8f', 20); h.flash = .12;
+  return 'whiff';
+}
+function stepRing(dt){
+  const h = BT.hero; if(!h || h.dead) return;
+  if(BT.stumble > 0){ BT.stumble -= dt; return; }
+  if(BT.ring){ const r = BT.ring;
+    if(r.target.dead){ BT.ring = null; return; }
+    r.t += dt; if(r.t > r.dur*RING.late){ BT.ring = null; BT.ringDelay = .15; addText(h, 'MISSED', '#8a8fa8', 16); }
+    return; }
+  if(h.state !== 'idle' && h.state !== 'back') return;
+  BT.ringDelay = (BT.ringDelay ?? .4) - dt; if(BT.ringDelay > 0) return;
+  const t = frontEnemy(); if(!t) return;
+  BT.ring = {t:0, dur:RING.dur, target:t};
+}
+
+function doParry(h, threats, k){
+  {
     for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, .9); addText(u, 'PARRIED', '#9fd8ff', 22); }
     const t = threats[0];
     h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
@@ -160,15 +211,7 @@ function heroAction(){
     addText(h, 'PERFECT PARRY', '#ffd166', 30);
     BT.slowmo = .35; BT.flashT = .06; BT.shake = Math.max(BT.shake, .15); BT.parries = (BT.parries||0) + 1;
     SFX.parry();
-    return 'parry';
   }
-  if(BT.strikeCd > 0) return;
-  const t = frontEnemy(); if(!t) return;
-  BT.strikeCd = STRIKE_CD;
-  if(h.state === 'idle' || h.state === 'back'){ h.target = t; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; }
-  else { dealDamage(h, t, .5, {}); gainEnergy(ENERGY.strike*.5); }
-  if(!S.flags.tutStrike){ S.flags.tutStrike = true; }
-  return 'strike';
 }
 
 function dealDamage(att, tgt, mult, opt={}){
@@ -177,6 +220,8 @@ function dealDamage(att, tgt, mult, opt={}){
   if(att.buffs.atk) atk *= 1 + att.buffs.atk.v;
   let dmg = atk * mult * rand(.92, 1.08);
   if(att.kind === 'hero' && BT.flow) dmg *= 1 + BT.flow*FLOW.dmg;
+  if(att.kind === 'hero' && timingMode()) dmg *= RING.heroDmg;
+  if(tgt.kind === 'hero' && timingMode()) dmg *= RING.hurt;   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
@@ -366,13 +411,14 @@ function stepUnit(u, dt){
     case 'idle': {
       u.x += (hx - u.x)*Math.min(1, dt*10); u.y = hy;
       if(u.stun > 0){ u.stun -= dt; break; }
+      if(u.kind === 'hero' && timingMode()){ u.timer = 0; break; }   // timing mode: the hero only attacks when you hit the ring
       let rate = 1; if(u.buffs.spd) rate += u.buffs.spd.v; if(u.slow > 0) rate *= .6;
       u.timer += dt*rate;
       const iv = u.kind === 'hero' ? u.interval*HERO_AUTO : u.interval;
       // enemies pick their target early so the player can see the attack coming
       if(u.side === 'e' && !u.tele && u.timer >= iv - TELE){
         u.tele = pickTarget(u);
-        if(u.tele && u.tele.kind === 'hero' && !S.flags.tutParry){ S.flags.tutParry = true; BT.slowmo = 1.4; toast('PARRY', 'An enemy is about to hit you! Press SPACE (or tap) while the red ! is shown to block and counter.', 'gold'); }
+        if(u.tele && u.tele.kind === 'hero' && !S.flags.tutParry){ S.flags.tutParry = true; BT.slowmo = 1.4; toast('PARRY', timingMode() ? 'Red ! = an enemy is about to hit you. Press SPACE right before the hit (not too early!) to block and counter.' : 'An enemy is about to hit you! Press SPACE (or tap) while the red ! is shown to block and counter.', 'gold'); }
       }
       if(u.timer >= iv){
         const t = (u.tele && !u.tele.dead) ? u.tele : pickTarget(u); u.tele = null; if(!t) break;
@@ -393,7 +439,7 @@ function stepUnit(u, dt){
         if(u.manual && !t.boss && t.kind === 'enemy' && t.hp/t.maxHp < EXECUTE_AT){
           addText(t, 'EXECUTE', '#ffd27a', 30); BT.slowmo = Math.max(BT.slowmo||0, .22); BT.zoom = Math.max(BT.zoom||0, .04);
           dealDamage(u, t, 0, {}); t.hp = 0; killUnit(t); gainEnergy(.5);
-        } else dealDamage(u, t, u.manual ? .85 : 1, {});
+        } else dealDamage(u, t, u.manual ? (u.hitMult || .85) : 1, {}); u.hitMult = 0;
         if(u.manual){ gainEnergy(ENERGY.strike*specEnergy('strike')*(1 + (BT.flow||0)*FLOW.energy)); u.manual = false; }
         if(u.boss) BT.shake = Math.max(BT.shake, .18);
       }
@@ -443,12 +489,13 @@ function stepBattle(dt){
   if(BT.chainT > 0){ BT.chainT -= dt; if(BT.chainT <= 0){ BT.chain = 0; BT.chainMult = 1; } }
   BT.ult = Math.min(100, BT.ult + dt*.6);
 
+  if(timingMode() && !BT.over && !BT.cutin) stepRing(dt);
   for(let i=BT.pending.length-1;i>=0;i--){ const p = BT.pending[i]; p.t -= dt; if(p.t <= 0){ BT.pending.splice(i,1); if(!BT.over) p.fn(); } }
 
   if(!BT.over){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
-    if(S.settings.autoSkill && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
+    if((window.BOT_AUTO || S.settings.autoSkill && !timingMode()) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
       // spend crystals when the gauge is nearly full, most expensive skill first
       if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
@@ -501,6 +548,18 @@ function elemHit(t, big){
     case 'blood': for(let i = 0; i < n; i++){ const ang = rand(-2.6, -.5); BT.fx.push({k:'p', x, y, vx:Math.cos(ang)*rand(80,220), vy:Math.sin(ang)*rand(80,220), g:700, c: i%2 ? '#c2183a' : '#ff4d6a', life:rand(.4,.7), max:.7, sz:rand(4,7)}); } break;
     default: for(let i = 0; i < n; i++){ const ang = rand(-1.2, 1.2) + (Math.random() < .5 ? 0 : 3.14); BT.fx.push({k:'p', x, y, vx:Math.cos(ang)*rand(120,280), vy:Math.sin(ang)*rand(120,280) - 40, g:600, c: i%2 ? '#ffffff' : '#ffe6a8', life:rand(.2,.4), max:.4, sz:rand(3,5)}); }
   }
+}
+function drawRing(c, u, k){
+  const r = BT.ring, p = Math.min(1.1, r.t / r.dur), x = u.x, y = u.y - u.size*k*.5;
+  const r1 = 30*k, r0 = 110*k, rad = Math.max(r1*.8, r0 - (r0 - r1)*p);
+  const inP = p >= RING.perfect && p <= 1.06, inG = p >= RING.good;
+  c.save();
+  c.globalAlpha = .9; c.lineWidth = 4*k; c.strokeStyle = '#ffd27a'; c.setLineDash([6*k, 5*k]);
+  c.beginPath(); c.arc(x, y, r1, 0, 7); c.stroke(); c.setLineDash([]);
+  c.lineWidth = (inP ? 6 : 4)*k; c.strokeStyle = inP ? '#ffd27a' : inG ? '#ffffff' : 'rgba(255,255,255,.75)';
+  c.shadowColor = inP ? '#ffd27a' : '#ffffff'; c.shadowBlur = inP ? 22 : 8;
+  c.beginPath(); c.arc(x, y, rad, 0, 7); c.stroke();
+  c.restore();
 }
 function burst(x, y, c, n){
   for(let i=0;i<n;i++){ const a = Math.random()*Math.PI*2, s = rand(80,320);
@@ -591,6 +650,7 @@ function renderBattle(t, dt){
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
     drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0 || (u.dead && u.deathT < .09), alpha);
     if(!u.dead && !(u.boss || u.kind === 'hunter')) drawHpBar(c, u, k);
+    if(BT.ring && BT.ring.target === u && !u.dead) drawRing(c, u, k);
     if(!u.dead && u.tele === BT.hero && u.state === 'idle'){
       const rem = clamp((u.interval - u.timer)/TELE, 0, 1), cx = u.x, cy = u.y - u.size*k - 40*k;
       c.save(); c.globalAlpha = .9; c.strokeStyle = '#ff3d5e'; c.lineWidth = 3;

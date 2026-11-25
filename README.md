@@ -25,6 +25,16 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.14.0 – Timing Combat
+- New default combat style: shrinking ring on the front enemy; press on the gold circle (GOOD / PERFECT). Pressing with no ring or too early = stumble (0.5 s, mashing extends it). Perfect hits build FLOW and give extra crystal energy.
+- Parry only in the last 0.38 s before an enemy hit.
+- No hero auto-attacks and no auto skills in Timing combat; hero damage x1.8, damage taken x0.62 to compensate.
+- Legion companions scale with hero stats (HP 55 %, ATK 32 % of hero, x stars) instead of a much slower level curve.
+- Bug fix: starter weapon/armor were salvaged by Simple Mode, so new characters had no gear; now equipped directly, broken saves are repaired on load.
+- Defeat screen explains mashing; victory shows PERFECT count.
+- Setting: Combat style Timing / Classic (Esc menu).
+- Bot runs (timing-aware bot, 60–75 % accuracy): 57–103 min to Rank B.
+
 ### v0.13.0 – Simple Mode
 - New setting Simple Mode (default on, toggle in Esc menu): enhancing never fails, Common gear auto-salvaged, Legion auto party + auto star-up, CHAIN counter hidden in fights.
 - Turning it off restores full manual control (old enhance rates, manual party, manual star-up).

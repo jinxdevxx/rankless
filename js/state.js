@@ -23,7 +23,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'timing'}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
@@ -149,8 +149,9 @@ function powerOf(o){
   return Math.round(dps*5 + o.hp*.55 + o.def*4 + o.atk*o.skill/100*2 + o.lifesteal*o.atk*.3);
 }
 function compStats(type, stars, level, compMult){
-  const t = ENEMY_TYPES[type], g = Math.pow(1.075, level-1), sm = 1 + .3*(stars-1);
-  return {hp: 115*g*t.comp.hp*sm*compMult, atk: 11*g*t.comp.atk*sm*compMult, def: 2 + level*1.2,
+  // companions grow with the hero (they used to fall far behind enemy scaling and died instantly)
+  const t = ENEMY_TYPES[type], hs = calcStats(S), sm = 1 + .25*(stars-1);
+  return {hp: hs.hp*.55*t.comp.hp*sm*compMult, atk: hs.atk*.32*t.comp.atk*sm*compMult, def: hs.def*.8,
     interval: t.spd * .85, crit:5, critDmg:150};
 }
 function teamPower(){
@@ -237,6 +238,8 @@ function dailyLeft(kind){
 }
 /* the active element follows the blade's enchantment */
 function syncAff(){ S.aff = S.enchant && ELEMENTS.includes(S.enchant.el) ? S.enchant.el : 'steel'; if(S.aff === 'steel') S.spec = null; }
+/* saves hit by the v0.13.0 bug (starter gear salvaged) get it back */
+function fixStarterGear(){ for(const sl of ['weapon','armor']) if(!S.eq[sl]) S.eq[sl] = makeItem(sl, Math.max(1, S.level - 1), 1); }
 function migrateEnchant(){
   if(S.flags.enchantV1) return;
   S.flags.enchantV1 = true;

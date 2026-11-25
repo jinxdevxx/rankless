@@ -184,6 +184,10 @@ const SKILL_COST = [1, 2, 3];
 // Breaker Crystals: earned by fighting, spent on skills
 const ENERGY = {max:5, start:2, hit:.15, kill:.4, hurt:.1, strike:.3, parry:1};
 // active combat
+// Timing combat (default): a ring shrinks onto the enemy, press when it meets the gold circle.
+// Pressing with no ring or too early makes the hero stumble, so mashing loses.
+const RING = {dur:.75, good:.7, perfect:.86, late:1.14, pMult:2.6, gMult:1.5, stumble:.5, parry:.38, perfectEnergy:.3, heroDmg:1.8, hurt:.62};
+function timingMode(){ return !S.settings || S.settings.combat !== 'classic'; }
 const TELE = .6;          // enemies show '!' this long before they attack you
 const HERO_AUTO = 1.6;    // your champion's auto attacks are slower; your own strikes fill the gap
 const STRIKE_CD = .3;

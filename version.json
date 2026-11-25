@@ -1,10 +1,13 @@
 {
-  "version": "0.13.0",
+  "version": "0.14.0",
   "date": "2026-11-25",
-  "title": "Simple Mode",
+  "title": "Timing Combat",
   "notes": [
-    "New: Simple Mode (on by default). Enhancing never fails, Common junk is salvaged automatically and your Legion picks its strongest party and stars up on its own.",
-    "Simple Mode also hides the CHAIN counter in fights (the bonus still works), so you can focus on STRIKE, PARRY and skills.",
-    "Want full control? Turn Simple Mode off in the menu (Esc) at any time. Everything switches back."
+    "NEW COMBAT: a white ring closes in on the enemy. Press SPACE (or tap) when it meets the gold circle. PERFECT = huge damage, crystals and FLOW. Mashing makes you stumble, so spamming no longer works.",
+    "Parry is now about timing too: press right before the hit (red !), not early.",
+    "Your hero no longer attacks on their own and skills never fire automatically in Timing combat. Every hit is yours.",
+    "Legion fixed: companions now grow with your hero (they used to be far too weak and died instantly).",
+    "BUG FIX: new characters started with no weapon and armor (Simple Mode salvaged them). Fixed, and broken saves get their gear back.",
+    "Prefer the old style? Menu (Esc) > Combat style > Classic."
   ]
 }

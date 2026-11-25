@@ -3,6 +3,11 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Space spam = no skill, auto abilities pop by themselves: new Timing combat (v0.14.0). Keep refining, ask for feedback.
+- [x] Legion useless, dies instantly at D/C: companions scale with hero (v0.14.0). Keep checking they matter.
+- [x] New character can't beat Gate 1 (no starter gear bug) (v0.14.0)
+- [ ] Check every round: fresh-start playtest (new character E-F1..F3: timed wins, mashing loses with a clear tip), legion survival, balance bot.
+- [ ] Offer more combat alternatives to try (e.g. lane dodge, turn-based timed actions) if Timing combat is still not fun.
 - [ ] Focus on gameplay instead of graphics: more interesting and exciting, but keep everything simple (upgrades and fights). Simplifications must be switchable back. (v0.13.0: Simple Mode toggle; next: exciting but simple gameplay, see Next up 1)
 - [x] One hero instead of 4 classes; weapon enchantments with a new currency (v0.11.0)
 - [x] Currencies and upgrade costs easy to see (v0.11.0)
