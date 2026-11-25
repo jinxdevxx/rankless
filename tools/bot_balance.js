@@ -29,6 +29,10 @@ const { chromium } = require('playwright');
         for(const id of S.pets.active){ const lv = S.pets.owned[id]; if(lv < PET_MAX_LV && S.gold >= petUpCost(id, lv)*2){ S.gold -= petUpCost(id, lv); S.pets.owned[id]++; } }
       }
       { const order = ['blade','tough','eye','iron','brutal','leech','k_berserk','arts','giant','k_second','a_power','a_vital','a_crit','k_wrath','a_spirit','k_kiflow','a_limit']; let g = 0; while(talentFree() > 0 && g++ < 60){ const id = order.find(x => { const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.some(n => n.id === x)); const nd = TALENTS[bk].nodes.find(n => n.id === x); return (S.talents[x]||0) < nd.max && talentOpenNode(bk, nd); }); if(!id) break; S.talents[id] = (S.talents[id]||0) + 1; } }
+      // endgame sinks a human would use: spirit awakening + skill mastery + enhance to +15 in the Master League
+      if(S.rank === 'M'){ for(const id of S.pets.active){ let g = 0; while(g++ < 10 && S.pets.owned[id] >= PET_MAX_LV && petStar(id) < petStarCap()){ const c = petStarCost(petStar(id) + 1); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.pets.stars = S.pets.stars || {}; S.pets.stars[id] = petStar(id) + 1; } }
+        for(let i = 0; i < 4; i++){ let g = 0; while(g++ < 10 && masteryLv(i) < MASTERY_MAX){ const c = masteryCost(i); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; } }
+        for(const sl of SLOTS){ const it = S.eq[sl]; let g = 0; while(it && g++ < 15 && it.plus < 15){ const c = enhanceCost(it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; it.plus++; } } }
       checkUnlocks(true);
       if(isUnlocked('enchant') && !S.enchant && S.diamonds>=2){ S.diamonds-=2; S.enchant={el:ENCH,lv:1}; syncAff(); log.push(`${(simTime/60).toFixed(0)}m ENCHANT ${ENCH}`); }
       if(S.enchant && S.enchant.lv<5){ const c=enchantCost(S.enchant.lv+1); if(S.diamonds>=c.diamonds && S.gold>=c.gold*2){ S.diamonds-=c.diamonds; S.gold-=c.gold; S.enchant.lv++; log.push(`${(simTime/60).toFixed(0)}m ENCH LV${S.enchant.lv}`); } }
