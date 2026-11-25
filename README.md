@@ -25,6 +25,14 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.21.0 – Bloodlines
+- Feel: hit-stop only for skill crits at x1, no zoom on crits, no slow motion on execute, parry slow-mo .15 (x1 only), K.O. slow-mo .3 (x1 only). Ultimate cut-in skipped at x2/x3.
+- bloodSpray(): bigger sprays + fading ground stains (BT.stains), custom blood colour for ghosts/blobs/golems.
+- gateFx(): per-gate monster effects (tide, rail, frost, shards, storm, sun, eclipse) via MOB_FX.
+- Armor: dmg × K/(K+DEF) with K = 50·1.066^(attacker level−1) (was a flat 100 → 97 % reduction at Lv 80). enemyAtk growth 1.11/level after Lv 20. Gate mults B 1.6, A 1.5, S 1.35, S+ 1.1; exam/rival boosts reduced.
+- Master League: masterTitle() bands, +2 talent points per 10 levels, foes lv 78+0.75·lv, own boost curve, less HP / more ATK.
+- Bots: auto ~E→B 54 min, S at ~313; spamskill B 29, A 68, S 192, S+ 393 min; auto deaths ~20 %, spamskill rare.
+
 ### v0.20.1 – Fair Auto
 - Bug: a trailing comment swallowed `BT.lastPress = nowC` in heroAction, so every mashed press counted as a calm PERFECT PARRY (0 damage taken while spamming). Fixed; repo scanned for similar comment bugs.
 - Block multiplier .5 → .65; LIFESTEAL_CAP 20 → 12; enemyHp base 1050 → 850, enemyAtk base 30 → 40; B–S+ elites ×0.85 HP.

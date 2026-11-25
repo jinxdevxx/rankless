@@ -81,7 +81,7 @@ function talentValue(nd, r){ let v = 0; for(let i = 0; i < Math.min(r, TALENT_W.
 const TALENT_SHOW = {atkP:['atk','ATK'], hpP:['hp','HP'], defP:['def','DEF'], crit:['crit','% Crit'], critDmg:['critDmg','% Crit DMG'], skill:['skill','% Skill DMG'],
   lifesteal:['lifesteal','% Lifesteal'], dr:['dr','% less damage'], gold:['gold','% Gold'], xp:['xp','% XP'], petP:['petP','% Spirit DMG'], spd:['spd','% Atk Speed']};
 function talentNodes(){ return Object.values(TALENTS).flatMap(b => b.nodes); }
-function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)); }
+function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)) + 2*Math.floor(((S.master && S.master.lv) || 0)/10); }
 function talentSpent(br){ let n = 0; for(const b in TALENTS) if(!br || b === br) for(const nd of TALENTS[b].nodes) n += (S.talents && S.talents[nd.id]) || 0; return n; }
 function talentFree(){ return talentTotal() - talentSpent(); }
 function talentOpenNode(br, nd){ return talentSpent(br) >= nd.req; }
@@ -187,16 +187,18 @@ const GATES = [
     desc:'An abandoned metro line where the last train still runs.'},
   {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:1.6, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
-  {id:'B', rank:'B', name:'Abyssal Rift',   baseLv:36, mult:1.3, theme:'t_ember', enemies:['shade','reaver','lich'], elite:'colossus', boss:'abyssking',
+  {id:'B', rank:'B', name:'Abyssal Rift',   baseLv:36, mult:1.6, theme:'t_ember', enemies:['shade','reaver','lich'], elite:'colossus', boss:'abyssking',
     desc:'A wound under the city where the rift breathes.'},
-  {id:'A', rank:'A', name:'Tempest Spire',  baseLv:48, mult:1.15, theme:'t_storm', enemies:['stalker','harpy','sage'], elite:'titan', boss:'stormlord',
+  {id:'A', rank:'A', name:'Tempest Spire',  baseLv:48, mult:1.5, theme:'t_storm', enemies:['stalker','harpy','sage'], elite:'titan', boss:'stormlord',
     desc:'A tower of stone and lightning above the clouds.'},
-  {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:.85, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
+  {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:1.35, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
     desc:'A drowned temple where a dead sun still glows.'},
-  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:.85, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
+  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:1.1, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
 ];
 const FLOORS = 10;
+const GATE_FX = {E:'tide', D:'rail', C:'frost', B:'shards', A:'storm', S:'sun', SS:'eclipse'};
+const MOB_FX = {}; for(const g of GATES) for(const t of [...g.enemies, g.elite, g.boss]) if(!MOB_FX[t]) MOB_FX[t] = GATE_FX[g.id];
 
 /* ---------- arena ---------- */
 const HUNTERS = {
@@ -252,12 +254,15 @@ const HUNTERS = {
 };
 /* ---------- Master League: after S+, an endless ladder from level 1 to 99 ---------- */
 const MASTER_MAX = 99;
+/* titles you earn while climbing the Master League; every 10 levels also gives +2 talent points */
+const MASTER_TITLES_BY_LV = [[99,'RANKLESS','#ffffff'],[80,'Sovereign','#ff3d6a'],[60,'Mythic','#ff8a5c'],[40,'Legend','#ffd27a'],[20,'Rift Champion','#c9a8ff'],[10,'Grandmaster','#7fd8ff'],[1,'Master','#e9dcff']];
+function masterTitle(lv){ const t = MASTER_TITLES_BY_LV.find(([m]) => lv >= m); return t ? {name:t[1], color:t[2]} : null; }
 const MASTER_NAMES = ['Kage','Rin Solace','Takeshi Mori','Elara Vance','Juno Blackthorn','Haku','Seren Ash','Ryuji Kane','Vale Starling','Oboro','Kira Neon','Draken','Amaya Frost','Sable','Zero'];
 const MASTER_TITLES = ['Master Breaker','Gate Sovereign','Legend of the Rift','Sky Splitter','Undying Blade','Crowned Hunter','Myth Walker'];
 function masterFoe(lv){
   const n = MASTER_NAMES[(lv*7) % MASTER_NAMES.length], t = MASTER_TITLES[(lv*3) % MASTER_TITLES.length];
   const pool = ['eclipse','hunterx','oracle','behemoth','sunoni','titan','colossus'];
-  return {name:n, title:`${t} · Master Lv ${lv}`, aff:ELEMENTS_ALL[lv % ELEMENTS_ALL.length], lv:84 + Math.round(lv*1.3), hair:lv % 3, gear:4,
+  return {name:n, title:`${t} · Master Lv ${lv}`, aff:ELEMENTS_ALL[lv % ELEMENTS_ALL.length], lv:78 + Math.round(lv*.75), hair:lv % 3, gear:4,
     comps:[pool[lv % pool.length], pool[(lv*3+1) % pool.length]].slice(0, lv < 20 ? 1 : 2), rival:lv % 10 === 0, line: lv % 10 === 0 ? 'A wall of the Master League. Break it.' : 'Masters do not hold back.', master:lv};
 }
 const ELEMENTS_ALL = ['flame','storm','void','blood'];

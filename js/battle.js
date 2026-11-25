@@ -54,13 +54,14 @@ function enemyUnit(type, L, slot){
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
   const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && BT.mode === 'tower' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
-    size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1},
+    size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
-  const boost = (EXAMS[S.rank] === h ? 1.35 : h.rival ? 1.15 : 1) * (1 + RANKS.indexOf(S.rank)*.2), hm = 5.5*boost, am = 1.6*boost;
+  const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
+    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? 1.4 : 5.5)*boost, am = (h.master ? 3.2 : 1.6)*boost;   // masters: less HP, more danger
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,
@@ -285,7 +286,7 @@ function doParry(h, threats, k, mash){
   BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
   dealDamage(h, t, 1.4, {color:'#ffd166', parry:true});
   gainEnergy(ENERGY.parry); BT.ult = Math.min(100, BT.ult + 8);
-  addText(h, 'PERFECT PARRY', '#ffd166', 30); BT.slowmo = .35; BT.flashT = .06;
+  addText(h, 'PERFECT PARRY', '#ffd166', 30); if((S.settings.speed||1) === 1) BT.slowmo = .15; BT.flashT = .06;
   BT.shake = Math.max(BT.shake, .15); BT.parries = (BT.parries||0) + 1;
   SFX.parry();
 }
@@ -311,7 +312,7 @@ function dealDamage(att, tgt, mult, opt={}){
   }
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
-  if(!opt.pierce) dmg *= 100/(100 + tgt.def);
+  if(!opt.pierce){ const K = 50*Math.pow(1.066, Math.max(0, (att.level || S.level) - 1)); dmg *= K/(K + tgt.def); }   // DEF scales with the attacker's level, so armor never makes you immune
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
@@ -320,11 +321,12 @@ function dealDamage(att, tgt, mult, opt={}){
     if(tgt.hp <= 0 && BT.keys.second && !BT.secondUsed){ BT.secondUsed = true; tgt.hp = tgt.maxHp*.3; addText(tgt, 'SECOND LIFE', '#9ff0b8', 30); BT.flashT = .12; BT.slowmo = .5; }
   }
   if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
-  if(dmg > 0 && att.side === 'p' && (crit || opt.skill)){ BT.hitstop = Math.max(BT.hitstop||0, crit && opt.skill ? .07 : .035); BT.zoom = Math.max(BT.zoom||0, opt.skill ? .03 : .018); }
+  if(dmg > 0 && att.side === 'p' && crit && opt.skill && (S.settings.speed||1) === 1){ BT.hitstop = Math.max(BT.hitstop||0, .03); }   // tiny freeze only for big skill crits
   if(dmg > 0){
     const src = att.side !== 'p' ? 'enemy' : att.kind === 'pet' ? 'spirit' : opt.skill ? 'skill' : opt.parry ? 'parry' : 'hit';
     if(att.side === 'p'){ BT.dmgBy = BT.dmgBy || {}; BT.dmgBy[src] = (BT.dmgBy[src]||0) + dmg; }
     dmgNumber(tgt, dmg, src, crit, att);
+    if(tgt.side === 'e' && att.side === 'p') bloodSpray(tgt, crit || opt.skill, att);
   }
   const ls = (att.lifesteal||0)/100 + (opt.lifesteal||0);
   if(ls > 0 && !att.dead){ att.hp = Math.min(att.maxHp, att.hp + dmg*ls); }
@@ -405,6 +407,7 @@ function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
   BT.ult = 0;
   const u = Object.assign({}, AFF[S.aff].ult); if(u.mult) u.mult *= masteryMult(3);
+  if((S.settings.speed||1) > 1){ SFX.ultHit(); castEffect(BT.hero, u, true); addText(BT.hero, u.name.toUpperCase(), AFF[S.aff].color, 26); return; }   // fast speeds: no cut-in screen
   BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => { SFX.ultHit(); castEffect(BT.hero, u, true); }};
   SFX.ultStart();
 }
@@ -538,7 +541,7 @@ function stepUnit(u, dt){
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
         if(u.kind === 'hero') elemHit(t, u.manual);
         if(u.manual && !t.boss && t.kind === 'enemy' && t.hp/t.maxHp < EXECUTE_AT){
-          addText(t, 'EXECUTE', '#ffd27a', 30); BT.slowmo = Math.max(BT.slowmo||0, .22); BT.zoom = Math.max(BT.zoom||0, .04);
+          addText(t, 'EXECUTE', '#ffd27a', 30);
           dealDamage(u, t, 0, {}); t.hp = 0; killUnit(t); gainEnergy(.5);
         } else dealDamage(u, t, u.manual ? (u.hitMult || .85) : 1, {}); u.hitMult = 0;
         if(u.manual){ gainEnergy(ENERGY.strike*specEnergy('strike')*(1 + (BT.flow||0)*FLOW.energy)); u.manual = false; }
@@ -622,6 +625,7 @@ function stepBattle(dt){
   for(const f of BT.fx){ f.life -= dt; if(f.k === 'p'){ f.x += f.vx*dt; f.y += f.vy*dt; f.vy += (f.g||0)*dt; } }
   BT.fx = BT.fx.filter(f => f.life > 0);
   for(const t of BT.texts){ t.life -= dt; t.y -= t.vy*dt; t.vy *= .96; }
+  if(BT.stains){ for(const st of BT.stains) st.life -= dt; BT.stains = BT.stains.filter(st => st.life > 0); }
   BT.texts = BT.texts.filter(t => t.life > 0);
   if(BT.texts.length > 60) BT.texts.splice(0, BT.texts.length - 60);
   if(BT.fx.length > 400) BT.fx.splice(0, BT.fx.length - 400);
@@ -631,7 +635,7 @@ function stepBattle(dt){
   const enemiesLeft = alive('e').length;
   if(!enemiesLeft && !BT.pending.length){
     if((BT.mode === 'gate' || BT.mode === 'rush' || BT.mode === 'tower') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
-    else { if(BT.winT === undefined){ BT.slowmo = .9; BT.koT = 1.4; BT.zoom = .06; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
+    else { if(BT.winT === undefined){ if((S.settings.speed||1) === 1){ BT.slowmo = .3; BT.zoom = .04; } BT.koT = 1.4; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
   }
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
 }
@@ -639,6 +643,19 @@ function stepBattle(dt){
 /* damage numbers: hits from the same source on the same target within a short window merge into ONE growing number,
    with a small icon + colour per source, so you always see where your damage comes from (no number spam) */
 const DMG_SRC = {hit:{icon:'', c:'#ffffff'}, skill:{icon:'✦ ', c:null}, parry:{icon:'⟲ ', c:'#ffd166'}, spirit:{icon:'❖ ', c:null}, enemy:{icon:'', c:'#ff6b7a'}};
+/* hits draw blood: a spray of droplets (bigger on crits/skills) and stains on the ground that slowly fade.
+   ghosts and blobs bleed in their own colour */
+function bloodColor(u){ const st = u.art && u.art.style; return st === 'ghost' ? u.art.rim : st === 'blob' ? u.art.eye : st === 'golem' ? '#ff8a3c' : null; }
+function bloodSpray(t, big, att){
+  if(BT.texts.length > 70) return;
+  const k = bk(), x = t.x, y = t.y - t.size*k*.55, dir = att && att.x < t.x ? 1 : -1, cust = bloodColor(t), n = big ? 14 : 6;
+  for(let i = 0; i < n; i++){ const sp = rand(120, big ? 380 : 260), a = rand(-1.1, .25);
+    BT.fx.push({k:'p', x:x + rand(-6,6)*k, y:y + rand(-8,8)*k, vx:Math.cos(a)*sp*dir, vy:Math.sin(a)*sp - 40, g:900, c: cust || (i%3 ? '#a3122a' : '#e0233f'), life:rand(.35,.7), max:.7, sz:rand(3, big ? 7 : 5), blood:true}); }
+  BT.stains = BT.stains || [];
+  const gy = t.y + rand(-4, 10)*k;
+  for(let i = 0; i < (big ? 3 : 1); i++) BT.stains.push({x:x + dir*rand(10, 60)*k, y:gy + rand(-3,6)*k, r:rand(5, big ? 14 : 9)*k, c: cust || '#7a0d1f', life:4, max:4});
+  if(BT.stains.length > 40) BT.stains.splice(0, BT.stains.length - 40);
+}
 function dmgNumber(tgt, dmg, src, crit, att){
   const now = BT.clock || 0, key = src + (crit ? '!' : '');
   tgt._agg = tgt._agg || {};
@@ -786,6 +803,7 @@ function renderBattle(t, dt){
   sceneFx(BT.theme, t, dt);
   if(BT.mode === 'gate'){ const T = THEMES[BT.theme], pr = Math.min(VH*.17, VW*.12); drawPortal(c, VW*.97, groundY() - pr*1.15, pr, t, T.accent, T.accent2, .9); }
   // units
+  if(BT.stains) for(const st of BT.stains){ c.save(); c.globalAlpha = Math.min(.55, st.life/st.max*.8); c.fillStyle = st.c; c.beginPath(); c.ellipse(st.x, st.y, st.r, st.r*.38, 0, 0, 7); c.fill(); c.restore(); }
   const us = BT.units.slice().sort((a,b) => a.y - b.y);
   for(const u of us){
     if(u.dead && u.deathT > .8) continue;

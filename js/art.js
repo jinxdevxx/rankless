@@ -511,10 +511,35 @@ function drawMonster(c, style, x, y, h, o){
     eyes([[4,-117+bob]], 6);
   }
   if(!o.flash) monsterDetails(c, style, t, R, E, bob, pose, o.seed || 0);
+  if(!o.flash && o.fx) gateFx(c, o.fx, t, R, E, style, o.seed || 0);
   c._ol = false;
   c.restore();
 }
 
+/* every gate leaves its mark on its monsters: water, sparks, ice, rift shards, lightning, a sun halo, black flames */
+function gateFx(c, fx, t, R, E, style, seed){
+  const tall = style === 'brute' || style === 'warden' || style === 'oni' || style === 'golem', top = tall ? -125 : style === 'ghost' ? -110 : style === 'beast' ? -62 : style === 'blob' ? -70 : -88;
+  c.save(); c._ol = false; c.lineCap = 'round';
+  if(fx === 'tide'){ c.fillStyle = '#9fe0ff';
+    for(let i = 0; i < 4; i++){ const ph = (t*.9 + i*.27 + seed) % 1, x = -14 + i*9; c.globalAlpha = .8*(1 - ph); c.beginPath(); c.ellipse(x, top*.35 + ph*45, 2, 3.2, 0, 0, 7); c.fill(); } }
+  else if(fx === 'rail'){ c.fillStyle = '#ffcf33'; c.shadowColor = '#ff8a3c'; c.shadowBlur = 8;
+    for(let i = 0; i < 5; i++){ const ph = (t*1.7 + i*.21 + seed) % 1, a = i*1.3 + seed; c.globalAlpha = 1 - ph; c.fillRect(Math.cos(a)*20 + ph*Math.cos(a)*18, top*.5 - ph*22, 2.5, 2.5); } }
+  else if(fx === 'frost'){ c.strokeStyle = '#e8f8ff'; c.shadowColor = '#9fe8ff'; c.shadowBlur = 10; c.lineWidth = 1.5;
+    for(let i = 0; i < 4; i++){ const a = t*.8 + i*1.57, x = Math.cos(a)*30, y = top*.55 + Math.sin(a*1.3)*12, r = 4; c.globalAlpha = .75;
+      c.beginPath(); for(let j = 0; j < 3; j++){ const b = j*Math.PI/3 + t; c.moveTo(x - Math.cos(b)*r, y - Math.sin(b)*r); c.lineTo(x + Math.cos(b)*r, y + Math.sin(b)*r); } c.stroke(); } }
+  else if(fx === 'shards'){ c.fillStyle = '#d7a8ff'; c.shadowColor = '#b05cff'; c.shadowBlur = 14;
+    for(let i = 0; i < 5; i++){ const a = t*1.2 + i*1.26, x = Math.cos(a)*34, y = top*.55 + Math.sin(a)*10; c.save(); c.translate(x, y); c.rotate(a*2); c.globalAlpha = Math.sin(a) > -.3 ? .9 : .35;
+      c.beginPath(); c.moveTo(0, -6); c.lineTo(3, 0); c.lineTo(0, 6); c.lineTo(-3, 0); c.closePath(); c.fill(); c.restore(); } }
+  else if(fx === 'storm'){ c.strokeStyle = '#e8f8ff'; c.shadowColor = '#4cc9ff'; c.shadowBlur = 12; c.lineWidth = 1.6;
+    const flick = Math.floor(t*12 + seed*7); if(flick % 3 !== 0){ for(let i = 0; i < 2; i++){ const a = ((flick*37 + i*91) % 628)/100, r0 = 14, r1 = 34; let x = Math.cos(a)*r0, y = top*.5 + Math.sin(a)*r0*.6;
+      c.globalAlpha = .9; c.beginPath(); c.moveTo(x, y); for(let k = 1; k <= 4; k++){ const rr = r0 + (r1 - r0)*k/4; x = Math.cos(a + (k%2 ? .25 : -.25))*rr; y = top*.5 + Math.sin(a)*rr*.6 + (k%2 ? 4 : -4); c.lineTo(x, y); } c.stroke(); } } }
+  else if(fx === 'sun'){ c.strokeStyle = '#ffd27a'; c.shadowColor = '#ffb347'; c.shadowBlur = 16; c.lineWidth = 2.2; c.globalAlpha = .8;
+    const hy = top - 8; c.beginPath(); c.arc(8, hy, 15, 0, 7); c.stroke();
+    c.save(); c.translate(8, hy); c.rotate(t*.8); for(let i = 0; i < 8; i++){ c.rotate(Math.PI/4); c.beginPath(); c.moveTo(18, 0); c.lineTo(24 + (i%2)*4, 0); c.stroke(); } c.restore(); }
+  else if(fx === 'eclipse'){ for(let i = 0; i < 7; i++){ const ph = (t*1.1 + i*.143 + seed) % 1, x = -22 + i*7 + Math.sin(t*3 + i)*3, y = -10 - ph*(-top*.9);
+      c.globalAlpha = .55*(1 - ph); c.fillStyle = i % 2 ? '#0a0610' : '#ff3d6a'; c.shadowColor = '#ff3d6a'; c.shadowBlur = 10; c.beginPath(); c.ellipse(x, y, 5*(1 - ph*.6), 9*(1 - ph*.5), 0, 0, 7); c.fill(); } }
+  c.restore();
+}
 /* glowing energy veins, spikes, cores and particles that make every monster type look alive */
 function monsterDetails(c, style, t, R, E, bob, pose, seed){
   const pulse = .55 + Math.sin(t*3 + seed)*.25, hot = pose === 'windup' || pose === 'cast' ? 1 : 0;
@@ -590,7 +615,7 @@ function drawSpirit(c, x, y, r, o){
 }
 function drawUnitArt(c, u, x, y, h, t, pose, flash, alpha){
   const o = {t:t + (u.seed||0), face:u.side === 'p' ? 1 : -1, pose, flash, alpha,
-    body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura};
+    body:u.art.body, rim:u.art.rim, eye:u.art.eye, blade:u.art.blade, hair:u.art.hair, aura:u.art.aura, fx:u.art.fx};
   if(u.art.style === 'spirit') drawSpirit(c, x, y, h*.55, o);
   else if(u.art.style === 'human') drawHumanoid(c, x, y, h, o);
   else drawMonster(c, u.art.style, x, y, h, o);

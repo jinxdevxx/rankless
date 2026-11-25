@@ -3,6 +3,11 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Annoying slow motion when attacking (v0.21.0)
+- [x] More blood / brutality, tasteful (v0.21.0)
+- [x] Ultimate pop-up only at x1 speed (v0.21.0)
+- [x] Mid-game immortality root cause: armor formula (v0.21.0)
+- [ ] S+ gate floor 8 wall for spam+skills bot (31 losses) – tune next
 - [x] Mid-game (A-Rank) overpowered, never dying: caused by auto-parry on mashing, not mainly lifesteal; fixed + lifesteal cap (v0.20.0)
 - [x] Screen shake toggle in Esc menu (v0.20.0)
 - [x] Separate Skills tab (v0.20.0)

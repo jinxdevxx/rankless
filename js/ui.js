@@ -97,7 +97,7 @@ function renderHome(){
       <div class="rank r-${S.rank}">${rankBadge(S.rank)}</div>
       <div>
         <div class="pname" style="color:${a.color}">${esc(S.name)}</div>
-        <div class="psub">Lv ${S.level} · ${specOf() ? specOf().name : a.title}</div>
+        <div class="psub">Lv ${S.level} · ${S.rank === 'M' && S.master.lv ? `<b style="color:${masterTitle(S.master.lv).color}">${masterTitle(S.master.lv).name}</b>` : (specOf() ? specOf().name : a.title)}</div>
         <div class="xp"><i style="width:${(S.xp/xpNeed(S.level)*100).toFixed(1)}%"></i></div>
       </div>
       <div class="cp"><small>POWER</small><b>${fmt(teamPower())}</b></div>
@@ -274,6 +274,8 @@ function sheetMaster(){
   return `<div class="arena-head"><div class="rank big r-M">M</div><div><h3>Master League</h3>
     <p>You conquered every rank. Now climb from Master Lv 1 to <b>${MASTER_MAX}</b>. Every new level pays Gold, XP, Mana Stones, a Rift Diamond and an item. Every 10th level is a wall with 5 Diamonds.</p></div></div>
     <div class="masterbar"><span>Master Lv <b>${lv}</b> / ${MASTER_MAX}</span><div class="bar"><i style="width:${lv/MASTER_MAX*100}%"></i></div></div>
+    ${(() => { const cur = lv ? masterTitle(lv) : null, nextM = MASTER_TITLES_BY_LV.slice().reverse().find(([m]) => m > lv), nm = (Math.floor(lv/10) + 1)*10;
+      return `<div class="mtitles">${cur ? `<span class="mt" style="--c:${cur.color}">Title: <b>${cur.name}</b></span>` : ''}${nextM ? `<span class="mt next" style="--c:${nextM[2]}">Next title at Lv ${nextM[0]}: <b>${nextM[1]}</b></span>` : ''}${nm <= MASTER_MAX ? `<span class="mt" style="--c:#ffd27a">Lv ${nm}: <b>+2 talent points</b> + 5 Diamonds</span>` : ''}</div>`; })()}
     <div class="mladder">${ladder}</div>
     ${lv >= MASTER_MAX ? '<div class="empty">You are the strongest Breaker alive. Level 99 Master.</div>' : `<div class="hcard ${h.rival ? 'exam' : ''}">
       <img src="${hunterPortrait(h)}" alt="">
@@ -635,6 +637,7 @@ function showResult(r){
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
+    ${r.masterUp && MASTER_TITLES_BY_LV.some(([m]) => m === r.masterUp) ? `<div class="rankup" style="border-color:${masterTitle(r.masterUp).color}"><small>NEW TITLE</small><b style="color:${masterTitle(r.masterUp).color}">${masterTitle(r.masterUp).name}</b><span>You earned a new Master title.</span></div>` : ''}
     ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'The very top. Legend.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
     ${r.chest ? `<div class="rankup chest"><small>TOWER CHEST · FLOOR ${BT.floor}</small><b>🎁 Bonus loot!</b><span>+${r.stones} Mana Stones · +${r.diamonds} Rift Diamond${r.diamonds > 1 ? 's' : ''}</span></div>` : ''}
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${rankLabel(RANKS[RANKS.indexOf(r.rankUp)-1])} → ${r.rankUp === 'M' ? 'MASTER' : rankLabel(r.rankUp)}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}

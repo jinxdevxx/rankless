@@ -75,7 +75,7 @@ const xpNeed  = lv => Math.floor(280 * Math.pow(1.21, Math.min(lv, 30)-1) * Math
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
 const enemyHp = L  => 850 * Math.pow(1.16, L-1);
-const enemyAtk= L  => 40 * Math.pow(1.14, L-1);
+const enemyAtk= L  => 40 * Math.pow(1.14, Math.min(L, 20)-1) * Math.pow(1.11, Math.max(0, L-20));   // slower growth late: armor no longer hides it
 
 function addXP(n){
   S.xp += Math.floor(n);
