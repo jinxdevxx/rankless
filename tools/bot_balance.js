@@ -47,7 +47,8 @@ const { chromium } = require('playwright');
       }
       if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX){ log.push('MASTER 99 DONE'); break; }
         if(!window.__snaps) window.__snaps = {}; const mk = 'M' + (S.master.lv||0); if(((S.master.lv||0) % 10 === 0) && !window.__snaps[mk]) window.__snaps[mk] = JSON.stringify(S);
-        startMaster(); const w = run(); log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);
+        startMaster(); const w = run(); if(window.__lastU !== JSON.stringify(S.codex)){ window.__lastU = JSON.stringify(S.codex); log.push(`${(simTime/60).toFixed(0)}m UNIQUES ${window.__lastU}`); }
+        log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);
         if(!w){ { manage(); window.__mgFail = window.__mgFail || 0; const mf = Math.max(1, Math.min(10, (S.gates.M||0) + 1) - (window.__mgFail >= 2 ? 1 : 0)); startGate('M', mf); const gw = run(); if(mf > (S.gates.M||0)) window.__mgFail = gw ? 0 : window.__mgFail + 1; log.push(`${(simTime/60).toFixed(0)}m MGATE F${mf} ${gw ? 'clear' : 'lose'} gateLv${masterGateLv()}`); } for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startTower((S.tower.best||0)+1); run(); }
         continue; }
       if(full && !list){ log.push('ALL DONE'); break; }
@@ -56,6 +57,7 @@ const { chromium } = require('playwright');
       else { losses++; for(let k=0;k<2;k++){ manage(); startGate(gate.id, Math.max(1,nf-1)); run(); } if(isUnlocked('gates')){ manage(); startTower((S.tower.best||0) + 1); if(!run()){ manage(); startTower(Math.max(1, S.tower.best||1)); run(); } } }
     }
     log.push(`END ${(simTime/60).toFixed(0)}m battles=${battles} lv${S.level} rank ${S.rank} gates ${JSON.stringify(S.gates)} pets ${JSON.stringify(S.pets.owned)} gold ${Math.round(S.gold)} stones ${S.stones} inv ${S.inv.length} eq ${SLOTS.map(s=>S.eq[s]?RARITY[S.eq[s].rar].name[0]+S.eq[s].ilvl+'+'+S.eq[s].plus:'-').join(',')}`);
+    log.push('CODEX ' + JSON.stringify(S.codex||{}) + ' pity ' + JSON.stringify(S.pity||{}) + ' journeyFirst ' + JSON.stringify(Object.fromEntries(Object.entries(S.journey||{}).filter(([k]) => /First/.test(k)))));
     return log.join('\n');
   }, [aff, policy, maxMin, snapIn]);
   console.log(res);

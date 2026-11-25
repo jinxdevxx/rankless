@@ -1003,3 +1003,17 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .jrny div{padding:8px 10px;border-radius:10px;background:#0004;border:1px solid #ffd27a44} .jrny b{display:block;font:900 13px Nunito,sans-serif;color:#fff} .jrny span{font:700 12px Nunito,sans-serif;color:#ffd27a}
 
 .t10{margin:-4px auto 6px;display:block;font-size:12px;padding:3px 12px}
+
+/* Unique / Godforged (v0.24.0) */
+.uniqdrop{border-color:#2ef2c4!important;box-shadow:0 0 28px rgba(46,242,196,.35)} .uniqdrop b{color:#2ef2c4!important}
+.uniqdrop.god{border-color:#fff1c9!important;box-shadow:0 0 34px rgba(255,241,201,.55);background:linear-gradient(135deg,rgba(255,241,201,.15),rgba(60,40,10,.4))!important} .uniqdrop.god b{color:#fff1c9!important}
+.ufx{margin:8px 0;padding:10px 12px;border-radius:12px;border:2px solid var(--r);background:rgba(0,0,0,.35);display:flex;flex-direction:column;gap:3px;font:700 13px Nunito,sans-serif;color:#e8e2f0}
+.ufx b{color:var(--r);font:900 12px Nunito,sans-serif;letter-spacing:.1em} .ufx small{color:#b9b0c9}
+.ufxs{color:var(--r);font-weight:900;margin:2px 0}
+.codexbar{display:flex;justify-content:flex-end;margin-bottom:8px}
+.codex{max-width:720px;display:flex;flex-direction:column;gap:8px;max-height:80vh;overflow-y:auto} .codex h3{margin:0}
+.cxh,.cxr{display:grid;grid-template-columns:1fr 80px 110px;gap:8px;align-items:center;font:700 13px Nunito,sans-serif;color:#e8e2f0}
+.cxh{font-weight:900;color:#b9b0c9;border-bottom:1px solid #ffffff22;padding-bottom:4px} .cxr b{color:#2ef2c4} .cxr b.g,.cxh b.g{color:#fff1c9}
+.cxl{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:6px}
+.cxi{display:flex;gap:8px;align-items:center;padding:8px;border-radius:10px;border:1px solid #ffffff1a;background:#0004;opacity:.6}
+.cxi.got{opacity:1;border-color:var(--r);box-shadow:0 0 10px color-mix(in srgb,var(--r) 30%,transparent)} .cxi i{color:var(--r);width:26px} .cxi b{display:block;color:var(--r);font:900 13px Nunito,sans-serif} .cxi small{font:600 11px Nunito,sans-serif;color:#b9b0c9} .cxi em{margin-left:auto;font-style:normal;font:900 12px Nunito,sans-serif;color:#7fffa0}

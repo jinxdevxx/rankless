@@ -196,6 +196,8 @@ function newBattle(o){
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
   b.keys = {}; for(const nd of talentNodes()) if(nd.key && S.talents && S.talents[nd.id]) b.keys[nd.key] = true;
+  b.ufx = {}; for(const sl of SLOTS){ const it = S.eq[sl]; if(it && it.uniq && UNIQUES[it.uniq]) b.ufx[UNIQUES[it.uniq].fx] = true; }   // unique item effects
+  b.hitN = 0; b.oni = 0; b.deepT = 0;
   b.heroDr = hs.dr || 0; if(b.keys.crystal) b.energy += 2;
   ((S.pets && S.pets.active) || []).forEach((id, i) => { const lv = S.pets.owned[id]; if(lv && PETS[id]) b.units.push(prep(petUnit(id, lv, i + 1))); });
   return b;
@@ -347,8 +349,10 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.kind === 'hero' && att.blocked){ dmg *= .65; att.blocked = false; }   // a block softens the hit, it doesn't erase it   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
-  if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; if(BT.keys.wrath && (tgt.boss || tgt.kind === 'hunter')) dmg *= 1.3; }
+  if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; if(BT.keys.wrath && (tgt.boss || tgt.kind === 'hunter')) dmg *= 1.3;
+    const U = BT.ufx || {}; if(U.warlord && (tgt.boss || tgt.elite || tgt.kind === 'hunter')) dmg *= 1.35; if(U.izanagi) dmg *= 1.2; if(U.magatama && opt.skill) dmg *= 1.3; if(U.oni && BT.oni) dmg *= 1 + .08*BT.oni; }
   if(tgt.kind === 'hero' && BT.heroDr) dmg *= 1 - BT.heroDr/100;
+  if(tgt.kind === 'hero' && BT.ufx){ const U = BT.ufx; if(U.windwalk && Math.random() < .12){ addText(tgt, 'DODGE', '#9fffe0', 20); return 0; } if(U.aegis && tgt.hp > tgt.maxHp*.7) dmg *= .8; if(U.susanoo) dmg *= .85; }
   if((tgt.boss || tgt.elite) && att.side === 'p'){
     if(tgt.brokenT > 0) dmg *= BREAK.mult;
     else { tgt.breakM = (tgt.breakM||0) + (opt.skill ? BREAK.skill : 1);
@@ -364,7 +368,16 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.kind === 'hero' && dmg > 0){
     if(BT.keys.thorns && att.side === 'e' && !att.dead){ const th = dmg*.25; att.hp -= th; addText(att, fmt(th), '#9fd8ff', 16); if(att.hp <= 0) killUnit(att, tgt); }
     if(tgt.hp <= 0 && BT.keys.second && !BT.secondUsed){ BT.secondUsed = true; tgt.hp = tgt.maxHp*.3; addText(tgt, 'SECOND LIFE', '#9ff0b8', 30); BT.flashT = .12; BT.slowmo = .5; }
+    const U = BT.ufx || {};
+    if(tgt.hp <= 0 && (U.susanoo || U.phoenix) && !BT.uRevive){ BT.uRevive = true; tgt.hp = tgt.maxHp*(U.susanoo ? .5 : .4); addText(tgt, U.susanoo ? 'SUSANOO RISES' : 'PHOENIX REBIRTH', U.susanoo ? '#bfe6ff' : '#ff9a4a', 30); BT.flashT = .14; burst(tgt.x, tgt.y - 40, U.susanoo ? '#bfe6ff' : '#ff9a4a', 30); }
+    if(U.yata && att.side === 'e' && !att.dead){ const rf = dmg*.4; att.hp -= rf; addText(att, fmt(rf), '#fff1c9', 16); if(att.hp <= 0) killUnit(att, tgt); }
   }
+  if(dmg > 0 && att.kind === 'hero' && BT.ufx){ const U = BT.ufx;
+    if(U.bloodmoon && crit) att.hp = Math.min(att.maxHp, att.hp + att.maxHp*.03);
+    if(!opt.proc && (U.raijin || U.kusanagi)){ BT.hitN++;
+      const proc = (U.kusanagi && BT.hitN % 4 === 0) ? ['kusanagi', 3.5, '#fff1c9', 'DIVINE SLASH'] : (U.raijin && BT.hitN % 5 === 0) ? ['raijin', 1.6, '#9fd8ff', 'RAIJIN'] : null;
+      if(proc){ addText(att, proc[3], proc[2], 24); BT.flashT = Math.max(BT.flashT||0, .05);
+        for(const e of alive('e')){ if(e !== tgt || !tgt.dead){ dealDamage(att, e, proc[1], {proc:true, pierce:true}); burst(e.x, e.y - e.size*bk()*.5, proc[2], 10); } } } } }
   if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
   if(dmg > 0 && att.side === 'p' && crit && opt.skill && (S.settings.speed||1) === 1){ BT.hitstop = Math.max(BT.hitstop||0, .03); }   // tiny freeze only for big skill crits
   if(dmg > 0){
@@ -397,7 +410,7 @@ function killUnit(u){
   u.dead = true; u.hp = 0; u.state = 'dead'; u.deathT = 0;
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
-    BT.kills++; gainEnergy(ENERGY.kill + specEnergy('kill')); SFX.kill(u.boss);
+    BT.kills++; if(BT.ufx && BT.ufx.oni && BT.oni < 5){ BT.oni++; addText(BT.hero, 'GRUDGE ×' + BT.oni, '#ff5a5a', 18); } gainEnergy(ENERGY.kill + specEnergy('kill')); SFX.kill(u.boss);
     BT.streak = (BT.streakT > 0 ? (BT.streak||0) : 0) + 1; BT.streakT = 1.2;
     if(BT.streak >= 2) BT.banner = {txt: ['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'MASSACRE'][Math.min(4, BT.streak)], t:1.1, c: BT.streak >= 4 ? '#ff7a59' : '#ffd27a'};
     const hs = heroStats();
@@ -426,7 +439,7 @@ function checkBind(type){
 /* ---------- skills ---------- */
 function skillUnlocked(i){ return S.level >= SKILL_LV[i]; }
 function ultUnlocked(){ return S.level >= ULT_LV; }
-function gainEnergy(n){ if(!BT) return; if(BT.keys && BT.keys.kiflow && n > 0) n *= 1.5; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
+function gainEnergy(n){ if(!BT) return; if(BT.keys && BT.keys.kiflow && n > 0) n *= 1.5; if(BT.ufx && n > 0){ if(BT.ufx.kitsune) n *= 1.4; if(BT.ufx.magatama) n *= 1.6; } const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
 function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)){
@@ -614,6 +627,7 @@ function stepUnit(u, dt){
 }
 
 function stepBattle(dt){
+  if(BT && BT.ufx && BT.ufx.deep && !BT.over && BT.hero && !BT.hero.dead){ BT.deepT += dt; if(BT.deepT >= 6){ BT.deepT = 0; BT.hero.hp = Math.min(BT.hero.maxHp, BT.hero.hp + BT.hero.maxHp*.04); addText(BT.hero, '+HP', '#7fd8ff', 16); } }
   if(!BT) return;
   BT.clock = (BT.clock || 0) + dt / Math.max(1, S.settings.speed || 1);
   // cut-in slows time
@@ -839,6 +853,13 @@ function finishBattle(win){
       }
     } else { r.gold = Math.round(goldFor(BT.hunter.lv)*6); r.xp = Math.round(r.xp*.5 + xpFor(BT.hunter.lv)*3); }
   }
+  /* unique / godforged drops from boss-type fights */
+  let usrc = null;
+  if(win){ if(BT.mode === 'gate' && isBossFloor(BT.floor) && GATES.indexOf(BT.gate) >= 3) usrc = BT.gate.id === 'M' ? 'mgate' : 'gate';
+    else if(BT.mode === 'tower' && BT.floor % 10 === 0) usrc = 'tower';
+    else if(BT.mode === 'rift') usrc = BT.depth % 10 === 0 ? 'rift' : BT.depth % 5 === 0 ? 'riftElite' : null;
+    else if(BT.master) usrc = r.paragonUp ? 'paragon' : r.first ? (BT.master % 10 === 0 ? 'masterWall' : 'master') : null; }
+  if(usrc){ const it = rollUnique(usrc, BT.L, usrc === 'rift' && BT.depth < 30); if(it){ r.items.push(it); r.unique = it; journeyMark('First ' + RARITY[it.rar].name); } }
   if(r.rankUp) journeyMark(r.rankUp === 'M' ? 'Master League' : rankLabel(r.rankUp) + '-Rank');
   if(r.masterUp && [10, 50, 99].includes(r.masterUp)) journeyMark('Master ' + r.masterUp);
   if(r.paragonUp && [1, 10, 25].includes(r.paragonUp)) journeyMark('Paragon ' + r.paragonUp);

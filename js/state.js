@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, codex:{}, pity:{u:0, g:0}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -129,7 +129,7 @@ function enhanceRate(it){ if(S.settings && S.settings.simple) return it.plus < M
 const SALVAGE_REFUND = .65;
 function enhanceSpent(it){ let g = 0, s = 0; for(let p = 0; p < it.plus; p++){ const c = enhanceCost(Object.assign({}, it, {plus:p})); g += c.gold; s += c.stones; } return {gold:g, stones:s}; }
 function salvageValue(it){ const sp = enhanceSpent(it);
-  return {stones: [1,3,8,20,50][it.rar] + Math.round(sp.stones*SALVAGE_REFUND), gold: Math.ceil(goldFor(it.ilvl) * 2 * (1+it.rar)) + Math.round(sp.gold*SALVAGE_REFUND)}; }
+  return {stones: [1,3,8,20,50,120,300][it.rar] + Math.round(sp.stones*SALVAGE_REFUND), gold: Math.ceil(goldFor(it.ilvl) * 2 * (1+it.rar)) + Math.round(sp.gold*SALVAGE_REFUND)}; }
 
 /* ---------- champion stats ---------- */
 function calcStats(src){
@@ -149,6 +149,7 @@ function calcStats(src){
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
+  for(const sl of SLOTS){ const it = src.eq[sl]; if(it && it.uniq && UNIQUES[it.uniq]) { for(const k in UNIQUES[it.uniq].stats) o[k] += UNIQUES[it.uniq].stats[k]; o.fxP = (o.fxP||0) + (UNIQUES[it.uniq].tier === 6 ? 15 : 8); } }   // unique passives + effect value
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
     if(sc[id] >= 2) for(const k in st.b2) o[k] += st.b2[k];
@@ -163,7 +164,7 @@ function calcStats(src){
 function heroStats(){ return calcStats(S); }
 function powerOf(o){
   const dps = o.atk * (1 + o.crit/100*(o.critDmg/100 - 1)) / o.interval;
-  return Math.round(dps*5 + o.hp*.55 + o.def*4 + o.atk*o.skill/100*2 + o.lifesteal*o.atk*.3);
+  return Math.round((dps*5 + o.hp*.55 + o.def*4 + o.atk*o.skill/100*2 + o.lifesteal*o.atk*.3) * (1 + (o.fxP||0)/100));   // unique effects count as power
 }
 function compStats(type, stars, level, compMult){
   // companions grow with the hero (they used to fall far behind enemy scaling and died instantly)
@@ -354,3 +355,18 @@ function nextGoal(){
 function trackPlay(sec){ if(!SLOT || !S || !S.created || !(sec > 0)) return; S.playtime = (S.playtime||0) + Math.min(sec, 5); }
 function fmtTime(sec){ sec = Math.floor(sec||0); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60); return h ? `${h}h ${m}m` : m ? `${m}m` : `${sec % 60}s`; }
 function journeyMark(key){ S.journey = S.journey || {}; if(S.journey[key] === undefined) S.journey[key] = Math.round(S.playtime||0); }
+
+/* unique items */
+function reforgeCost(it){ return {gold:Math.round(goldFor(S.level)*30), stones:Math.round(150 + S.level*3)}; }
+function makeUnique(id, ilvl){ ilvl = Math.max(ilvl, S.level); const u = UNIQUES[id], it = makeItem(u.slot, ilvl, u.tier); it.name = u.name; it.uniq = id; it.locked = true; delete it.set; return it; }
+function uniqueChance(src, tier){ const base = tier === 6 ? (GODFORGED_DROP[src]||0) : (UNIQUE_DROP[src]||0); if(!base) return 0; return base + (S.pity[tier === 6 ? 'g' : 'u']||0)*PITY_STEP[tier === 6 ? 'g' : 'u']; }
+function godforgedOpen(){ return S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX; }
+/* roll for a unique (and, after Master 99, a Godforged) item from a boss-type source */
+function rollUnique(src, ilvl, noGod){
+  S.pity = S.pity || {u:0, g:0}; S.codex = S.codex || {};
+  const pickFrom = tier => { const ids = Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === tier); const w = ids.map(id => S.codex[id] ? 1 : 2);   // unfound ones twice as likely
+    let r = Math.random()*w.reduce((a, b) => a + b, 0); for(let i = 0; i < ids.length; i++){ r -= w[i]; if(r <= 0) return ids[i]; } return ids[0]; };
+  if(!noGod && godforgedOpen() && GODFORGED_DROP[src]){ if(Math.random() < uniqueChance(src, 6)){ S.pity.g = 0; const id = pickFrom(6); S.codex[id] = (S.codex[id]||0) + 1; return makeUnique(id, ilvl + 3); } S.pity.g++; }
+  if(UNIQUE_DROP[src]){ if(Math.random() < uniqueChance(src, 5)){ S.pity.u = 0; const id = pickFrom(5); S.codex[id] = (S.codex[id]||0) + 1; return makeUnique(id, ilvl + 2); } S.pity.u++; }
+  return null;
+}

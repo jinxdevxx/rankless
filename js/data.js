@@ -18,6 +18,8 @@ const RARITY = [
   {name:'Epic',      color:'#b86bff', mult:1.7, affixes:2, w:90},
   {name:'Legendary', color:'#ffb02e', mult:2.2, affixes:3, w:24},
   {name:'Mythic',    color:'#ff3b5c', mult:3.0, affixes:4, w:3},
+  {name:'Unique',    color:'#2ef2c4', mult:3.4, affixes:4, w:0},   // only from boss drops, own effect (v0.24.0)
+  {name:'Godforged', color:'#fff1c9', mult:4.3, affixes:5, w:0},   // endgame only (after Master 99)
 ];
 
 /* ---------- equipment ---------- */
@@ -37,6 +39,7 @@ const PREFIX = [
   ['Runed','Gatebound','Phantom','Riftforged'],
   ['Sovereign','Eclipse','Crimson','Stormborn'],
   ['Godslayer','Abyssal','Starfall','Worldbreaker'],
+  ['Unique'], ['Godforged'],
 ];
 const STAT_LABEL = {atk:'ATK',hp:'HP',def:'DEF',crit:'Crit Rate',critDmg:'Crit DMG',spd:'Attack Speed',
   atkP:'ATK',hpP:'HP',lifesteal:'Lifesteal',skill:'Skill DMG',gold:'Gold Find',xp:'XP Gain'};
@@ -527,3 +530,28 @@ const AURAS = {
   shadow:   {name:'Shadow Monarch', color:'#8a7dff', how:'Reach Paragon 25',              ok:() => (S.paragon||0) >= 25},
 };
 const RIFT_MILESTONES = {25:{diamonds:10}, 50:{diamonds:20}, 75:{diamonds:30}, 100:{diamonds:50}};
+
+/* ================= UNIQUE + GODFORGED ITEMS (v0.24.0) =================
+   Named items with an effect you can't get anywhere else. Uniques drop from bosses (Gate B+, Tower, Rift, Master League),
+   Godforged (神器, Japanese god-relics) only after Master 99. Bad-luck protection: every boss without one raises the chance. */
+const UNIQUES = {
+  raijin:    {tier:5, slot:'weapon', name:"Raijin's Fang",       stats:{spd:8},            fx:'raijin',    desc:'Every 5th hit calls lightning on ALL enemies (160% ATK, ignores armor).'},
+  bloodmoon: {tier:5, slot:'weapon', name:'Bloodmoon Edge',      stats:{critDmg:35},       fx:'bloodmoon', desc:'Your crits heal you for 3% of your max HP.'},
+  phoenix:   {tier:5, slot:'armor',  name:'Phoenix Mantle',      stats:{hpP:12},           fx:'phoenix',   desc:'Once per fight: a killing blow revives you with 40% HP.'},
+  aegis:     {tier:5, slot:'helm',   name:'Aegis of Dawn',       stats:{defP:15},          fx:'aegis',     desc:'Take 20% less damage while above 70% HP.'},
+  warlord:   {tier:5, slot:'gloves', name:'Warlord Grips',       stats:{atkP:8},           fx:'warlord',   desc:'+35% damage to bosses, elites and hunters.'},
+  windwalk:  {tier:5, slot:'boots',  name:'Windwalker Geta',     stats:{spd:10},           fx:'windwalk',  desc:'12% chance to dodge an attack completely.'},
+  oni:       {tier:5, slot:'ring',   name:"Oni's Grudge",        stats:{crit:5},           fx:'oni',       desc:'Every kill: +8% damage for this fight (max 5 stacks).'},
+  deep:      {tier:5, slot:'ring',   name:'Ring of the Deep',    stats:{hpP:8},            fx:'deep',      desc:'Heal 4% of your max HP every 6 seconds.'},
+  kitsune:   {tier:5, slot:'amulet', name:'Kitsune Bead',        stats:{skill:20},         fx:'kitsune',   desc:'You gain Ki 40% faster.'},
+  kusanagi:  {tier:6, slot:'weapon', name:'Kusanagi no Tsurugi', stats:{atkP:20, crit:6},  fx:'kusanagi',  desc:'Every 4th hit unleashes a divine slash on ALL enemies (350% ATK, ignores armor).'},
+  yata:      {tier:6, slot:'amulet', name:'Yata no Kagami',      stats:{hpP:15, dr:5},     fx:'yata',      desc:'Mirror: reflects 40% of the damage you take.'},
+  magatama:  {tier:6, slot:'ring',   name:'Yasakani Magatama',   stats:{skill:40},         fx:'magatama',  desc:'Skills hit 30% harder and you gain Ki 60% faster.'},
+  susanoo:   {tier:6, slot:'armor',  name:"Susanoo's Storm Plate", stats:{hpP:20, defP:20}, fx:'susanoo',  desc:'15% less damage taken. Once per fight: revive with 50% HP.'},
+  izanagi:   {tier:6, slot:'helm',   name:"Izanagi's Crown",     stats:{atkP:15, hpP:15},  fx:'izanagi',   desc:'You deal 20% more damage.'},
+};
+const UNIQUE_DROP = {gate:.015, tower:.01, riftElite:.01, rift:.06, master:.025, masterWall:.12, paragon:.05, mgate:.04};
+const GODFORGED_DROP = {paragon:.02, rift:.025, mgate:.01};
+const UNIQUE_SRC = {gate:'Gate bosses (B-Rank and higher)', tower:'Training Tower bosses (every 10th floor)', mgate:'Master Gate boss', master:'Master League wins',
+  masterWall:'Master League walls (every 10th level)', riftElite:'Abyss Rift elites (every 5th depth)', rift:'Rift Lords (every 10th depth)', paragon:'Paragon fights'};
+const PITY_STEP = {u:.002, g:.001};

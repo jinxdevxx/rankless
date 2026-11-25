@@ -1,12 +1,13 @@
 {
-  "version": "0.23.3",
+  "version": "0.24.0",
   "date": "2026-11-25",
-  "title": "Kami",
+  "title": "Unique & Godforged",
   "notes": [
-    "Master 99 title is now KAMI 神 (god).",
-    "NEW talent branch Ascension (opens in the Master League): Godly Power, Divine Body, Kami Eye, Spirit Sovereign, keystones Divine Wrath and Endless Ki, and Limit Break that takes every leftover point. +10 buttons for big nodes.",
-    "Hover tooltip now also works on your equipped gear (Champion tab) and on loot; it hides cleanly when you move away, scroll, press a key or click.",
-    "Master League paced for about 3 hours to Master 99 at x3 speed: masters are tougher, master XP lower, no more wall at Master 40-50.",
-    "Endgame Mana Stones: stone cost capped, Master League and Master Gate give more stones."
+    "NEW: 9 Unique items (turquoise) with effects you can't get anywhere else: lightning strikes, healing crits, Phoenix revive, dodge, Oni grudge, Ki boost and more.",
+    "NEW: 5 Godforged 神器 items after Master 99, the Japanese god-relics: Kusanagi, Yata Mirror, Yasakani Magatama, Susanoo's Storm Plate, Izanagi's Crown.",
+    "Uniques drop from bosses: Gate B+, Tower every 10th floor, Master Gate, Master League, Rift and Paragon. Bad-luck protection raises the chance after every miss.",
+    "NEW: Loot Codex (Gates tab and Bag): where everything drops, the chances and your collection.",
+    "Uniques drop at your level, are auto-locked, and can be reforged to your current level for Gold + Mana Stones.",
+    "Unique effects count in Power, so Equip Best keeps them."
   ]
 }

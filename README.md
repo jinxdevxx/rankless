@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.24.0 – Unique & Godforged
+- Rarities 5 Unique (×3.4, 4 affixes) and 6 Godforged (×4.3, 5 affixes), weight 0 in normal rolls. `UNIQUES`: 9 tier-5 + 5 tier-6 named items with passive stats and an effect (`BT.ufx` hooks in dealDamage / gainEnergy / killUnit / stepBattle).
+- Drops via `rollUnique(src)`: gate boss B+ 1.5 %, tower boss 1 %, Master Gate boss 4 %, master win 2.5 %, master wall 12 %, rift elite 1 %, rift lord 6 %, paragon 5 %; Godforged (after Master 99) paragon 2 %, rift lord depth 30+ 2.5 %, Master Gate 1 %. Pity +0.2 % / +0.1 % per miss. Unfound items twice as likely.
+- Unique drop ilvl ≥ hero level, auto-locked; Reforge to current level (Gold + Stones). Effect value in Power (+8 % / +15 %), so Equip Best keeps uniques.
+- Measured on Master 50 snapshot vs a master 8 levels higher (8 fights): Mythic weapon 0/8, Raijin 1/8, Kusanagi 4/8; defensive uniques (Phoenix, Susanoo) win; all uniques ≥ Mythic power after the tune (Raijin 160 % / Kusanagi 350 % armor-piercing procs, Bloodmoon 3 % heal, Susanoo revive 50 %).
+- Loot Codex modal (Gates tab, Bag): sources, live chances incl. pity, collection.
+
 ### v0.23.3 – Kami
 - Title Master 99: RANKLESS → KAMI 神; aura "Kami Runes".
 - Talent analysis: max spendable was 126, a Master 99 player has ~184 points (≈58 unusable, colleague reported 60). New branch `ascend` (rank M): 4 nodes ×20, keystones `wrath` (+30 % vs bosses/hunters) and `kiflow` (+50 % Ki gain), `a_limit` (flat +0.5 % ATK & HP, max 999). Ranks above 10 weigh 0.6. `talent10` button.

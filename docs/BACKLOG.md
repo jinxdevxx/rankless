@@ -7,8 +7,8 @@ Open requests from the player come first. Every development round starts here.
 - [x] Tooltip on equipped gear, no stuck tooltips (v0.23.3)
 - [x] 60 unusable talent points at Master 99 → Ascension branch (v0.23.3)
 - [x] Master League ~3 h to M99 at x3, no wall (v0.23.3)
-- [ ] Unique items (rarer, stronger, special effects) + review all drop chances
-- [ ] Endgame item tier beyond Unique (own name) + drop info button at gates (where to farm what)
+- [x] Unique items + Godforged endgame tier + Loot Codex with drop info (v0.24.0)
+- [ ] RECURRING: unique balance (worth it, never OP) with uniq_pow test; drop counts per run
 - [ ] RECURRING: check GitHub Pages deploy after every push (gh run list)
 - [x] Relic slots at Master 99: message wrongly asked for Master 30/60/90 (v0.23.2)
 - [x] Show total play time in the save + milestone times (v0.23.1)

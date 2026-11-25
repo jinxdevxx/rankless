@@ -243,7 +243,7 @@ function sheetGates(){
   const tmap = floors.map(f => { const md = towerMod(f), rw = towerReward(f), th = THEMES[towerTheme(f)], open = f <= tn;
     const tag = f % 10 === 0 ? '<em class="tg boss">💀 BOSS</em>' : f % 5 === 0 ? '<em class="tg elite">⭐ ELITE</em>' : md ? `<em class="tg">${md.icon} ${md.name}</em>` : '';
     return `<button class="tfl ${f === tn ? 'next' : ''} ${f <= tb ? 'done' : ''} ${open ? '' : 'locked'}" style="--c:${th.accent}" data-a="startTower" data-id="${f}" ${open ? '' : 'disabled'}><b>${f}</b><span class="tp">${th.name}${f <= tb ? ' · ✔' : ''}</span>${tag}<span class="trw">${ICON.gold}${fmt(rw.gold*(md ? md.gold : 1))} · XP ${fmt(rw.xp*(md ? md.xp : 1))}</span></button>`; }).join('');
-  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Every floor pays Gold + XP. New place every 5 floors, ⭐ elite + chest every 5th, 💀 boss every 10th. Every 10 floors: <strong style="color:var(--gold)">+1 talent point</strong> (next in ${nextPts}).</span>
+  const towerCard = `<div class="codexbar"><button class="btn small" data-a="codex">📖 Loot Codex · where Uniques drop</button></div><div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Every floor pays Gold + XP. New place every 5 floors, ⭐ elite + chest every 5th, 💀 boss every 10th. Every 10 floors: <strong style="color:var(--gold)">+1 talent point</strong> (next in ${nextPts}).</span>
       <div class="tstat"><span>Best floor <b>${tb}</b></span></div>
       <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><b class="cl">Fight ›</b></button>
       ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb} (your best)</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}
@@ -399,6 +399,21 @@ function sheetSkills(){
     + mrow(3, a.ult.name, 'ULT', a.ult.desc);
   return `<div class="box sys"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
+/* Loot Codex: where things drop, chances, unique collection */
+function showCodex(){
+  const pct = v => (v*100 >= 1 ? (v*100).toFixed(1) : (v*100).toFixed(2)) + '%';
+  const rows = Object.keys(UNIQUE_SRC).map(k => `<div class="cxr"><span>${UNIQUE_SRC[k]}</span><b>${pct(uniqueChance(k, 5))}</b><b class="g">${godforgedOpen() && GODFORGED_DROP[k] ? pct(uniqueChance(k, 6)) + (k === 'rift' ? ' (depth 30+)' : '') : '–'}</b></div>`).join('');
+  const card = id => { const u = UNIQUES[id], n = (S.codex||{})[id] || 0, show = n || u.tier === 5 || godforgedOpen(), col = RARITY[u.tier].color;
+    return `<div class="cxi ${n ? 'got' : ''}" style="--r:${col}"><i>${ICON[u.slot]}</i><div><b>${show ? u.name : '???'}</b><small>${show ? u.desc : 'A Godforged relic. Reach Master 99 to learn more.'}</small></div><em>${n ? '✔ ' + n + '×' : '🔒'}</em></div>`; };
+  const ids = t => Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === t);
+  const found = Object.keys(S.codex||{}).length;
+  showModal(`<div class="codex"><div class="row"><h3>📖 Loot Codex</h3><span class="sp"></span><button class="btn" data-a="closeModal">✕</button></div>
+    <p class="muted">Normal drops: Common → Rare → Epic → Legendary → Mythic. Bosses, elites and higher floors push the odds up. Epic+ gate drops can be <b>set items</b> of that gate.</p>
+    <div class="cxh"><span>Where <b style="color:${RARITY[5].color}">Unique</b> / <b style="color:${RARITY[6].color}">Godforged</b> items drop</span><b>Unique</b><b class="g">Godforged</b></div>${rows}
+    <p class="muted">Bad-luck protection: every boss without a Unique adds +${(PITY_STEP.u*100).toFixed(1)}% (now +${((S.pity && S.pity.u)||0)*PITY_STEP.u*100 | 0}%). Godforged drops only after <b>Master 99</b>.</p>
+    <div class="bt">UNIQUES · ${ids(5).filter(id => S.codex && S.codex[id]).length}/${ids(5).length} found</div><div class="cxl">${ids(5).map(card).join('')}</div>
+    <div class="bt">GODFORGED 神器 · ${ids(6).filter(id => S.codex && S.codex[id]).length}/${ids(6).length} found</div><div class="cxl">${ids(6).map(card).join('')}</div></div>`);
+}
 function journeyBox(){
   const j = S.journey || {}, rows = Object.entries(j).sort((a, b) => a[1] - b[1]);
   return `<div class="box"><div class="bt">YOUR JOURNEY <span class="pts on">⏱ ${fmtTime(S.playtime)}</span></div>
@@ -482,7 +497,7 @@ function sheetBag(){
   const as = S.settings.autoSalvage;
   return `<div class="bagbar"><div class="chips">${filters}</div></div>
     <div class="bagbar"><label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoEquip" ${S.settings.autoEquip?'checked':''}><span></span>Auto-equip better gear</label></div>
-    <div class="bagbar"><span class="muted">${S.inv.length} / ${MAX_INV}</span>
+    <div class="bagbar"><span class="muted">${S.inv.length} / ${MAX_INV}</span><button class="btn small" data-a="codex">📖 Codex</button>
       <span class="sp"></span>
       <label class="muted">Auto-salvage <select data-a="autoSalvage">${['Off','Common','Rare & below','Epic & below'].map((n,i)=>`<option value="${i-1}" ${as===i-1?'selected':''}>${n}</option>`).join('')}</select></label>
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
@@ -551,6 +566,7 @@ function itemDetail(id){
            <button class="btn danger" data-a="salvage" data-id="${it.id}" ${it.locked?'disabled':''}>Salvage: +${sv.stones} ${ICON.stone} +${fmt(sv.gold)} ${ICON.gold}</button>`}
         <span class="sp"></span><button class="btn" data-a="closeModal">✕</button></div>
       ${eq ? '' : `<div class="upot ${bp === 0 ? 'good' : bp > 0 ? 'mid' : 'bad'}">${bp === 0 ? '✔ Better than what you wear right now. Equip it!' : bp > 0 ? `⬆ Enhance this to <b>+${bp}</b> and it beats your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}.` : `✖ Even at +${MAX_PLUS} this stays weaker than your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}. Salvage it.`}</div>`}
+      ${it.uniq ? `<div class="ufx" style="--r:${r.color}"><b>${it.rar === 6 ? '神 GODFORGED EFFECT' : '★ UNIQUE EFFECT'}</b>${UNIQUES[it.uniq].desc}<small>Passive: ${Object.entries(UNIQUES[it.uniq].stats).map(([k, v]) => statLine(k, v)).join(', ')}</small>${it.ilvl < S.level ? (() => { const c = reforgeCost(it), ok = S.gold >= c.gold && S.stones >= c.stones; return `${costLine('gold', 'Gold', S.gold, c.gold)}${costLine('stone', 'Stones', S.stones, c.stones)}<button class="btn primary" data-a="reforge" data-id="${it.id}" ${ok ? '' : 'disabled'}>⟳ Reforge to iLvl ${S.level} (keeps +${it.plus})</button>`; })() : '<small>Item level matches you. Reforge becomes available when you outlevel it.</small>'}</div>` : ''}
       <div class="icols"><div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
         ${it.affixes.map(a => `<div class="afx">${statLine(a.k,a.v)}</div>`).join('')}</div>
       ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
@@ -703,6 +719,7 @@ function showResult(r){
     ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'Master 99! The Paragon ladder, the Abyss Rift and auras wait for you.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
     ${r.paragonUp ? `<div class="rankup" style="border-color:#c77dff"><small>PARAGON UP</small><b>✦ Paragon ${r.paragonUp}</b><span>+1% ATK and +1% HP forever (total +${r.paragonUp}%).</span></div>` : ''}
     ${r.riftMilestone ? `<div class="rankup chest"><small>RIFT MILESTONE</small><b>Depth ${r.riftMilestone}!</b><span>+${RIFT_MILESTONES[r.riftMilestone].diamonds} Rift Diamonds${Object.values(AURAS).some(a => a.how === 'Reach Rift depth ' + r.riftMilestone) ? ' · NEW AURA unlocked (Champion tab)' : ''}</span></div>` : ''}
+    ${r.unique ? `<div class="rankup uniqdrop ${r.unique.rar === 6 ? 'god' : ''}"><small>${r.unique.rar === 6 ? 'GODFORGED 神器 DROP!' : 'UNIQUE DROP!'}</small><b>${esc(r.unique.name)}</b><span>${UNIQUES[r.unique.uniq].desc}</span><button class="btn small primary" data-a="item" data-id="${r.unique.id}">Look at it</button></div>` : ''}
     ${r.chest ? `<div class="rankup chest"><small>TOWER CHEST · FLOOR ${BT.floor}</small><b>🎁 Bonus loot!</b><span>+${r.stones} Mana Stones · +${r.diamonds} Rift Diamond${r.diamonds > 1 ? 's' : ''}</span></div>` : ''}
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${rankLabel(RANKS[RANKS.indexOf(r.rankUp)-1])} → ${r.rankUp === 'M' ? 'MASTER' : rankLabel(r.rankUp)}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
@@ -875,6 +892,8 @@ function act(a, el){
     case 'startMaster': UI.sheet = null; startMaster(); break;
     case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'setAura': { if(AURAS[id] && AURAS[id].ok()){ S.cosmetic = S.cosmetic || {}; S.cosmetic.aura = id; save(); renderSheet(); } break; }
+    case 'codex': showCodex(); break;
+    case 'reforge': { const f = findItem(id); if(!f || !f.it.uniq || f.it.ilvl >= S.level) break; const c = reforgeCost(f.it); if(S.gold < c.gold || S.stones < c.stones) break; S.gold -= c.gold; S.stones -= c.stones; f.it.ilvl = S.level; UI.shownPower = undefined; SFX.unlockFx(); toast('REFORGED', `${f.it.name} is now item level ${S.level}.`, 'gold'); save(); itemDetail(f.it.id); renderHome(); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
     case 'riftStart': { cancelAuto(); UI.sheet = null; closeSheet(); const run = newRiftRun(id === 'deep'); save(); startRift(run.depth + 1); break; }
     case 'riftContinue': { cancelAuto(); UI.sheet = null; closeSheet(); if(S.rift.run){ S.rift.run.choices = null; startRift(S.rift.run.depth + 1); } break; }
@@ -947,6 +966,7 @@ function itemTipHtml(it, eq){
   const r = RARITY[it.rar], b = itemBase(it), diff = eq ? 0 : powerGain(it), bp = eq ? 0 : beatsAtPlus(it);
   return `<div class="itip" style="--r:${r.color}"><b>${esc(it.name)}${it.plus ? ` +${it.plus}` : ''}</b>
     <small>${r.name} ${SLOT_INFO[it.slot].name} · iLvl ${it.ilvl}${eq ? ' · EQUIPPED' : ''}</small>
+    ${it.uniq ? `<div class="ufxs">${it.rar === 6 ? '神' : '★'} ${UNIQUES[it.uniq].desc}</div>` : ''}
     ${eq ? '' : `<div class="${diff > 0 ? 'up' : 'down'}">${diff > 0 ? '▲' : '▼'} ${fmt(Math.abs(diff))} Power</div>`}
     <div class="itl">${Object.entries(b).map(([k, v]) => `<div>${statLine(k, v)}</div>`).join('')}${it.affixes.map(a => `<div class="afx">${statLine(a.k, a.v)}</div>`).join('')}</div>
     ${it.set && SETS[it.set] ? `<div style="color:${SETS[it.set].color}">Set: ${SETS[it.set].name}</div>` : ''}
