@@ -1,13 +1,9 @@
 {
-  "version": "0.27.1",
+  "version": "0.27.2",
   "date": "2026-11-25",
-  "title": "Into Yomi",
+  "title": "Bones and Reapers",
   "notes": [
-    "Takamagahara (Region 3) is on hold and shows COMING SOON again. Focus is fully on Yomi.",
-    "Yomi Arena now follows the Circles: every circle boss you defeat opens the next fighter (like the rank arenas in Neo-Tokyo). Fighters are a bit stronger than their circle, a real exam.",
-    "Yomi has its own creatures: Gaki, Yurei, Kasha, Hell Oni, Gashadokuro, Tsuchigumo, Shinigami ... and a named lord in every circle, up to Izanami, Queen of the Dead.",
-    "Every Yomi Arena fighter has their own line.",
-    "New look for brutes, oni and wardens: a hunched bone giant, a horned oni with a kanabo club, an armored samurai lord with a naginata.",
-    "Daily Gates reminder only shows in Neo-Tokyo."
+    "NEW: two Yomi-only gear sets. Hollow Bone (Circles 1-4, Yomi Arena 1-5): +15% HP, -4% damage taken / +20% ATK, +45% Crit DMG. Shinigami (Circles 5-9, Yomi Arena 6-10): +16% ATK, +5% Crit Rate / +30% Skill DMG, +50% Crit DMG, +40% Spirit DMG.",
+    "Yomi drops are never Common; about a third of Yomi drops are set pieces."
   ]
 }

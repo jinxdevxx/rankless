@@ -873,7 +873,7 @@ function finishBattle(win){
       if(r.first) n += 1;
       if((isBoss || isElite) && BT.keys.treasure) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400 + (g.id === 'M' ? 1.2 : 0);   // Master Gate: endgame loot, better rarity
-      for(let i=0;i<n;i++){ const it = randomItem((g.id === 'M' || g.region ? Math.max(BT.L, S.level - 1) : BT.L) + (isBoss ? 2 : 0), bonus + (g.region ? .4 : 0), g.region ? 'M' : g.id); r.items.push(it); }   // Master Gate loot: your level, so it upgrades lagging gear
+      for(let i=0;i<n;i++){ const it = randomItem((g.id === 'M' || g.region ? Math.max(BT.L, S.level - 1) : BT.L) + (isBoss ? 2 : 0), bonus + (g.region ? .4 : 0), g.region === 2 ? (g.circle <= 4 ? 'YB' : 'YR') : g.region ? 'M' : g.id); r.items.push(it); }   // Master Gate loot: your level, so it upgrades lagging gear
       r.stones = randi(2,4) * (1 + (g.region ? 10 : GATES.indexOf(g))*1.5) * (g.id === 'M' ? 2 : 1) + (isBoss ? 15 : isElite ? 5 : 0);   // Master Gate: double stones
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
@@ -921,7 +921,7 @@ function finishBattle(win){
       if(BT.worldArena){ const wr = BT.worldArena, i = BT.idx, RG = REG[wr]; r.first = i >= worldArenaDone(wr);
         if(r.first){ S.warena = S.warena || {}; S.warena[wr] = i + 1; const se = i === 9 ? 10 : 3, st = regState(wr); st[RG.cur] = (st[RG.cur]||0) + se; r.souls = se; r.soulReg = wr; r.diamonds += i === 9 ? 10 : 2; if(i === 9) journeyMark(RG.label + ' Arena Champion'); }
         r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 6)); r.xp = Math.round(xpFor(BT.L)*(r.first ? 1.2 : .3)); r.stones = r.first ? 200 : 30;
-        r.items.push(randomItem(Math.max(BT.L, S.level), r.first ? 1.6 : .9, 'M'));
+        r.items.push(randomItem(Math.max(BT.L, S.level), r.first ? 1.6 : .9, wr === 2 ? (i <= 4 ? 'YB' : 'YR') : 'M'));
       } else if(BT.kami !== undefined){ const i = BT.kami; r.first = i >= kamiCleared(); if(r.first){ S.kami.cleared = i + 1; r.kamiClear = i + 1; r.diamonds += 15 + 5*i;
           const ids = Object.keys(UNIQUES).filter(id => UNIQUES[id].tier === 6), un = ids.filter(id => !(S.codex||{})[id]); if(un.length){ const id = pick(un); S.codex[id] = 1; const it = makeUnique(id, BT.L + 3); r.items.push(it); r.unique = it; } else r.diamonds += 30; }
         r.gold = Math.round(goldFor(BT.L)*(r.first ? 40 : 10)); r.xp = Math.round(xpFor(BT.L)*(r.first ? 4 : 1)); r.stones = r.first ? 400 : 40;

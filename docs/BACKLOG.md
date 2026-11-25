@@ -11,6 +11,7 @@ Open requests from the player come first. Every development round starts here.
 - [x] Region trees too small (maxed fast) → +4 nodes, keystones, uncapped Limit Break (v0.27.0)
 - [ ] Re-measure midgame after 80% hit cap (flame/storm/void)
 - [x] Bot plays the Yomi Arena (v0.27.1)
+- [x] Yomi-only gear sets Hollow Bone + Shinigami (v0.27.2)
 - [ ] Calibrate Yomi circles + Yomi Arena from bot data
 - [ ] ON HOLD (wait for the player's go): Takamagahara (Region 3)
 - [ ] Yomi/Takama balance: measure Yomi circles + world arenas with the bot, calibrate recommended power (regionEqParagon)

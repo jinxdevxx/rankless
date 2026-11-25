@@ -311,7 +311,11 @@ const SETS = {
   tempest:{name:'Tempest',     gate:'A', color:'#4cc9ff', b2:{spd:10},  b4:{crit:8, skill:20},     d2:'+10% Attack Speed', d4:'+8% Crit Rate, +20% Skill DMG'},
   solar:  {name:'Solar Crown', gate:'S', color:'#ffd27a', b2:{hpP:15},  b4:{atkP:18, gold:20},     d2:'+15% HP', d4:'+18% ATK, +20% Gold Find'},
   eclipse:{name:'Eclipse',     gate:'SS',color:'#ff3d6a', b2:{atkP:12, hpP:12}, b4:{critDmg:40, lifesteal:6}, d2:'+12% ATK, +12% HP', d4:'+40% Crit DMG, +6% Lifesteal'},
+  // v0.27.1: Yomi-only sets (drop only in Yomi circles and the Yomi Arena)
+  bone:   {name:'Hollow Bone', gate:'Y', color:'#e8dfcc', b2:{hpP:15, dr:4}, b4:{atkP:20, critDmg:45}, d2:'+15% HP, -4% damage taken', d4:'+20% ATK, +45% Crit DMG', where:'Yomi Circles 1-4, Yomi Arena 1-5'},
+  reaper: {name:'Shinigami',   gate:'Y', color:'#ff4d6d', b2:{atkP:16, crit:5}, b4:{skill:30, critDmg:50, petP:40}, d2:'+16% ATK, +5% Crit Rate', d4:'+30% Skill DMG, +50% Crit DMG, +40% Spirit DMG', where:'Yomi Circles 5-9, Yomi Arena 6-10'},
 };
+const YOMI_SET_SRC = {YB:'bone', YR:'reaper'};
 const SET_OF_GATE = {E:'tide', D:'rail', C:'frost', B:'abyss', A:'tempest', S:'solar', SS:'eclipse'};
 
 /* ---------- daily gates ---------- */
@@ -690,7 +694,7 @@ const TENGU_TREE = [
 const REG = {
   2: {key:'yomi',   gates:YOMI_GATES,   tree:YOMI_TREE,  cur:'souls',    curName:'Soul Ember',     curIcon:'🔥', color:'#ff4d6d', dark:'#3a0a16', title:'YOMI', label:'Yomi', towerName:'Yomi Tower',   towerBase:128,
       palette:{body:'#2a0b14', rim:'#ff4d6d', eye:'#ffe0e6', fx:'eclipse'}, prefix:'Yomi ', usrc:'yomi', treeName:'Shinigami Arts', branch:'Shinigami', icon:'⛩',
-      intro:'Nine Circles, 10 floors each. Loot drops at your level with high rarity. New floors give <b>Soul Embers</b> (bosses 5) for the <b>Shinigami Arts</b> tree in the Talents tab. Circle bosses can drop Uniques and Godforged items.'},
+      intro:'Nine Circles, 10 floors each. Loot drops at your level with high rarity. New floors give <b>Soul Embers</b> (bosses 5) for the <b>Shinigami Arts</b> tree in the Talents tab. Only here: the <b style="color:#e8dfcc">Hollow Bone</b> set (Circles 1-4) and the <b style="color:#ff4d6d">Shinigami</b> set (Circles 5-9). Circle bosses can drop Uniques and Godforged items.'},
   3: {key:'takama', gates:TAKAMA_GATES, tree:TENGU_TREE, cur:'feathers', curName:'Divine Feather', curIcon:'🪶', color:'#ffd27a', dark:'#3a3016', title:'TAKAMAGAHARA', label:'Takamagahara', towerName:'Heaven Tower', towerBase:205,
       palette:{body:'#e8e0cc', rim:'#ffd27a', eye:'#4cc9ff', fx:'storm'}, prefix:'Heavenly ', usrc:'takama', treeName:'Tengu Arts', branch:'Tengu', icon:'☁',
       intro:'Seven Celestial Palaces, 10 floors each. Loot at your level with even higher rarity. New floors give <b>Divine Feathers</b> (bosses 5) for the <b>Tengu Arts</b> tree in the Talents tab, with the new skill <b>Heaven\'s Gale</b>.'},

@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.27.2 – Bones and Reapers
+- Yomi-only sets `bone` (Hollow Bone) and `reaper` (Shinigami) in `SETS`; `YOMI_SET_SRC` {YB, YR}; `randomItem` with YB/YR: no Commons, 50 % Rare floor, 60 % set chance for Rare+. Yomi circles 1–4 / arena 1–5 drop Hollow Bone, circles 5–9 / arena 6–10 drop Shinigami. Shinigami 4/4 ≈ +24 % power over Eclipse 4/4 before the final trim.
+
 ### v0.27.1 – Into Yomi
 - Region 3 on hold: `REGIONS[2].soon`, `regionOpen` returns false for soon regions, saves in world 3 go back to world 1, Tengu tree stats/keystones and the tree box are inactive.
 - World arena gating: `worldArenaReady(r, i)` needs the boss of circle i (opponent 1 open). `WORLD_ARENA_P[2]` = 31 + 6i (slightly above the matching circle's last floor). `WORLD_ARENA_LINES` per fighter.

@@ -107,6 +107,7 @@ function makeItem(slot, ilvl, rar, set){
 const COMMON_UPGRADE = {E:0, D:.6, C:.85, B:.95, A:1, S:1, SS:1, M:1};
 function randomItem(ilvl, bonus=0, gateId){
   let rar = rollRarity(bonus);
+  if(YOMI_SET_SRC[gateId]){ if(rar < 2 && Math.random() < .5) rar = 2; if(rar === 0) rar = 1; return makeItem(pick(SLOTS), ilvl, rar, rar >= 2 && Math.random() < .6 ? YOMI_SET_SRC[gateId] : undefined); }   // Yomi: its own sets
   if(gateId === 'M'){ if(rar < 2 && Math.random() < .5) rar = 2; if(rar === 0) rar = 1; gateId = pick(Object.keys(SET_OF_GATE)); }   // Master Gate / Rift: no junk, any set can drop
   if(rar === 0 && Math.random() < (COMMON_UPGRADE[gateId] || 0)) rar = 1;
   const set = gateId && SET_OF_GATE[gateId] && (rar >= 3 || (rar === 2 && Math.random() < .5)) ? SET_OF_GATE[gateId] : undefined;
