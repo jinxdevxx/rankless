@@ -5,10 +5,10 @@ const { chromium } = require('playwright');
   const b = await chromium.launch(); const p = await b.newPage(); const errs=[]; p.on('pageerror', e=>errs.push(e.message));
   await p.goto('http://localhost:8790/'); await p.waitForFunction(() => typeof startGate === 'function');
   await p.click('[data-a="slotNew"][data-id="1"]'); await p.fill('#cName','vanta'); await p.click('[data-a="create"]'); await p.waitForTimeout(400);
-  const r = await p.evaluate((cap)=>{ if(cap) window.LIFESTEAL_CAP_TEST = cap; closeModal(); S.intro=true; S.flags.tipStrike2=true; S.flags.tutParry=true; S.level=42; S.rank='A';
+  const r = await p.evaluate((cap)=>{ if(cap) window.LIFESTEAL_CAP_TEST = cap; closeModal(); S.intro=true; S.flags.tipStrike2=true; S.flags.tutParry=true; S.level=52; S.rank='A';
     const out = {};
     for(const build of ['normal','lifesteal']){
-      for(const sl of SLOTS){ const it = makeItem(sl, 44, 3); it.plus = 8; if(build==='lifesteal'){ it.affixes = it.affixes.filter(a=>a.k!=='lifesteal').slice(0,1).concat([{k:'lifesteal', v:5}]); } S.eq[sl] = it; }
+      for(const sl of SLOTS){ const it = makeItem(sl, S.level + 2, 3); it.plus = 8; if(build==='lifesteal'){ it.affixes = it.affixes.filter(a=>a.k!=='lifesteal').slice(0,1).concat([{k:'lifesteal', v:5}]); } S.eq[sl] = it; }
       S.pets = {owned:{moth:15, ember:12}, active:['moth','ember'], slots:2};
       S.talents = build==='lifesteal' ? {tough:10, iron:5, leech:10, giant:3} : {blade:10, eye:5, brutal:5};
       const hs = heroStats();

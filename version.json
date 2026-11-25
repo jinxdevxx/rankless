@@ -1,11 +1,10 @@
 {
-  "version": "0.21.2",
+  "version": "0.21.3",
   "date": "2026-11-25",
-  "title": "Pick Your Floor",
+  "title": "No More Suns",
   "notes": [
-    "Training Tower: new big CHOOSE YOUR FLOOR box. Press -10 / -1 / +1 / +10 and FIGHT FLOOR X. Every floor in the list is clickable too.",
-    "Removed the sun halo on S-Rank monsters.",
-    "Rank Exam now also needs the gate boss (Floor 10) of your current rank. The Arena shows what is missing.",
-    "Master League: smaller XP and Gold per win, so your level no longer explodes and the climb to Lv 99 lasts longer."
+    "The sun halo animation is completely gone from the game.",
+    "Master League fights last longer and are fairer: Masters have more HP but hit less hard, no more 5-second deaths.",
+    "Training Tower: big CHOOSE YOUR FLOOR box (-10 / -1 / +1 / +10)."
   ]
 }

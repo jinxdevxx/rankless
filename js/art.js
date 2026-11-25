@@ -516,7 +516,7 @@ function drawMonster(c, style, x, y, h, o){
   c.restore();
 }
 
-/* every gate leaves its mark on its monsters: water, sparks, ice, rift shards, lightning, a sun halo, black flames */
+/* every gate leaves its mark on its monsters: water, sparks, ice, rift shards, lightning, black flames */
 function gateFx(c, fx, t, R, E, style, seed){
   const tall = style === 'brute' || style === 'warden' || style === 'oni' || style === 'golem', top = tall ? -125 : style === 'ghost' ? -110 : style === 'beast' ? -62 : style === 'blob' ? -70 : -88;
   c.save(); c._ol = false; c.lineCap = 'round';
@@ -533,9 +533,6 @@ function gateFx(c, fx, t, R, E, style, seed){
   else if(fx === 'storm'){ c.strokeStyle = '#e8f8ff'; c.shadowColor = '#4cc9ff'; c.shadowBlur = 12; c.lineWidth = 1.6;
     const flick = Math.floor(t*12 + seed*7); if(flick % 3 !== 0){ for(let i = 0; i < 2; i++){ const a = ((flick*37 + i*91) % 628)/100, r0 = 14, r1 = 34; let x = Math.cos(a)*r0, y = top*.5 + Math.sin(a)*r0*.6;
       c.globalAlpha = .9; c.beginPath(); c.moveTo(x, y); for(let k = 1; k <= 4; k++){ const rr = r0 + (r1 - r0)*k/4; x = Math.cos(a + (k%2 ? .25 : -.25))*rr; y = top*.5 + Math.sin(a)*rr*.6 + (k%2 ? 4 : -4); c.lineTo(x, y); } c.stroke(); } } }
-  else if(fx === 'sun'){ c.strokeStyle = '#ffd27a'; c.shadowColor = '#ffb347'; c.shadowBlur = 16; c.lineWidth = 2.2; c.globalAlpha = .8;
-    const hy = top - 8; c.beginPath(); c.arc(8, hy, 15, 0, 7); c.stroke();
-    c.save(); c.translate(8, hy); c.rotate(t*.8); for(let i = 0; i < 8; i++){ c.rotate(Math.PI/4); c.beginPath(); c.moveTo(18, 0); c.lineTo(24 + (i%2)*4, 0); c.stroke(); } c.restore(); }
   else if(fx === 'eclipse'){ for(let i = 0; i < 7; i++){ const ph = (t*1.1 + i*.143 + seed) % 1, x = -22 + i*7 + Math.sin(t*3 + i)*3, y = -10 - ph*(-top*.9);
       c.globalAlpha = .55*(1 - ph); c.fillStyle = i % 2 ? '#0a0610' : '#ff3d6a'; c.shadowColor = '#ff3d6a'; c.shadowBlur = 10; c.beginPath(); c.ellipse(x, y, 5*(1 - ph*.6), 9*(1 - ph*.5), 0, 0, 7); c.fill(); } }
   c.restore();

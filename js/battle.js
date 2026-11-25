@@ -61,7 +61,7 @@ function enemyUnit(type, L, slot){
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
-    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? 1.4 : 5.5)*boost, am = (h.master ? 3.2 : 1.6)*boost;   // masters: less HP, more danger
+    : (EXAMS[S.rank] === h ? 1.1 : h.rival ? 1.05 : 1) * (1 + RANKS.indexOf(S.rank)*.08), hm = (h.master ? 2.2 : 5.5)*boost, am = (h.master ? 2.2 : 1.6)*boost;   // masters: v0.21.3 longer fights, less burst (was 1.4 HP / 3.2 ATK = 5 s deaths)
   return {side:'e', kind:'hunter', name:h.name, slot:0, level:h.lv, size:UNIT_SIZE.human, hunter:h,
     art:{style:'human', body:'#0d0b12', rim:a.color, eye:a.color2, blade:RARITY[h.gear].color, hair:h.hair, aura:true},
     maxHp:st.hp*hm, hp:st.hp*hm, atk:st.atk*am, def:st.def, crit:st.crit, critDmg:st.critDmg, interval:st.interval,

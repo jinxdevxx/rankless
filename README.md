@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.21.3 – No More Suns
+- Sun halo FX code deleted entirely (still visible for the player in v0.21.2).
+- Master foes: HP ×1.4 → ×2.2, ATK ×3.2 → ×2.2. Measured before: arena/master fights ended in ~5 s deaths or ~7 s wins (coin flip).
+- tools/survival_test.js: hero level 42 → 52 (realistic for A-Rank since level-scaled armor). Result: AUTO 4/6 wins, min HP 11 %; spam 6/6; lifesteal tank weaker. No immortal build.
+
 ### v0.21.2 – Pick Your Floor
 - Training Tower: big "Choose your floor" box (-10/-1/+1/+10 + Fight Floor X), floor list scrollable and every floor clickable.
 - Sun halo FX on S-gate monsters removed (player feedback: goofy).
