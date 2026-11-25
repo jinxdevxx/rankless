@@ -517,6 +517,14 @@ function drawMonster(c, style, x, y, h, o){
     poly(c,[[26,-56],[30,-70],[35,-56]]); poly(c,[[32,-56],[38,-68],[40,-54]]);
     poly(c,[[-30,-46],[-46,-60+wk*4],[-58,-62+wk*6],[-44,-52],[-30,-38]]);
     for(let i=0;i<5;i++) poly(c,[[-20+i*9,-52],[-16+i*9,-63-(i%2)*3],[-12+i*9,-52]]);
+    if(!o.flash){ c.save();   // v0.26.2: jaw with teeth, neck fur, claws, belly light
+      const jo = pose === 'lunge' ? 7 : 2 + Math.sin(t*2)*1;
+      c.fillStyle = mixHex(B, '#000000', .35); poly(c,[[34,-38],[56,-38 + jo*.4],[50,-33 + jo],[36,-34]]);
+      c.fillStyle = '#f4efe2'; for(let k2 = 0; k2 < 4; k2++){ const tx = 40 + k2*4; c.beginPath(); c.moveTo(tx,-38); c.lineTo(tx + 1.5,-35); c.lineTo(tx + 3,-38); c.fill(); c.beginPath(); c.moveTo(tx + 1,-34 + jo*.7); c.lineTo(tx + 2.5,-37 + jo*.4); c.lineTo(tx + 4,-34 + jo*.7); c.fill(); }
+      c.fillStyle = mixHex(B, R, .25); for(let k2 = 0; k2 < 4; k2++) poly(c,[[8 + k2*4,-56],[2 + k2*5,-66 - (k2 % 2)*4],[14 + k2*4,-54]]);
+      c.strokeStyle = '#efe6d6'; c.lineWidth = 1.2; for(const lx of [-22,-14,18,26]){ for(let k2 = 0; k2 < 2; k2++){ c.beginPath(); c.moveTo(lx + 2 + k2*2, -1); c.lineTo(lx + 5 + k2*2, 1); c.stroke(); } }
+      c.globalAlpha = .35; c.strokeStyle = mixHex(B, '#ffffff', .5); c.lineWidth = 2; c.beginPath(); c.ellipse(0,-40,30,10,-.05,Math.PI*.2,Math.PI*.8); c.stroke();
+      c.restore(); }
     if(pose === 'lunge'){ c.save(); c.fillStyle = R; poly(c,[[42,-42],[60,-38],[42,-38]]); c.restore(); }
     eyes([[40,-50]], 4);
   } else if(style === 'blob'){
@@ -557,6 +565,13 @@ function drawMonster(c, style, x, y, h, o){
     c.lineTo(-26,-12); c.quadraticCurveTo(-26,-80,0,-104); c.fill(); if(c._ol) c.stroke();
     limb(c,14,-70,30 + (pose==='cast'?10:0), pose==='cast'?-92:-52,3,2);
     c.save(); c.shadowBlur = 0; c.fillStyle = '#000'; c.beginPath(); c.ellipse(9,-82,9,12,0,0,7); c.fill(); if(c._ol) c.stroke(); c.restore();
+    if(!o.flash){ c.save();   // v0.26.2: pale mask in the hood, second torn sleeve with bone fingers, hem fading into mist
+      c.fillStyle = 'rgba(236,228,214,.85)'; c.beginPath(); c.moveTo(3,-86); c.quadraticCurveTo(9,-95,15,-86); c.lineTo(14,-74); c.quadraticCurveTo(9,-70,4,-74); c.closePath(); c.fill();
+      c.fillStyle = '#120a14'; c.beginPath(); c.ellipse(6.5,-84,1.8,2.4,0,0,7); c.fill(); c.beginPath(); c.ellipse(11.5,-84,1.8,2.4,0,0,7); c.fill(); c.fillRect(6,-78,6,1.2);
+      c.fillStyle = mixHex(B, '#000000', .3); c.beginPath(); c.moveTo(-6,-72); c.quadraticCurveTo(-22,-60,-26 + Math.sin(t*3)*2,-40); c.lineTo(-20,-44); c.lineTo(-18,-38); c.lineTo(-14,-46); c.quadraticCurveTo(-10,-60,-2,-66); c.closePath(); c.fill(); if(c._ol) c.stroke();
+      c.strokeStyle = '#e8e0d0'; c.lineWidth = 1.1; for(let k2 = 0; k2 < 3; k2++){ c.beginPath(); c.moveTo(-20 + k2*2,-40); c.lineTo(-22 + k2*2.5,-33); c.stroke(); }
+      const mg = c.createLinearGradient(0,-30,0,-6); mg.addColorStop(0, R + '00'); mg.addColorStop(1, R + '55'); c.fillStyle = mg; c.beginPath(); c.ellipse(0,-14,30,12,0,0,7); c.fill();
+      c.restore(); }
     eyes([[6,-84],[12,-84]], 3);
     if(pose === 'cast'){ c.save(); c.fillStyle = R; c.shadowColor = R; c.shadowBlur = 20; c.beginPath(); c.arc(34,-96,6,0,7); c.fill(); if(c._ol) c.stroke(); c.restore(); }
   } else if(style === 'golem'){   // v0.25.2: rock plates, boulder shoulders, glowing cracks

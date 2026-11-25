@@ -1050,3 +1050,13 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .grank.yomi{background:#3a0a16;color:#ff9fb0;border-color:#ff4d6d}
 .yomitree{border-color:#ff4d6d55} .yomitree.locked{opacity:.75}
 .skb.scythe{border-color:#ff4d6d!important}
+
+/* compact victory screen with many banners + buttons always visible (v0.26.2) */
+.res.many{padding:16px 18px}
+.res.many .rtitle{font-size:clamp(44px,8vw,72px)!important;line-height:1}
+.res.many .rankup{margin:6px auto;padding:7px 10px}
+.res.many .rankup b{font-size:30px!important}
+.res.many .rankup span{font-size:13px;margin:2px 0 4px!important}
+.res.many .rankup .btn{padding:4px 10px;font-size:12px}
+.res.many .dmgbd, .res.many .bdhint{display:none}
+.res .row.c{position:sticky;bottom:-26px;padding:10px 0 4px;background:linear-gradient(180deg,transparent,var(--glass2) 35%);z-index:2}

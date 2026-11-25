@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.26.2 – Clean Victory
+- Result screen: `.res.many` when ≥ 2 banners (smaller banners, damage breakdown hidden), no duplicate rarity text when a unique banner shows, sticky button row. Next-fight label shows Paragon after Master 99 and is hidden at the Paragon cap.
+- Mob art: beast (jaw + teeth, claws, neck fur, belly light), ghost (pale mask, second sleeve with bone fingers, mist hem).
+
 ### v0.26.1 – Clear Path
 - `YOMI_REQ` labels are functions with progress and location (player asked how to reach "Kami Trial 3").
 

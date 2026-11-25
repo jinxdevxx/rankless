@@ -726,7 +726,7 @@ function updateBattleHud(){
 
 /* the next arena opponent after a win: next hunter of your rank, then the rank exam */
 function nextArenaFight(){
-  if(S.rank === 'M') return ['M', -2, false];   // after 99 the Paragon ladder continues
+  if(S.rank === 'M') return (S.master.lv||0) >= MASTER_MAX && (S.paragon||0) >= paragonCap() ? null : ['M', -2, false];   // after 99 the Paragon ladder continues (until the cap)
   const rank = S.rank, list = HUNTERS[rank]; if(!list) return null;
   const done = S.arena[rank] || 0;
   if(done < list.length) return [rank, done, false];
@@ -766,12 +766,13 @@ function showResult(r){
     const left = dailyLeft(BT.kind);
     btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
   } else { const nx = win ? nextArenaFight() : null;
-    btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[0] === 'M' ? `MASTER LV ${(S.master.lv||0) + 1}` : nx[2] ? (EXAMS[nx[0]].next === 'M' ? 'MASTER TRIAL' : 'RANK EXAM') : 'NEXT FIGHT'} › <small>${esc(nx[0] === 'M' ? masterFoe((S.master.lv||0) + 1).name : nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
+    btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[0] === 'M' ? ((S.master.lv||0) >= MASTER_MAX ? `PARAGON ${(S.paragon||0) + 1}` : `MASTER LV ${(S.master.lv||0) + 1}`) : nx[2] ? (EXAMS[nx[0]].next === 'M' ? 'MASTER TRIAL' : 'RANK EXAM') : 'NEXT FIGHT'} › <small>${esc(nx[0] === 'M' ? ((S.master.lv||0) >= MASTER_MAX ? paragonFoe((S.paragon||0) + 1).name : masterFoe((S.master.lv||0) + 1).name) : nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
   const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack || S.settings.towerRepeat);
   const masterAuto = !!BT.master && win && (S.settings.autoSkill || S.settings.autoAttack || S.settings.farm !== 'off' || S.settings.towerRepeat);
   const autoOn = (towerAuto || masterAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
-  $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
+  const nBan = [r.masterUp, r.paragonUp, r.kamiClear, r.unique, r.relic, r.riftMilestone, r.souls, r.rankUp, r.chest, r.riftOver, r.kamiDet, (r.unlocked||[]).length].filter(Boolean).length;
+  $('#bResult').innerHTML = `<div class="res ${win?'w':'l'} ${nBan >= 2 ? 'many' : ''}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rift' ? `Abyss Rift · Depth ${BT.depth}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
@@ -791,7 +792,7 @@ function showResult(r){
     ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${dmgBreakdown()}
     ${r.salvaged ? `<div class="salvline">♻ ${r.salvaged} useless drop${r.salvaged > 1 ? 's' : ''} auto-salvaged: <b>+${fmt(r.salvStones)}</b> ${ICON.stone} <b>+${fmt(r.salvGold)}</b> ${ICON.gold}</div>` : ''}
-    ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
+    ${loot ? `<div class="loot">${loot}</div>${best >= 3 && !r.unique ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}
     ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'climb the <b>Training Tower</b> (Gates tab) for Gold + XP, spend talent points in <b>Stats</b>, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}

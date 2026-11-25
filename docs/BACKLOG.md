@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Victory screen too tall with many messages (v0.26.2)
 - [x] World map with 5 regions; Region 2 Yomi with circles, Soul Embers, Shinigami Arts tree + new skill; 3–5 coming soon (v0.26.0)
 - [ ] Regions 3–5 (Takamagahara, Ryugu-jo, Mugen): each with own content, currency, skill tree, new skill
 - [x] Master League rushed (0–2 losses) → retuned with lifesteal budget (v0.26.0)
@@ -17,7 +18,7 @@ Open requests from the player come first. Every development round starts here.
 - [x] +0% Lifesteal → 12 % cap shown on the node (v0.25.0)
 - [x] Hero / sword look redesigned (v0.25.0)
 - [x] Ultimate name pop-up removed (v0.25.0)
-- [~] Mob graphics in the new hero style: golem, blob, husk done (v0.25.2); next: beast, brute/oni, ghost, warden
+- [~] Mob graphics in the new hero style: golem, blob, husk (v0.25.2), beast, ghost (v0.26.2) done; next: brute/oni, warden
 - [x] Endless gold/stone sink: item Ascension (v0.25.3)
 - [ ] RECURRING: Paragon/Kami/Yomi measurement with `YOMI=1 PARAGON=1` bot
 - [x] Master Gate balance as farm source (v0.25.1)
