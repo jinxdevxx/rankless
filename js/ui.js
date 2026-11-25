@@ -140,7 +140,9 @@ function renderHome(){
     b.hidden = !ok; if(ok && id !== 'home') shown++;
     b.classList.toggle('on', UI.sheet === id || (!UI.sheet && id === 'home'));
     const d = b.querySelector('.dot'); if(d) d.outerHTML = '';
-    if((id === 'stats' && (pts || talentFree() > 0)) || (id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
+    const statN = id === 'stats' ? (S.points || 0) + Math.max(0, talentFree()) : 0;
+    if(statN) b.insertAdjacentHTML('beforeend', `<span class="dot num">${statN > 99 ? '99+' : statN}</span>`);
+    else if((id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
   });
   document.querySelector('.nav').hidden = shown === 0;
   animatePower(teamPower());
@@ -304,14 +306,18 @@ function sheetStats(){
     ${br.nodes.map(nd => { const r = (S.talents[nd.id]||0), open = talentOpenNode(bk, nd), can = open && free > 0 && r < nd.max;
       return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
         <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? (nd.key ? nd.desc : talentNext(nd, r)) : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
-  return `<div class="bigstats">${big}</div>
+  const tf = talentFree(), sp = S.points;
+  const pointsBar = (tf || sp) ? `<div class="ptsbar">
+      ${tf ? `<button class="ptsb tal" data-a="goTalents"><b>${tf}</b><span>TALENT POINT${tf === 1 ? '' : 'S'}<small>tap to spend ›</small></span></button>` : ''}
+      ${sp ? `<div class="ptsb st"><b>${sp}</b><span>STAT POINT${sp === 1 ? '' : 'S'}<small>${S.settings.autoStats ? 'auto-assign is on' : 'press + below'}</small></span></div>` : ''}</div>` : '';
+  return `${pointsBar}<div class="bigstats">${big}</div>
     <div class="cols">
       <div class="box sys"><div class="bt">STAT POINTS <span class="pts ${S.points?'on':''}">${S.points} free</span></div>
         <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}
         <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
-    <div class="box"><div class="bt">TALENT TREE <span class="pts ${free?'on':''}">${free} talent point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
+    <div class="box"><div class="bt" id="talentsHead">TALENTS <span class="pts big ${free?'on':''}">${free} Talent Point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
       <div class="ttree">${tree}</div></div>`;
 }
@@ -671,6 +677,7 @@ function act(a, el){
     case 'startArena': { const i = +el.dataset.i; startArena(S.rank, i, i < 0); break; }
     case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
       if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
+    case 'goTalents': { const el = document.getElementById('talentsHead'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); break; }
     case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
     case 'stat': if(S.points > 0){ S.stats[id]++; S.points--; save(); renderSheet(); renderHome(); } break;
     case 'stat5': if(S.points >= 5){ S.stats[id] += 5; S.points -= 5; save(); renderSheet(); renderHome(); } break;

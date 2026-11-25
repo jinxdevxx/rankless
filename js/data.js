@@ -156,7 +156,7 @@ const ENEMY_TYPES = {
   harpy:    {name:'Thunder Harpy',   style:'blob',     hp:.75, atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#0f1a26',rim:'#7fe0ff',eye:'#ffffff'}, comp:{hp:.7,atk:.95}, desc:'Rains sparks from above.'},
   sage:     {name:'Storm Sage',      style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c1622',rim:'#9fe8ff',eye:'#fff06a'}, comp:{hp:.8,atk:.6}, desc:'Calls rain that heals its kin.'},
   titan:    {name:'Iron Titan',      style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
-  stormlord:{name:'The Storm Lord',  style:'conductor',hp:4.2, atk:1.9, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
+  stormlord:{name:'The Storm Lord',  style:'conductor',hp:3.4, atk:1.8, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
   // S-Rank: Sunken Sun
   ember:    {name:'Sun Ember',       style:'blob',     hp:.8,  atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#26120a',rim:'#ffb347',eye:'#fff1c0'}, comp:{hp:.7,atk:.95}, desc:'A fallen piece of a dying sun.'},
   sunhound: {name:'Solar Hound',     style:'beast',    hp:.9,  atk:1.25,spd:.9,  role:'dps',    pal:{body:'#24140a',rim:'#ffd27a',eye:'#ff5a3c'}, comp:{hp:.85,atk:1.0}, desc:'Its howl melts stone.'},

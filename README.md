@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.4 – Points in Sight
+- Stats tab: compact glowing counters for free talent/stat points (tap → scroll to Talents), nav badge shows the number, 'Talent Tree' renamed 'Talents'.
+- Storm Lord HP 4.2 → 3.4, ATK 1.9 → 1.8 (bot wall at A-F10).
+
 ### v0.18.3 – Keeps Running
 - Background play: a tiny Web Worker ticks every 250 ms; while document.hidden the missed time is simulated in 50 ms battle steps (max 2 min per tick). Auto-continue timers use later()/runTimers() so they also fire in the background.
 
