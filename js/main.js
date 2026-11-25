@@ -118,7 +118,7 @@ function whatsNew(){
 function boot(){
   resizeCanvas();
   const vt = document.createElement('div'); vt.id = 'verTag'; vt.textContent = 'v' + (window.GAME_VERSION || 'dev'); document.body.appendChild(vt);
-  document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',bag:'bag',legion:'legion'}[b.dataset.id]]; });
+  document.querySelectorAll('.nav button').forEach(b => { b.querySelector('.ic').innerHTML = ICON[{home:'home',gates:'gate',arena:'arena',hero:'hero',stats:'gear',bag:'bag',legion:'legion'}[b.dataset.id]]; });
   migrateOldSave();
   S = defaultSave();
   showScreen('slots'); renderSlots();

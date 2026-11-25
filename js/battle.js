@@ -39,7 +39,7 @@ function petUnit(id, lv, slot){
   const p = PETS[id], hs = heroStats();
   return {side:'p', kind:'pet', pet:id, name:p.name, slot, size:44,
     art:{style:'spirit', body:p.color, rim:p.color, eye:p.color2},
-    maxHp:1, hp:1, atk:hs.atk*petDmg(id, lv), def:0, crit:hs.crit, critDmg:hs.critDmg, interval:p.iv,
+    maxHp:1, hp:1, atk:hs.atk*petDmg(id, lv)*(1 + (hs.petP||0)/100), def:0, crit:hs.crit, critDmg:hs.critDmg, interval:p.iv,
     role:'dps', ranged:true, lifesteal:0, untargetable:true};
 }
 function enemyUnit(type, L, slot){
@@ -48,12 +48,13 @@ function enemyUnit(type, L, slot){
   const eBest = E_EASE[Math.max(1, Math.min(FLOORS, (S.gates && S.gates.E) || 1))] ?? 1;
   const ease = !BT ? 1
     : BT.mode === 'gate' ? (BT.gate.id === 'E' ? (E_EASE[BT.floor] ?? 1) : BT.gate.mult)
-    : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)   // farm fights: a bit softer than your best floor
+    : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)
+    : BT.mode === 'tower' ? TOWER.ease*(BT.gate.id === 'E' ? .75 : BT.gate.mult)   // farm fights: a bit softer than your best floor
     : 1;
   const hp = enemyHp(lv)*t.hp*ease, mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1},
-    maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*ease, def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd,
+    maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd,
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 function hunterUnit(h){
@@ -92,6 +93,14 @@ function startGate(gateId, floor){
   const gate = GATES.find(g => g.id === gateId);
   const L = gate.baseLv + floor - 1;
   BT = newBattle({mode:'gate', gate, floor, L, theme:gate.theme, waves:floorWaves(gate, floor)});
+  spawnWave();
+  enterBattle();
+}
+/* Training Tower */
+function startTower(floor){
+  floor = Math.max(1, floor); const gate = towerGate(floor), L = towerLevel(floor), pool = gate.enemies;
+  const w1 = [pick(pool), pick(pool), pick(pool)], w2 = [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? gate.elite : pick(pool)];
+  BT = newBattle({mode:'tower', floor, gate, L, theme:gate.theme, waves:[w1, w2]});
   spawnWave();
   enterBattle();
 }
@@ -165,16 +174,19 @@ function heroAction(){
   const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = gap < .35; BT.lastPress = nowC; BT.sincePress = 0;   // mashing never parries
   // flow: rhythm builds it, mashing breaks it, long pauses let it fade
   BT.flow = BT.flow || 0;
-  if(gap < FLOW.min) BT.flow = 0;
+  if(gap < FLOW.min){ /* mashing: flow is kept but doesn't grow */ }
   else if(gap <= FLOW.max_gap){ const before = BT.flow; BT.flow = Math.min(FLOW.max, BT.flow + 1); if(BT.flow === FLOW.max && before < FLOW.max) addText(h, 'MAX FLOW', '#9ff0b8', 26); }
   else BT.flow = Math.max(0, BT.flow - 1);
   if(timingMode()) return timingAction(h, threats);
-  if(threats.length && !spam){ doParry(h, threats, k); return 'parry'; }
-  if(BT.strikeCd > 0) return;
+  if(threats.length){ doParry(h, threats, k, spam); return 'parry'; }   // mashing parries too, a calm timed press is a PERFECT parry
+  if(BT.strikeCd > 0){ BT.queued = true; return; }   // pressed too fast: the strike fires as soon as it is ready (mashing never loses hits)
+  return doStrike(h);
+}
+function doStrike(h){
   const t = frontEnemy(); if(!t) return;
   BT.strikeCd = STRIKE_CD;
-  if(h.state === 'idle' || h.state === 'back'){ h.target = t; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; }
-  else { dealDamage(h, t, .5, {}); gainEnergy(ENERGY.strike*.5); }
+  if(h.state === 'idle'){ h.target = t; h.state = 'dash'; h.st = 0; h.from = h.x; h.manual = true; }
+  else { dealDamage(h, t, .7, {}); gainEnergy(ENERGY.strike*.5); }   // mashing while moving still lands quick hits
   if(!S.flags.tutStrike){ S.flags.tutStrike = true; }
   return 'strike';
 }
@@ -223,19 +235,18 @@ function stepRing(dt){
   BT.ring = {t:0, dur:RING.dur, target:t};
 }
 
-function doParry(h, threats, k){
-  {
-    for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, .9); addText(u, 'PARRIED', '#9fd8ff', 22); }
-    const t = threats[0];
-    h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
-    BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:140*k, c:'#ffd166', life:.45, max:.45});
-    BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
-    dealDamage(h, t, 1.4, {color:'#ffd166'});
-    gainEnergy(ENERGY.parry); BT.ult = Math.min(100, BT.ult + 8);
-    addText(h, 'PERFECT PARRY', '#ffd166', 30);
-    BT.slowmo = .35; BT.flashT = .06; BT.shake = Math.max(BT.shake, .15); BT.parries = (BT.parries||0) + 1;
-    SFX.parry();
-  }
+function doParry(h, threats, k, mash){
+  // mash = pressed in a hurry: still blocks and counters, but a calm timed press is the PERFECT parry
+  for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, mash ? .5 : .9); addText(u, mash ? 'BLOCKED' : 'PARRIED', '#9fd8ff', mash ? 18 : 22); }
+  const t = threats[0];
+  h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
+  BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:(mash ? 90 : 140)*k, c:'#ffd166', life:.45, max:.45});
+  BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
+  dealDamage(h, t, mash ? 1.0 : 1.4, {color:'#ffd166'});
+  gainEnergy(ENERGY.parry*(mash ? .5 : 1)); BT.ult = Math.min(100, BT.ult + (mash ? 4 : 8));
+  if(!mash){ addText(h, 'PERFECT PARRY', '#ffd166', 30); BT.slowmo = .35; BT.flashT = .06; }
+  BT.shake = Math.max(BT.shake, mash ? .08 : .15); BT.parries = (BT.parries||0) + 1;
+  SFX.parry();
 }
 
 function dealDamage(att, tgt, mult, opt={}){
@@ -245,8 +256,16 @@ function dealDamage(att, tgt, mult, opt={}){
   let dmg = atk * mult * rand(.92, 1.08);
   if(att.kind === 'hero' && BT.flow) dmg *= 1 + BT.flow*FLOW.dmg;
   if(att.kind === 'hero' && timingMode()) dmg *= RING.heroDmg;
-  if(tgt.kind === 'hero' && timingMode()) dmg *= RING.hurt;   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
+  if(tgt.kind === 'hero' && timingMode()) dmg *= RING.hurt;
+  if(tgt.kind === 'hero' && att.blocked){ dmg *= .5; att.blocked = false; }   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
+  if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
+  if((tgt.boss || tgt.elite) && att.side === 'p'){
+    if(tgt.brokenT > 0) dmg *= BREAK.mult;
+    else { tgt.breakM = (tgt.breakM||0) + (opt.skill ? BREAK.skill : 1);
+      if(tgt.breakM >= (tgt.boss ? BREAK.hits : BREAK.eliteHits)){ tgt.breakM = 0; tgt.brokenT = BREAK.time; tgt.stun = Math.max(tgt.stun||0, BREAK.time); tgt.tele = null; tgt.timer = 0;
+        addText(tgt, 'BROKEN!', '#ffd27a', 36); BT.banner = {txt:(tgt.boss ? 'BOSS' : 'ELITE') + ' BROKEN · x2 DAMAGE', t:1.4, c:'#ffd27a'}; BT.shake = Math.max(BT.shake, .35); BT.flashT = .1; BT.zoom = Math.max(BT.zoom||0, .05); } }
+  }
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
   if(!opt.pierce) dmg *= 100/(100 + tgt.def);
@@ -443,6 +462,7 @@ function stepUnit(u, dt){
       u.y = hy; break; }
     case 'idle': {
       u.x += (hx - u.x)*Math.min(1, dt*10); u.y = hy;
+      if(u.brokenT > 0) u.brokenT -= dt;
       if(u.stun > 0){ u.stun -= dt; break; }
       if(u.kind === 'hero' && timingMode()){ u.timer = 0; break; }   // timing mode: the hero only attacks when you hit the ring
       let rate = 1; if(u.buffs.spd) rate += u.buffs.spd.v; if(u.slow > 0) rate *= .6;
@@ -488,7 +508,7 @@ function stepUnit(u, dt){
         u.state = 'idle'; u.st = 0;
         if(u.role === 'healer'){
           const allies = alive(u.side).filter(a => a.hp/a.maxHp < .75).sort((a,b) => a.hp/a.maxHp - b.hp/b.maxHp);
-          if(allies.length){ heal(allies[0], u.atk*2.2); BT.fx.push({k:'ring', x:allies[0].x, y:allies[0].y, r:5, R:70*k, c:'#5dff9b', life:.5, max:.5}); break; }
+          if(allies.length){ heal(allies[0], Math.min(u.atk*2.2, allies[0].maxHp*.05)); /* capped: healers can't out-heal a player without AoE */ BT.fx.push({k:'ring', x:allies[0].x, y:allies[0].y, r:5, R:70*k, c:'#5dff9b', life:.5, max:.5}); break; }
         }
         const t = u.target && !u.target.dead ? u.target : pickTarget(u);
         if(t) BT.projs.push({x:u.x + dir*30*k, y:u.y - u.size*k*(u.kind === 'pet' ? 0 : .55), t, src:u, c:u.kind === 'pet' ? u.art.eye : u.side === 'p' ? AFF[S.aff].color : u.art.eye, sp:VW*1.1});
@@ -508,6 +528,7 @@ function stepBattle(dt){
   if(BT.koT > 0) BT.koT -= dt;
   if(BT.slowmo > 0){ BT.slowmo -= dt; dt *= .3; }
   if(BT.strikeCd > 0) BT.strikeCd -= dt;
+  if(BT.queued && BT.strikeCd <= 0 && !BT.over && !BT.cutin && !BT.hero.dead){ BT.queued = false; if(!timingMode()) doStrike(BT.hero); }
   BT.sincePress = (BT.sincePress ?? 9) + dt;
   if(BT.cutin){
     BT.cutin.t += dt;
@@ -560,7 +581,7 @@ function stepBattle(dt){
   // wave / result
   const enemiesLeft = alive('e').length;
   if(!enemiesLeft && !BT.pending.length){
-    if((BT.mode === 'gate' || BT.mode === 'rush') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
+    if((BT.mode === 'gate' || BT.mode === 'rush' || BT.mode === 'tower') && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
     else { if(BT.winT === undefined){ BT.slowmo = .9; BT.koT = 1.4; BT.zoom = .06; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
   }
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
@@ -631,6 +652,11 @@ function finishBattle(win){
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
       if(r.first) r.diamonds += isBoss ? (f > FLOORS ? 3 : 5) : (f === 5 || f === 8 || f === 9) ? 1 : 0;
       if(Math.random() < .04) r.diamonds += 1;
+    }
+  } else if(BT.mode === 'tower'){
+    if(win){ const f = BT.floor, tr = towerReward(f); r.first = f > (S.tower.best||0); S.tower.best = Math.max(S.tower.best||0, f);
+      r.gold = Math.round(r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1)); r.xp = Math.round(r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1));
+      if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += 8 + Math.round(f*1.5); r.diamonds += 1 + Math.floor(f/25); }
     }
   } else if(BT.mode === 'rush'){
     if(win){ if(BT.kind === 'xp'){ r.xp = Math.round(r.xp + xpFor(BT.L)*TRAIN_XP*(1 + hs.xp/100)); r.gold = Math.round(r.gold*.3); }

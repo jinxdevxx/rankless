@@ -43,6 +43,30 @@ const ENHANCE_RATE = [1,1,1,1,1,.9,.8,.7,.6,.5,.4,.3,.25,.2,.15];
 const MAX_PLUS = 15;
 
 /* ---------- champion ---------- */
+/* ---------- Talent tree: separate points (1 per level from Lv 3), 3 branches, 4 talents each, max 5 ranks.
+   A talent opens when you spent 5 points per earlier tier in that branch. ---------- */
+const TALENT_MAX = 5, TALENT_TIER = 5;
+const TALENTS = {
+  might:  {name:'Might',   color:'#ff8a5c', nodes:[
+    {id:'blade',  name:'Sharp Blade',  stat:'atkP',     per:3,   desc:'+3% ATK'},
+    {id:'eye',    name:'Keen Eye',     stat:'crit',     per:1.2, desc:'+1.2% Crit Rate'},
+    {id:'brutal', name:'Brutal Hits',  stat:'critDmg',  per:6,   desc:'+6% Crit DMG'},
+    {id:'arts',   name:'Rift Arts',    stat:'skill',    per:6,   desc:'+6% Skill DMG'}]},
+  guard:  {name:'Guard',   color:'#7fd8ff', nodes:[
+    {id:'tough',  name:'Tough',        stat:'hpP',      per:4,   desc:'+4% HP'},
+    {id:'iron',   name:'Iron Skin',    stat:'defP',     per:6,   desc:'+6% DEF'},
+    {id:'leech',  name:'Blood Thirst', stat:'lifesteal',per:.8,  desc:'+0.8% Lifesteal'},
+    {id:'giant',  name:'Giant',        stat:'hpP',      per:5,   desc:'+5% HP'}]},
+  fortune:{name:'Fortune', color:'#f7c75a', nodes:[
+    {id:'greed',  name:'Greed',        stat:'gold',     per:6,   desc:'+6% Gold Find'},
+    {id:'scholar',name:'Scholar',      stat:'xp',       per:5,   desc:'+5% XP'},
+    {id:'bond',   name:'Spirit Bond',  stat:'petP',     per:8,   desc:'+8% Spirit damage'},
+    {id:'swift',  name:'Swift',        stat:'spd',      per:3,   desc:'+3% Attack Speed'}]},
+};
+function talentTotal(){ return Math.max(0, S.level - 2); }
+function talentSpent(br){ let n = 0; for(const b in TALENTS) if(!br || b === br) for(const nd of TALENTS[b].nodes) n += (S.talents && S.talents[nd.id]) || 0; return n; }
+function talentFree(){ return talentTotal() - talentSpent(); }
+function talentOpen(br, tier){ return talentSpent(br) >= tier*TALENT_TIER; }
 const STAT_INFO = {
   str:{name:'Strength', desc:'Raises ATK'},
   vit:{name:'Vitality', desc:'Raises max HP'},
@@ -96,15 +120,15 @@ const ENEMY_TYPES = {
   hound:    {name:'Rift Hound',      style:'beast',    hp:.7,  atk:1.1, spd:1.0, role:'dps',    pal:{body:'#170f22',rim:'#ff2e88',eye:'#ffcf33'}, comp:{hp:.75,atk:.85}, desc:'Fast pack hunter.'},
   spitter:  {name:'Bile Spitter',    style:'blob',     hp:.75, atk:1.2, spd:1.7, role:'ranged', ranged:true, pal:{body:'#112018',rim:'#5dff9b',eye:'#d6ff3a'}, comp:{hp:.7,atk:.9}, desc:'Spits corrosive bile from range.'},
   brute:    {name:'Barnacle Brute',  style:'brute',    hp:2.6, atk:1.4, spd:2.1, role:'tank',   elite:true, pal:{body:'#1b1a28',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:1.7,atk:.7}, desc:'Armored elite. Draws enemy attacks.'},
-  warden:   {name:'Harbor Warden',   style:'warden',   hp:11.5, atk:2.0, spd:2.3, role:'tank',   boss:true, pal:{body:'#0d1a2c',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:2.2,atk:1.0}, desc:'Lord of the drowned gate.'},
+  warden:   {name:'Harbor Warden',   style:'warden',   hp:8.5, atk:2.0, spd:2.3, role:'tank',   boss:true, pal:{body:'#0d1a2c',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:2.2,atk:1.0}, desc:'Lord of the drowned gate.'},
   crawler:  {name:'Tunnel Crawler',  style:'beast',    hp:.8,  atk:1.15,spd:.95, role:'dps',    pal:{body:'#1e130c',rim:'#ff8a3c',eye:'#ffe14d'}, comp:{hp:.8,atk:.95}, desc:'Skitters through the dark at terrifying speed.'},
   wraith:   {name:'Rail Wraith',     style:'ghost',    hp:.8,  atk:.95, spd:1.6, role:'healer', ranged:true, pal:{body:'#16121f',rim:'#c3a6ff',eye:'#ffffff'}, comp:{hp:.8,atk:.6}, desc:'Heals its weakest ally.'},
   golem:    {name:'Scrap Golem',     style:'golem',    hp:2.8, atk:1.3, spd:2.2, role:'tank',   elite:true, pal:{body:'#221a14',rim:'#ff8a3c',eye:'#ffcf33'}, comp:{hp:1.85,atk:.65}, desc:'Metal and malice. Draws enemy attacks.'},
-  conductor:{name:'The Conductor',   style:'conductor',hp:10, atk:2.0, spd:2.0, role:'dps',    boss:true, pal:{body:'#1a0f0f',rim:'#ff5a3c',eye:'#ffe14d'}, comp:{hp:1.4,atk:1.45}, desc:'The last train never left the station.'},
+  conductor:{name:'The Conductor',   style:'conductor',hp:7, atk:2.0, spd:2.0, role:'dps',    boss:true, pal:{body:'#1a0f0f',rim:'#ff5a3c',eye:'#ffe14d'}, comp:{hp:1.4,atk:1.45}, desc:'The last train never left the station.'},
   fang:     {name:'Frost Fang',      style:'beast',    hp:.85, atk:1.2, spd:.95, role:'dps',    pal:{body:'#0e1a22',rim:'#9fe8ff',eye:'#bff6ff'}, comp:{hp:.85,atk:1.0}, desc:'Its bite freezes blood.'},
   specter:  {name:'Shrine Specter',  style:'ghost',    hp:.85, atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#141824',rim:'#bfe9ff',eye:'#ffffff'}, comp:{hp:.85,atk:.65}, desc:'A restless spirit. Heals its weakest ally.'},
   oni:      {name:'Ice Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
-  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:7.5, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
+  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:5, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
 function shardNeed(type){ const t = ENEMY_TYPES[type]; return t.boss ? 40 : t.elite ? 20 : 12; }
 const STAR_COST = [0, 1, 2, 4, 8]; // x shardNeed to reach star i+1
@@ -116,9 +140,9 @@ const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'
 const GATES = [
   {id:'E', rank:'E', name:'Drowned Harbor', baseLv:1,  mult:1,   theme:'harbor', enemies:['husk','hound','spitter'], elite:'brute', boss:'warden',
     desc:'A flooded dock district. The first gate every Breaker fears.'},
-  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.6, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
+  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.1, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
     desc:'An abandoned metro line where the last train still runs.'},
-  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.35, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
+  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:1.6, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
 ];
 const FLOORS = 10;
@@ -189,14 +213,26 @@ function petDmg(id, lv){ return PETS[id].dmg * (1 + .1*(lv - 1)); }
 /* Gold Rush: repeatable fight with no loot, lots of gold */
 const RUSH_GOLD = 32;
 /* E-Rank is the 'get hooked' phase: enemies are softer so spamming players progress quickly */
+/* gate difficulty raises enemy HP fully but enemy damage only partly (bosses used to one-shot you) */
+const ATK_EASE_EXP = .5;
+/* skills vs. basic hits: skills were so strong that players without skills got stuck */
+const SKILL_SCALE = .5, HIT_SCALE = 1.35;
+/* BREAK: every hit on a boss fills its break bar; full = BROKEN (helpless, double damage) */
+const BREAK = {hits:22, eliteHits:12, skill:3, time:4, mult:2};
 const E_EASE = [0, .35, .42, .48, .54, .6, .66, .72, .78, .84, .9];
+/* Training Tower: endless farm floors. Each floor is a bit stronger and pays more Gold + XP.
+   Every 5th floor has an elite and a chest on first clear. */
+const TOWER = {lvPer:.9, gold:16, xp:12, ease:.8, chestEvery:5};
+function towerLevel(f){ return Math.max(1, Math.round(1 + (f - 1)*TOWER.lvPer)); }
+function towerGate(f){ const L = towerLevel(f); return L >= 24 ? GATES[2] : L >= 12 ? GATES[1] : GATES[0]; }
+function towerReward(f){ const L = towerLevel(f); return {gold:Math.round(goldFor(L)*TOWER.gold), xp:Math.round(xpFor(L)*TOWER.xp)}; }
 /* Training: repeatable, no loot, lots of XP */
 const TRAIN_XP = 22;
 
 const DAILY_TRIES = 3;
 const DAILY = {
   gold:{name:'Gold Vault',      desc:'A vault full of greedy monsters. Huge Gold reward.',            icon:'gold',  color:'#f7c75a'},
-  xp:  {name:'Training Grounds',desc:'Endless sparring. Huge XP reward.',                             icon:'hero',  color:'#9fd8ff'},
+  xp:  {name:'XP Shrine',       desc:'Once a day: a huge XP reward.',                             icon:'hero',  color:'#9fd8ff'},
   mat: {name:'Crystal Mine',    desc:'Mana Stones, Rift Diamonds and a guaranteed Epic or better item.', icon:'stone', color:'#c9a8ff'},
 };
 

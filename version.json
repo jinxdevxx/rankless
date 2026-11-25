@@ -1,13 +1,14 @@
 {
-  "version": "0.15.1",
+  "version": "0.16.0",
   "date": "2026-11-25",
-  "title": "No More Junk",
+  "title": "Fair Fights",
   "notes": [
-    "Useless drops (worse than your gear even at +15) are salvaged automatically right after the fight. The victory screen shows what you got for them.",
-    "Salvage useless now really removes every item marked ✖, set pieces included (Equip best already picks sets when they help).",
-    "The salvage button is big and shows the Mana Stones and Gold you get at a glance.",
-    "Commons get rarer in higher gates: in D-Rank most Commons become Rares, in C-Rank almost all do.",
-    "Setting in the menu: Auto-salvage useless drops (on by default).",
-    "C-Rank boss slightly softer."
+    "BIG BALANCE FIX: spamming SPACE now works. It used to deal LESS damage and could never parry. Now mashing still blocks and counters enemy hits (a calm timed press is still the PERFECT parry), and no press is ever lost.",
+    "Bosses no longer one-shot you: from D-Rank on, enemies get more HP but deal far less damage. Your HP is higher (base and per VIT point).",
+    "NEW: BREAK bar on bosses and elites. Every hit fills it, when full the enemy is BROKEN: helpless and takes double damage for 4 seconds.",
+    "Recommended Power is now honest: measured with test runs, so reaching it means you can win.",
+    "NEW: Training Tower replaces Gold Rush and Training. Climb endless floors with changing enemies, every floor pays Gold AND XP, every 5th floor has an elite and a chest.",
+    "NEW: Stats tab with your big numbers (Max HP, ATK, DEF, Power, all stats), stat points and a TALENT TREE: 1 talent point per level from Lv 3, 3 branches (Might, Guard, Fortune), free reset.",
+    "Skills deal a bit less, basic hits a bit more, so playing without skills is fine and skills still feel great. Enemy healers can no longer out-heal you."
   ]
 }

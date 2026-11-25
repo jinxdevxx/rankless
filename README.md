@@ -25,6 +25,17 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.16.0 – Fair Fights
+- Mashing fixed: presses during the strike cooldown are queued (doStrike), mashing keeps Flow, and mashing during a red "!" parries too (doParry mash: 1.0x counter, short stun, half energy; timed press = PERFECT parry 1.4x).
+- Enemy damage only scales with the square root of the gate multiplier (ATK_EASE_EXP .5); gate HP mults D 1.8→2.1... final: D 2.1, C 1.6; enemyHp base 430 → 800; hero HP 130+17/VIT → 170+24/VIT.
+- Bosses HP: Warden 11.5 → 8.5, Conductor 10 → 7, Matriarch 7.5 → 5. Healer heal capped at 5 % of target max HP.
+- BREAK mechanic (BREAK in data.js): 22 hits (12 for elites, skills count 3) → BROKEN for 4 s, x2 damage, boss bar shows the break meter.
+- SKILL_SCALE .5 / HIT_SCALE 1.35 for hero damage.
+- recPower(): recommended power = floorPower × REC_MULT per gate (E 1.25, D 1.9, C 1.05), calibrated from bot first clears; arena too.
+- Training Tower (mode 'tower', TOWER in data.js) replaces Gold Rush / Training: endless floors, gold + XP, first clear x1.5, chest every 5th floor; daily XP gate renamed XP Shrine.
+- Stats tab (sheetStats) with big numbers, stat points and talent tree (TALENTS: Might / Guard / Fortune, 4 talents × 5 ranks, tier gate 5 points, free reset). New stats defP and petP.
+- Bot (tools/bot_balance.js) has policies good / spamskill / spam and buys talents + climbs the tower when stuck. Results: with skills 29–55 min to Rank B, pure spam without skills ~129 min, no walls.
+
 ### v0.15.1 – No More Junk
 - Drops that are junk (isJunk: never beat the equipped item even at +15) are auto-salvaged in storeItem (setting autoJunk, default on); result screen shows the salvage income.
 - isJunk no longer spares set pieces (consistent with the item window; equipBest handles sets).

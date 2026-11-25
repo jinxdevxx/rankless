@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1},
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{},
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -38,7 +38,7 @@ let SLOT = null;                       // active save slot (1..3)
 const slotKey = id => 'rankless_slot_' + id;
 function normalizeSave(s){
   const out = Object.assign(defaultSave(), s);
-  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets','tower','talents']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
   return out;
 }
 function readMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY)) || {last:null}; }catch(e){ return {last:null}; } }
@@ -73,7 +73,7 @@ function parseCode(code){
 const xpNeed  = lv => Math.floor(165 * Math.pow(1.21, lv-1) * Math.min(1, .2 + lv*.08));
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
-const enemyHp = L  => 430 * Math.pow(1.16, L-1);
+const enemyHp = L  => 800 * Math.pow(1.16, L-1);
 const enemyAtk= L  => 44 * Math.pow(1.14, L-1);
 
 function addXP(n){
@@ -132,21 +132,22 @@ function salvageValue(it){ const sp = enhanceSpent(it);
 function calcStats(src){
   const L = src.level, st = src.stats;
   const g = Math.pow(1.065, L-1), pg = Math.pow(1.055, L-1);
-  const o = {atk:12*g + st.str*2.2*pg, hp:130*g + st.vit*17*pg, def:3 + L*1.5,
-    crit:5 + st.sen*.5, critDmg:150, spd:st.agi, atkP:0, hpP:0, lifesteal:0, skill:st.wil*2, gold:0, xp:0};
+  const o = {atk:12*g + st.str*2.2*pg, hp:170*g + st.vit*24*pg, def:3 + L*1.5,
+    crit:5 + st.sen*.5, critDmg:150, spd:st.agi, atkP:0, hpP:0, defP:0, petP:0, lifesteal:0, skill:st.wil*2, gold:0, xp:0};
   for(const sl of SLOTS){
     const it = src.eq[sl]; if(!it) continue;
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
+  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r) o[nd.stat] += nd.per*r; }
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
     if(sc[id] >= 2) for(const k in st.b2) o[k] += st.b2[k];
     if(sc[id] >= 4) for(const k in st.b4) o[k] += st.b4[k]; }
-  o.atk *= 1 + o.atkP/100; o.hp *= 1 + o.hpP/100;
+  o.atk *= 1 + o.atkP/100; o.hp *= 1 + o.hpP/100; o.def *= 1 + o.defP/100;
   o.crit = Math.min(75, o.crit);
   o.interval = 1.25 / (1 + o.spd/100);
   o.compMult = 1 + st.wil*.01;
@@ -171,6 +172,9 @@ function teamPower(){
 /* recommended power for a gate floor */
 // recommended Power, calibrated on bot playthroughs (power at which floors were cleared)
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
+/* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
+const REC_MULT = {E:1.25, D:1.9, C:1.05};   // v0.16.0: median bot power at first clear
+function recPower(gateId, floor){ const g = GATES.find(x => x.id === gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] || 1)); }
 
 /* ---------- inventory helpers ---------- */
 function addItem(it){
@@ -197,7 +201,7 @@ function storeItem(it){
 }
 function powerWith(slot, item){
   const eq = Object.assign({}, S.eq); eq[slot] = item;
-  return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant}));
+  return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets}));
 }
 /* power gained by wearing `item` instead of what is in that slot now (negative = worse) */
 function powerGain(item){ return powerWith(item.slot, item) - powerWith(item.slot, S.eq[item.slot]); }
@@ -216,7 +220,7 @@ function isJunk(it){
    Sets make this tricky: 4 set pieces can beat 4 stronger single items together, so we
    search from several starting points (current gear, each set forced in) and keep improving
    slot by slot on TOTAL power until nothing gets better. */
-function eqPower(eq){ return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant})); }
+function eqPower(eq){ return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets})); }
 function bestLoadout(){
   const all = [...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)];
   const bySlot = {}; for(const sl of SLOTS) bySlot[sl] = all.filter(it => it.slot === sl);

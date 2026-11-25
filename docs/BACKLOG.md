@@ -3,6 +3,11 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] 14k power fails a 6.8k recommended D boss (lasered): enemy damage decoupled from gate mult, more hero HP, spam parries, honest recommended power (v0.16.0)
+- [x] Farming boring and separate Gold/XP modes confusing: one Training Tower with gold + XP and climbing floors (v0.16.0)
+- [x] Farm card layout glitch (v0.16.0: replaced)
+- [x] Own Stats tab with big numbers (max HP etc.) + talent tree with separate points (v0.16.0)
+- [ ] Watch: players with skills progress fast (bot 29–55 min); consider more mid/late content (Abyss/Red Gates) rather than walls
 - [x] Salvage useless left a ring marked 'worse even at +15' (set exception); now consistent (v0.15.1)
 - [x] Useless Common drops at higher levels: auto-salvage useless drops + fewer Commons in D/C (v0.15.1)
 - [x] Salvage button must show the reward clearly and look good (v0.15.1)

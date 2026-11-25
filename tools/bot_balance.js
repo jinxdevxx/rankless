@@ -5,14 +5,14 @@ const { chromium } = require('playwright');
   const p = await b.newPage({viewport:{width:1280,height:800}});
   const errs=[]; p.on('pageerror', e=>errs.push(e.message));
   await p.goto('http://localhost:8782/');
-  await p.waitForTimeout(500);
+  await p.waitForFunction(() => typeof menuAct === 'function' && typeof startGate === 'function', null, {timeout:20000});
   const aff = process.argv[2]||'storm'; const policy = process.argv[3]||'good'; const maxMin = +(process.argv[4]||180);
   const res = await p.evaluate(([aff, policy, maxMin]) => {
     S = defaultSave(); SLOT = null; S.created=true; S.intro=true; S.name='BOT'; S.aff='steel'; S.flags.enchantV1=true; const ENCH=aff;
     S.eq.weapon = makeItem('weapon',1,0); S.eq.armor = makeItem('armor',1,0);
     S.settings.autoSkill = policy !== 'spam'; S.settings.autoSalvage = 0; S.settings.autoEquip = true; S.settings.autoStats = false; S.settings.farm = 'off';
     const log=[]; let simTime=0, battles=0, losses=0;
-    function run(){ let t=0, st=0; while(!BT.over && t<240){ st-=0.05; if(policy==='spam'){ if(st<=0){ heroAction(); st=0.15; } } else { if(st<=0){ heroAction(); st=0.7; } else if(threatsOnHero().length && Math.random()<0.06) heroAction(); } stepBattle(0.05); t+=0.05; } simTime += t + 4; battles++; const r = BT.result; BT=null; return r && r.win; }
+    function run(){ let t=0, st=0; while(!BT.over && t<240){ st-=0.05; if(policy==='spam' || policy==='spamskill'){ if(st<=0){ heroAction(); st=0.15; } } else { if(st<=0){ heroAction(); st=0.7; } else if(threatsOnHero().length && Math.random()<0.06) heroAction(); } stepBattle(0.05); t+=0.05; } simTime += t + 4; battles++; const r = BT.result; { window.LR=window.LR||{}; const key=(r&&r.win?'win':BT.hero.dead?'dead':'timeout')+' '+(BT.gate?BT.gate.id+(BT.floor||'T'):'A'); const e=window.LR[key]=window.LR[key]||{n:0,t:0}; e.n++; e.t+=t; } BT=null; return r && r.win; }
     function manage(){
       const ks=['str','vit','str','vit','agi','sen','str','wil'];
       let i=0; while(S.points>0){ S.stats[ks[i%ks.length]]++; S.points--; i++; }
@@ -25,6 +25,7 @@ const { chromium } = require('playwright');
         const sc = PET_SLOT_COST[S.pets.slots+1]; if(sc && S.gold >= sc && Object.keys(S.pets.owned).length > S.pets.slots){ S.gold -= sc; S.pets.slots++; fillPetSlots(); log.push(`${(simTime/60).toFixed(0)}m SLOT ${S.pets.slots}`); }
         for(const id of S.pets.active){ const lv = S.pets.owned[id]; if(lv < PET_MAX_LV && S.gold >= petUpCost(id, lv)*2){ S.gold -= petUpCost(id, lv); S.pets.owned[id]++; } }
       }
+      { const order = ['blade','tough','eye','iron','brutal','leech','arts','giant']; let g = 0; while(talentFree() > 0 && g++ < 60){ const id = order.find(x => { const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.some(n => n.id === x)); const tier = TALENTS[bk].nodes.findIndex(n => n.id === x); return (S.talents[x]||0) < TALENT_MAX && talentOpen(bk, tier); }); if(!id) break; S.talents[id] = (S.talents[id]||0) + 1; } }
       checkUnlocks(true);
       if(isUnlocked('enchant') && !S.enchant && S.diamonds>=2){ S.diamonds-=2; S.enchant={el:ENCH,lv:1}; syncAff(); log.push(`${(simTime/60).toFixed(0)}m ENCHANT ${ENCH}`); }
       if(S.enchant && S.enchant.lv<5){ const c=enchantCost(S.enchant.lv+1); if(S.diamonds>=c.diamonds && S.gold>=c.gold*2){ S.diamonds-=c.diamonds; S.gold-=c.gold; S.enchant.lv++; log.push(`${(simTime/60).toFixed(0)}m ENCH LV${S.enchant.lv}`); } }
@@ -44,13 +45,13 @@ const { chromium } = require('playwright');
       }
       if(full && !list){ log.push('ALL DONE'); break; }
       startGate(gate.id, nf); const w = run();
-      if(w){ log.push(`${(simTime/60).toFixed(0)}m ${gate.id}-F${nf} clear lv${S.level} P${teamPower()} rec${floorPower(gate.baseLv+nf-1+(nf===10?2:0))} losses=${losses}`); losses=0; }
-      else { losses++; for(let k=0;k<2;k++){ manage(); startGate(gate.id, Math.max(1,nf-1)); run(); } if(isUnlocked('gates')){ manage(); startRush('xp'); run(); } }
+      if(w){ log.push(`${(simTime/60).toFixed(0)}m ${gate.id}-F${nf} clear lv${S.level} P${teamPower()} rec${recPower(gate.id, nf)} losses=${losses}`); losses=0; }
+      else { losses++; for(let k=0;k<2;k++){ manage(); startGate(gate.id, Math.max(1,nf-1)); run(); } if(isUnlocked('gates')){ manage(); startTower((S.tower.best||0) + 1); if(!run()){ manage(); startTower(Math.max(1, S.tower.best||1)); run(); } } }
     }
     log.push(`END ${(simTime/60).toFixed(0)}m battles=${battles} lv${S.level} rank ${S.rank} gates ${JSON.stringify(S.gates)} pets ${JSON.stringify(S.pets.owned)} gold ${Math.round(S.gold)} stones ${S.stones} inv ${S.inv.length} eq ${SLOTS.map(s=>S.eq[s]?RARITY[S.eq[s].rar].name[0]+S.eq[s].ilvl+'+'+S.eq[s].plus:'-').join(',')}`);
     return log.join('\n');
   }, [aff, policy, maxMin]);
   console.log(res);
-  console.log('ERRORS', errs.slice(0,5));
+  console.log('LR', JSON.stringify(await p.evaluate(()=>{ const o={}; for(const k in window.LR) o[k]=window.LR[k].n+'x '+Math.round(window.LR[k].t/window.LR[k].n)+'s'; return o; }))); console.log('ERRORS', errs.slice(0,5));
   await b.close();
 })();

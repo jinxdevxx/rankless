@@ -135,11 +135,11 @@ function renderHome(){
   const pts = S.points > 0, newItems = S.inv.some(i => i.isNew);
   let shown = 0;
   $$('.nav button').forEach(b => {
-    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id);
+    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id === 'stats' ? 'hero' : id);
     b.hidden = !ok; if(ok && id !== 'home') shown++;
     b.classList.toggle('on', UI.sheet === id || (!UI.sheet && id === 'home'));
     const d = b.querySelector('.dot'); if(d) d.outerHTML = '';
-    if((id === 'hero' && pts) || (id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
+    if((id === 'stats' && (pts || talentFree() > 0)) || (id === 'bag' && newItems) || S.pendingUnlocks.includes(id)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
   });
   document.querySelector('.nav').hidden = shown === 0;
   animatePower(teamPower());
@@ -191,7 +191,7 @@ function openSheet(id){ UI.sheet = id; $('#sheet').classList.add('on'); renderSh
 function closeSheet(){ UI.sheet = null; $('#sheet')?.classList.remove('on'); if(UI.screen === 'home') renderHome(); }
 function renderSheet(){
   if(!UI.sheet) return;
-  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
+  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats & Talents',sheetStats], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
   const [title, fn] = map[UI.sheet];
   $('#sheetTitle').textContent = title;
   const body = $('#sheetBody'), sc = body.scrollTop;
@@ -206,14 +206,19 @@ function sheetGates(){
       <div class="row"><span class="tries">${'●'.repeat(left)}${'○'.repeat(DAILY_TRIES - left)}</span><span class="sp"></span>
       <button class="btn small ${left ? 'primary' : ''}" data-a="startDaily" data-id="${k}" ${left ? '' : 'disabled'}>${left ? 'Enter' : 'Tomorrow'}</button></div></div>`; }).join('')}</div></div>`;
   const rg = currentGate(), rl = rushLevel(), hs0 = heroStats(), rgold = Math.round(goldFor(rl)*RUSH_GOLD*(1 + hs0.gold/100)), rxp = Math.round(xpFor(rl)*TRAIN_XP*(1 + hs0.xp/100));
-  const rush = `<div class="bt" style="margin-bottom:6px">Farm · unlimited · ${rg.name}, enemies like your best floor</div><div class="farmrow">
+  const tb = S.tower.best || 0, tn = tb + 1, trw = towerReward(tn), tfarm = towerReward(Math.max(1, tb));
+  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Climb floor after floor. Higher floors pay more. Every ${TOWER.chestEvery}th floor: elite + chest.</span>
+      <div class="tstat"><span>Best floor <b>${tb}</b></span><span>Next <b>${tn}</b></span></div></div>
+    <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><span class="cur gold">${ICON.gold}<b>${fmt(trw.gold)}</b></span><span class="cur cxp">XP <b>${fmt(trw.xp)}</b></span></button>
+      ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb}</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}</div></div>`;
+  const rush = '' && `<div class="bt" style="margin-bottom:6px">Farm · unlimited · ${rg.name}, enemies like your best floor</div><div class="farmrow">
     <div class="rushcard"><div class="dic">${ICON.gold}</div><div><b>Gold Rush</b><small>No loot, about <b>${fmt(rgold)}</b>+ Gold per win. Buy spirits and enhance gear.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="gold">Farm Gold</button></div>
     <div class="rushcard xp"><div class="dic">${ICON.hero}</div><div><b>Training</b><small>No loot, about <b>${fmt(rxp)}</b>+ XP per win. Stuck on a floor? Level up here.</small></div><span class="sp"></span><button class="btn primary" data-a="startRush" data-id="xp">Train</button></div></div>`;
   return GATES.map(g => {
     const unlocked = rankAtLeast(g.rank), cl = S.gates[g.id]||0, T = THEMES[g.theme];
     let floors = '';
     for(let f=1; f<=FLOORS; f++){
-      const L = g.baseLv + f - 1, rp = floorPower(L + (f===10?2:0)), open = unlocked && f <= cl+1;
+      const L = g.baseLv + f - 1, rp = recPower(g.id, f), open = unlocked && f <= cl+1;
       const cls = !open ? 'lock' : f <= cl ? 'done' : 'next';
       floors += `<button class="floor ${cls} ${f===10?'boss':''} ${f===5||f===8||f===9?'elite':''}" data-a="startGate" data-g="${g.id}" data-f="${f}" ${open?'':'disabled'}>
         <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>`;
@@ -221,14 +226,14 @@ function sheetGates(){
     return `<div class="gatecard ${unlocked?'':'locked'}" style="--a:${T.accent};--b:${T.sky[2]}">
       <div class="gh"><span class="grank r-${g.rank}">${g.rank}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
       <span class="gprog">${unlocked ? (cl > FLOORS ? `Deep ${cl}` : `${Math.min(cl, FLOORS)} / ${FLOORS}`) : `${ICON.lock} Rank ${g.rank}`}</span></div>
-      ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = floorPower(g.baseLv + nd - 1);
+      ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = recPower(g.id, nd);
           return `<div class="deeprow"><div><b>Deep Floors</b><small>Endless floors with stronger enemies and better loot. Boss every 5 floors. Best: ${cl > FLOORS ? cl : '–'}</small></div>
           <button class="btn primary" data-a="startGate" data-g="${g.id}" data-f="${nd}">Floor ${nd} <small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>
           ${cl > FLOORS ? `<button class="btn" data-a="startGate" data-g="${g.id}" data-f="${cl}">Farm ${cl}</button>` : ''}</div>`; })() : ''}
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
         `<div class="hint">Pass the ${RANKS[RANKS.indexOf(g.rank)-1]}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('').replace(/^/, rush + daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
+  }).join('').replace(/^/, towerCard + daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
 }
 
 function sheetArena(){
@@ -237,7 +242,7 @@ function sheetArena(){
   const done = S.arena[rank]||0, tp = teamPower();
   const card = (h, i, isExam) => {
     const beaten = !isExam && i < done, open = isExam ? done >= list.length : i <= done;
-    const p = floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2));
+    const p = Math.round(floorPower(h.lv + (isExam ? 4 : h.rival ? 3 : 2)) * (REC_MULT[rank] || 1));
     return `<div class="hcard ${isExam?'exam':''} ${beaten?'beaten':''} ${open?'':'locked'}">
       <img src="${hunterPortrait(h)}" alt="">
       <div class="hinfo"><small>${isExam ? 'RANK EXAM' : h.rival ? 'RIVAL' : 'Lv ' + h.lv}</small><b>${h.name}</b><span>${h.title} · ${AFF[h.aff].name}</span>
@@ -251,6 +256,32 @@ function sheetArena(){
     ${list.map((h,i) => card(h,i,false)).join('')}${card(exam,0,true)}`;
 }
 
+/* ---------- Stats tab: big numbers, stat points, talent tree ---------- */
+function sheetStats(){
+  const hs = heroStats();
+  const big = [['Max HP', fmt(hs.hp), '#5dff9b'], ['ATK', fmt(hs.atk), '#ff8a5c'], ['DEF', fmt(hs.def), '#9fd8ff'], ['Power', fmt(teamPower()), '#f7c75a']]
+    .map(([k,v,c]) => `<div class="bigstat" style="--c:${c}"><small>${k}</small><b>${v}</b></div>`).join('');
+  const more = [['Crit Rate', hs.crit.toFixed(1)+'%'], ['Crit DMG', Math.round(hs.critDmg)+'%'], ['Attacks / s', (1/hs.interval).toFixed(2)], ['Lifesteal', hs.lifesteal.toFixed(1)+'%'],
+    ['Skill DMG', '+'+hs.skill.toFixed(0)+'%'], ['Spirit DMG', '+'+(hs.petP||0).toFixed(0)+'%'], ['Gold Find', '+'+hs.gold.toFixed(0)+'%'], ['XP Gain', '+'+hs.xp.toFixed(0)+'%']]
+    .map(([k,v]) => `<div class="kv"><span>${k}</span><b>${v}</b></div>`).join('');
+  const stats = Object.entries(STAT_INFO).map(([k,v]) => `<div class="stat"><span class="sk">${v.name}</span><span class="sv">${S.stats[k]}</span><span class="sd">${v.desc}</span>
+    <button class="pbtn" data-a="stat" data-id="${k}" ${S.points?'':'disabled'}>+</button><button class="pbtn" data-a="stat5" data-id="${k}" ${S.points>=5?'':'disabled'}>+5</button></div>`).join('');
+  const free = talentFree();
+  const tree = Object.entries(TALENTS).map(([bk, br]) => `<div class="tbranch" style="--c:${br.color}"><div class="tbh"><b>${br.name}</b><small>${talentSpent(bk)} pts</small></div>
+    ${br.nodes.map((nd, tier) => { const r = (S.talents[nd.id]||0), open = talentOpen(bk, tier), can = open && free > 0 && r < TALENT_MAX;
+      return `<button class="tnode ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= TALENT_MAX ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
+        <span class="tn">${nd.name}</span><span class="tr">${r}/${TALENT_MAX}</span><span class="td">${open ? `${nd.desc} per rank${r ? ` · now +${+(nd.per*r).toFixed(1)}` : ''}` : `Spend ${tier*TALENT_TIER} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
+  return `<div class="bigstats">${big}</div>
+    <div class="cols">
+      <div class="box sys"><div class="bt">STAT POINTS <span class="pts ${S.points?'on':''}">${S.points} free</span></div>
+        <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}
+        <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
+      <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
+    </div>
+    <div class="box"><div class="bt">TALENT TREE <span class="pts ${free?'on':''}">${free} talent point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
+      <div class="hint" style="margin-top:0">1 talent point per level from Lv 3. Each talent has 5 ranks. Spend ${TALENT_TIER} points in a branch to open its next talent.</div>
+      <div class="ttree">${tree}</div></div>`;
+}
 function sheetHero(){
   const hs = heroStats(), a = AFF[S.aff];
   const stats = Object.entries(STAT_INFO).map(([k,v]) => `<div class="stat"><span class="sk">${v.name}</span><span class="sv">${S.stats[k]}</span><span class="sd">${v.desc}</span>
@@ -263,8 +294,7 @@ function sheetHero(){
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
   const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i>${specOf() && specOf().skill.i === i ? ` <i class="up">▲ ${specOf().name}</i>` : ''}<span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
-    <div class="box sys"><div class="bt">STATUS <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
-      <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
+    <div class="box sys"><div class="bt">STATS</div><div class="hint" style="margin-top:0">Stat points, all numbers and the talent tree moved to their own tab.</div><button class="btn primary" data-a="sheet" data-id="stats">Open Stats & Talents ${S.points || talentFree() ? `(${S.points + talentFree()} points free)` : ''}</button></div>
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
   </div>
   <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div>
@@ -389,7 +419,7 @@ function itemDetail(id){
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
-          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant});
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant, talents:S.talents, pets:S.pets});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}</div>
@@ -433,6 +463,7 @@ function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
+    : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
     : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
@@ -466,7 +497,10 @@ function updateBattleHud(){
     el.classList.toggle('dead', u.dead); });
   const boss = BT.boss && !BT.boss.dead && BT.units.includes(BT.boss) ? BT.boss : null;
   const bb = $('#bBoss');
-  if(boss){ bb.classList.add('on'); bb.querySelector('b').textContent = boss.name + (boss.level ? `  ·  Lv ${boss.level}` : ''); bb.querySelector('i').style.width = clamp(boss.hp/boss.maxHp,0,1)*100+'%'; }
+  if(boss){ bb.classList.add('on'); bb.querySelector('b').textContent = boss.name + (boss.level ? `  ·  Lv ${boss.level}` : ''); bb.querySelector('i').style.width = clamp(boss.hp/boss.maxHp,0,1)*100+'%';
+    let br = bb.querySelector('.brk'); if(!br){ bb.insertAdjacentHTML('beforeend', '<div class="brk"><span>BREAK</span><div><i></i></div></div>'); br = bb.querySelector('.brk'); }
+    const broken = boss.brokenT > 0; br.classList.toggle('on', broken); br.querySelector('span').textContent = broken ? 'BROKEN · x2 DMG' : 'BREAK';
+    br.querySelector('i').style.width = (broken ? boss.brokenT/BREAK.time : (boss.breakM||0)/BREAK.hits)*100 + '%'; }
   else bb.classList.remove('on');
 }
 
@@ -483,6 +517,8 @@ function showResult(r){
     const canNext = win;
     btns = `<button class="btn" data-a="leave">Home</button>${win && !isUnlocked('gates') ? '' : `<button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>`}
       ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
+  } else if(BT.mode === 'tower'){
+    btns = `<button class="btn" data-a="leave">Home</button><button class="btn" data-a="retry">${win ? 'Repeat' : 'Retry'}</button>${win ? `<button class="btn primary big-next" data-a="towerNext">FLOOR ${BT.floor + 1} ›</button>` : ''}`;
   } else if(BT.mode === 'rush'){
     btns = `<button class="btn" data-a="leave">Home</button><button class="btn primary" data-a="retry">${win ? 'Farm again' : 'Retry'}</button>`;
   } else if(BT.mode === 'daily'){
@@ -490,12 +526,13 @@ function showResult(r){
     btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
   } else btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}`;
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
-  const autoOn = (BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
+  const autoOn = (BT.mode === 'gate' || BT.mode === 'tower' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
-    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
+    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
+    ${r.chest ? `<div class="rankup chest"><small>TOWER CHEST · FLOOR ${BT.floor}</small><b>🎁 Bonus loot!</b><span>+${r.stones} Mana Stones · +${r.diamonds} Rift Diamond${r.diamonds > 1 ? 's' : ''}</span></div>` : ''}
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
     <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
@@ -504,7 +541,7 @@ function showResult(r){
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
     ${unl}
-    ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'Play <b>Training</b> (XP) or <b>Gold Rush</b> in the Gates tab as often as you like, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}
+    ${!win ? `<div class="tip"><b>Too strong for now?</b> ${isUnlocked('gates') ? 'climb the <b>Training Tower</b> (Gates tab) for Gold + XP, spend talent points in <b>Stats</b>, ' : 'Replay an earlier floor for loot and levels, '}${S.settings.autoSkill ? '' : 'use your skills (1 / 2 / 3) or turn on AUTO FARM, '}${isUnlocked('legion') ? 'buy or level a spirit in the Legion tab, ' : ''}then try again.</div>` : ''}
     <div class="row c">${btns}</div>
     <div class="autobar ${autoOn?'on':''}"><i></i><small>${win ? 'Next fight starts…' : 'Going back one floor…'}  <a data-a="stopFarm">stop</a></small></div>
   </div>`;
@@ -512,7 +549,9 @@ function showResult(r){
   rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
-  if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
+  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; if(S.settings.farm === 'push'){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
+    UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startTower(tf); }, 2600); }
+  else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
   else if(autoOn){
     let floor = BT.floor;
     if(S.settings.farm === 'push'){ if(win) floor++; else if(floor > 1) floor--; }
@@ -572,6 +611,9 @@ function act(a, el){
     case 'quickGate': { const g = currentGate(); startGate(g.id, nextFloor(g)); break; }
     case 'startGate': startGate(el.dataset.g, +el.dataset.f); break;
     case 'startArena': { const i = +el.dataset.i; startArena(S.rank, i, i < 0); break; }
+    case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
+      if(talentFree() > 0 && talentOpen(bk, tier) && (S.talents[id]||0) < TALENT_MAX){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
+    case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
     case 'stat': if(S.points > 0){ S.stats[id]++; S.points--; save(); renderSheet(); renderHome(); } break;
     case 'stat5': if(S.points >= 5){ S.stats[id] += 5; S.points -= 5; save(); renderSheet(); renderHome(); } break;
     case 'item': if(id) itemDetail(id); break;
@@ -605,6 +647,7 @@ function act(a, el){
     case 'buyPetSlot': { const n = S.pets.slots + 1, c = PET_SLOT_COST[n]; if(!c || S.gold < c) break; S.gold -= c; S.pets.slots = n; fillPetSlots(); UI.shownPower = undefined;
       SFX.unlockFx(); toast('NEW SPIRIT SLOT', `You can now use ${n} spirits at once.`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'usePet': { if(!S.pets.owned[id] || S.pets.active.includes(id)) break; if(S.pets.active.length >= S.pets.slots) S.pets.active.pop(); S.pets.active.unshift(id); UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
+    case 'startTower': UI.sheet = null; startTower(+id); break;
     case 'startRush': UI.sheet = null; startRush(id || 'gold'); break;
     case 'party': if(S.comps[id] && !S.party.includes(id) && S.party.length < partySlots()){ S.party.push(id); save(); renderSheet(); renderHome(); } break;
     case 'unparty': S.party = S.party.filter(x => x !== id); save(); renderSheet(); renderHome(); break;
@@ -630,7 +673,8 @@ function act(a, el){
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
-    case 'retry': { cancelAuto(); if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
+    case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
