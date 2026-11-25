@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.1 – Longer Road
+- enemyHp base 800 → 1050, enemyAtk base 44 → 50. Bots: spamskill E→B 43 min, B ~85 min, A ~220 min; pure spam E→B ~200 min.
+
 ### v0.18.0 – Road to S+
 - RANKS extended to E D C B A S SS(S+) M(Master) with rankLabel(); gates B (Abyssal Rift, baseLv 36), A (Tempest Spire, 48), S (Sunken Sun, 60), SS (Eclipse Throne, 72) with 20 new enemy types (new palettes on existing styles), elites and bosses; hunters + exams for B/A/S/SS; S+ exam = Master Trial.
 - Master League (mode arena with BT.master): masterFoe(lv) generator, Lv 1–99, rewards, ladder UI, NEXT button.

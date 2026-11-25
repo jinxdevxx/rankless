@@ -1,12 +1,9 @@
 {
-  "version": "0.18.0",
+  "version": "0.18.1",
   "date": "2026-11-25",
-  "title": "Road to S+",
+  "title": "Longer Road",
   "notes": [
-    "NEW RANKS: B, A, S and S+. Each has its own gate (Abyssal Rift, Tempest Spire, Sunken Sun, Eclipse Throne) with new monsters, an elite and a boss, plus 5 arena hunters and a rank exam.",
-    "NEW: Master League. Beat the Master Trial at S+ and climb from Master Lv 1 to 99. Every level pays Gold, XP, Stones, Diamonds and an item, every 10th level is a wall.",
-    "New gear sets: Abyssborn, Tempest, Solar Crown and Eclipse.",
-    "Slower, longer game: levels need more XP early on (reaching B takes a good while now), while high levels stay reachable so you never fall behind the enemies.",
-    "Recommended Power for the new gates is tuned with test runs. Balancing of the high ranks continues every hour."
+    "Enemies are a bit tougher across all gates, so the road to B-Rank takes a few hours instead of minutes, and the B/A/S gates are real long-term goals.",
+    "Test runs: with skills about 45 test minutes to B-Rank (a few hours for a human), no floor is a wall."
   ]
 }
