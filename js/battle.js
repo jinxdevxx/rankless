@@ -141,7 +141,13 @@ function heroAction(){
   if(!BT || BT.over || BT.cutin || BT.hero.dead) return;
   const h = BT.hero, k = bk();
   const threats = threatsOnHero();
-  const spam = (BT.sincePress ?? 9) < .35; BT.sincePress = 0;   // mashing never parries
+  // time between presses on the battle clock (unaffected by hit-stop and slow motion)
+  const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = gap < .35; BT.lastPress = nowC; BT.sincePress = 0;   // mashing never parries
+  // flow: rhythm builds it, mashing breaks it, long pauses let it fade
+  BT.flow = BT.flow || 0;
+  if(gap < FLOW.min) BT.flow = 0;
+  else if(gap <= FLOW.max_gap){ const before = BT.flow; BT.flow = Math.min(FLOW.max, BT.flow + 1); if(BT.flow === FLOW.max && before < FLOW.max) addText(h, 'MAX FLOW', '#9ff0b8', 26); }
+  else BT.flow = Math.max(0, BT.flow - 1);
   if(threats.length && !spam){
     for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, .9); addText(u, 'PARRIED', '#9fd8ff', 22); }
     const t = threats[0];
@@ -169,6 +175,7 @@ function dealDamage(att, tgt, mult, opt={}){
   let atk = att.atk;
   if(att.buffs.atk) atk *= 1 + att.buffs.atk.v;
   let dmg = atk * mult * rand(.92, 1.08);
+  if(att.kind === 'hero' && BT.flow) dmg *= 1 + BT.flow*FLOW.dmg;
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
@@ -185,7 +192,7 @@ function dealDamage(att, tgt, mult, opt={}){
   const ls = (att.lifesteal||0)/100 + (opt.lifesteal||0);
   if(ls > 0 && !att.dead){ att.hp = Math.min(att.maxHp, att.hp + dmg*ls); }
   if(att.side === 'p'){ BT.combo++; BT.comboT = 2; if(att.kind === 'hero' && !opt.skill){ gainEnergy(ENERGY.hit); BT.ult = Math.min(100, BT.ult + 3); } }
-  if(tgt.kind === 'hero') gainEnergy(ENERGY.hurt);
+  if(tgt.kind === 'hero'){ gainEnergy(ENERGY.hurt); if(dmg > 0 && BT.flow){ BT.flow = 0; addText(tgt, 'FLOW BROKEN', '#ff9b8f', 18); } }
   if(opt.burn) tgt.burn = {dps: atk*opt.burn, t:3, src:att};
   if(opt.stun) stunUnit(tgt, opt.stun);
   if(opt.slow) tgt.slow = Math.max(tgt.slow, opt.slow);
@@ -376,8 +383,11 @@ function stepUnit(u, dt){
       if(p >= 1){ u.state = 'strike'; u.st = 0;
         const col = u.side === 'p' ? (u.kind === 'hero' ? AFF[S.aff].color : u.art.rim) : u.art.rim;
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
-        dealDamage(u, t, u.manual ? .85 : 1, {});
-        if(u.manual){ gainEnergy(ENERGY.strike*specEnergy('strike')); u.manual = false; }
+        if(u.manual && !t.boss && t.kind === 'enemy' && t.hp/t.maxHp < EXECUTE_AT){
+          addText(t, 'EXECUTE', '#ffd27a', 30); BT.slowmo = Math.max(BT.slowmo||0, .22); BT.zoom = Math.max(BT.zoom||0, .04);
+          dealDamage(u, t, 0, {}); t.hp = 0; killUnit(t); gainEnergy(.5);
+        } else dealDamage(u, t, u.manual ? .85 : 1, {});
+        if(u.manual){ gainEnergy(ENERGY.strike*specEnergy('strike')*(1 + (BT.flow||0)*FLOW.energy)); u.manual = false; }
         if(u.boss) BT.shake = Math.max(BT.shake, .18);
       }
       break; }
@@ -403,6 +413,7 @@ function stepUnit(u, dt){
 
 function stepBattle(dt){
   if(!BT) return;
+  BT.clock = (BT.clock || 0) + dt / Math.max(1, S.settings.speed || 1);
   // cut-in slows time
   if(BT.hitstop > 0){ BT.hitstop -= dt; return; }
   if(BT.zoom > 0) BT.zoom = Math.max(0, BT.zoom - dt*.12);
@@ -604,7 +615,9 @@ function renderBattle(t, dt){
 function drawHpBar(c, u, k){
   const w = Math.max(44, u.size*.45)*k, h = 5*Math.max(.8,k), x = u.x - w/2, y = u.y - u.size*k - 12*k;
   c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(x-1, y-1, w+2, h+2);
-  c.fillStyle = u.side === 'p' ? '#5dff9b' : '#ff3d5e'; c.fillRect(x, y, w*clamp(u.hp/u.maxHp,0,1), h);
+  const exe = u.side === 'e' && u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT;
+  c.fillStyle = u.side === 'p' ? '#5dff9b' : exe ? '#ffd27a' : '#ff3d5e'; c.fillRect(x, y, w*clamp(u.hp/u.maxHp,0,1), h);
+  if(exe){ c.save(); c.strokeStyle = '#ffd27a'; c.globalAlpha = .6 + Math.sin(performance.now()/120)*.3; c.lineWidth = 2; c.beginPath(); c.ellipse(u.x, u.y, 34*k, 8*k, 0, 0, 7); c.stroke(); c.restore(); }
   if(u.shield > 0){ c.fillStyle = 'rgba(159,216,255,.8)'; c.fillRect(x, y-3, w*clamp(u.shield/u.maxHp,0,1), 2); }
   if(u.kind === 'enemy' && u.elite){ c.fillStyle = '#ffb02e'; c.font = `700 ${12*Math.max(.8,k)}px Nunito`; c.textAlign = 'center'; c.fillText('ELITE', u.x, y - 4); }
 }

@@ -96,15 +96,15 @@ const ENEMY_TYPES = {
   hound:    {name:'Rift Hound',      style:'beast',    hp:.7,  atk:1.1, spd:1.0, role:'dps',    pal:{body:'#170f22',rim:'#ff2e88',eye:'#ffcf33'}, comp:{hp:.75,atk:.85}, desc:'Fast pack hunter.'},
   spitter:  {name:'Bile Spitter',    style:'blob',     hp:.75, atk:1.2, spd:1.7, role:'ranged', ranged:true, pal:{body:'#112018',rim:'#5dff9b',eye:'#d6ff3a'}, comp:{hp:.7,atk:.9}, desc:'Spits corrosive bile from range.'},
   brute:    {name:'Barnacle Brute',  style:'brute',    hp:2.6, atk:1.4, spd:2.1, role:'tank',   elite:true, pal:{body:'#1b1a28',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:1.7,atk:.7}, desc:'Armored elite. Draws enemy attacks.'},
-  warden:   {name:'Harbor Warden',   style:'warden',   hp:14, atk:2.1, spd:2.3, role:'tank',   boss:true, pal:{body:'#0d1a2c',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:2.2,atk:1.0}, desc:'Lord of the drowned gate.'},
+  warden:   {name:'Harbor Warden',   style:'warden',   hp:11.5, atk:2.0, spd:2.3, role:'tank',   boss:true, pal:{body:'#0d1a2c',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:2.2,atk:1.0}, desc:'Lord of the drowned gate.'},
   crawler:  {name:'Tunnel Crawler',  style:'beast',    hp:.8,  atk:1.15,spd:.95, role:'dps',    pal:{body:'#1e130c',rim:'#ff8a3c',eye:'#ffe14d'}, comp:{hp:.8,atk:.95}, desc:'Skitters through the dark at terrifying speed.'},
   wraith:   {name:'Rail Wraith',     style:'ghost',    hp:.8,  atk:.95, spd:1.6, role:'healer', ranged:true, pal:{body:'#16121f',rim:'#c3a6ff',eye:'#ffffff'}, comp:{hp:.8,atk:.6}, desc:'Heals its weakest ally.'},
   golem:    {name:'Scrap Golem',     style:'golem',    hp:2.8, atk:1.3, spd:2.2, role:'tank',   elite:true, pal:{body:'#221a14',rim:'#ff8a3c',eye:'#ffcf33'}, comp:{hp:1.85,atk:.65}, desc:'Metal and malice. Draws enemy attacks.'},
-  conductor:{name:'The Conductor',   style:'conductor',hp:15, atk:2.3, spd:2.0, role:'dps',    boss:true, pal:{body:'#1a0f0f',rim:'#ff5a3c',eye:'#ffe14d'}, comp:{hp:1.4,atk:1.45}, desc:'The last train never left the station.'},
+  conductor:{name:'The Conductor',   style:'conductor',hp:12, atk:2.2, spd:2.0, role:'dps',    boss:true, pal:{body:'#1a0f0f',rim:'#ff5a3c',eye:'#ffe14d'}, comp:{hp:1.4,atk:1.45}, desc:'The last train never left the station.'},
   fang:     {name:'Frost Fang',      style:'beast',    hp:.85, atk:1.2, spd:.95, role:'dps',    pal:{body:'#0e1a22',rim:'#9fe8ff',eye:'#bff6ff'}, comp:{hp:.85,atk:1.0}, desc:'Its bite freezes blood.'},
   specter:  {name:'Shrine Specter',  style:'ghost',    hp:.85, atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#141824',rim:'#bfe9ff',eye:'#ffffff'}, comp:{hp:.85,atk:.65}, desc:'A restless spirit. Heals its weakest ally.'},
   oni:      {name:'Ice Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
-  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:16, atk:2.4, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
+  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:12.5, atk:2.3, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
 function shardNeed(type){ const t = ENEMY_TYPES[type]; return t.boss ? 40 : t.elite ? 20 : 12; }
 const STAR_COST = [0, 1, 2, 4, 8]; // x shardNeed to reach star i+1
@@ -116,9 +116,9 @@ const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'
 const GATES = [
   {id:'E', rank:'E', name:'Drowned Harbor', baseLv:1,  mult:1,   theme:'harbor', enemies:['husk','hound','spitter'], elite:'brute', boss:'warden',
     desc:'A flooded dock district. The first gate every Breaker fears.'},
-  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.2, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
+  {id:'D', rank:'D', name:'Subway Depths',  baseLv:12, mult:2.35, theme:'subway', enemies:['crawler','wraith','husk'], elite:'golem', boss:'conductor',
     desc:'An abandoned metro line where the last train still runs.'},
-  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.15, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
+  {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:2.0, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
 ];
 const FLOORS = 10;
@@ -187,6 +187,9 @@ const ENERGY = {max:5, start:2, hit:.15, kill:.4, hurt:.1, strike:.3, parry:1};
 const TELE = .6;          // enemies show '!' this long before they attack you
 const HERO_AUTO = 1.6;    // your champion's auto attacks are slower; your own strikes fill the gap
 const STRIKE_CD = .3;
+// Flow: strikes in rhythm (not mashed, not too slow) stack up to FLOW_MAX
+const FLOW = {max:5, min:.35, max_gap:.9, dmg:.06, energy:.1};
+const EXECUTE_AT = .15;   // non-boss enemies below this HP die to one strike
 const ULT_LV = 2;
 const UNLOCKS = {
   bag:   {name:'Inventory',    icon:'bag',    desc:'Your loot lands here. Better gear is equipped for you automatically.',

@@ -392,7 +392,7 @@ function buildBattleHud(){
     (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="fill"></span><b>ULT</b><kbd>R</kbd></button>`
       : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
   $('#bSkills').style.setProperty('--c', a.color);
-  $('#bSkills').innerHTML = `<div class="sk-top"><span class="chain" id="bChain"></span><div class="crys" id="bCrys"><span class="crlbl">CRYSTALS<small id="bCrysN">0/5</small></span>${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div>
+  $('#bSkills').innerHTML = `<div class="sk-top"><span class="flow" id="bFlow"></span><span class="chain" id="bChain"></span><div class="crys" id="bCrys"><span class="crlbl">CRYSTALS<small id="bCrysN">0/5</small></span>${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div>
     <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}</div>
     <div class="sk-hint" id="bHint">Strike to charge crystals · skills cost ◆</div>`;
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
@@ -426,7 +426,9 @@ function updateBattleHud(){
   const th = threatsOnHero().length > 0, sb = $('#bSkills .strike');
   if(sb){ sb.classList.toggle('parry', th); sb.querySelector('b').textContent = th ? 'PARRY!' : 'STRIKE'; }
   const hint = $('#bHint'); if(hint){ const need = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy < SKILL_COST[i]);
-    hint.textContent = th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? 'Strike (Space / tap) to charge crystals' : need >= 0 ? `Skills light up when you have enough ◆` : 'Use a skill! Back-to-back skills = CHAIN bonus'; hint.classList.toggle('warn', th); }
+    hint.textContent = th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? ((BT.flow||0) ? 'Keep the rhythm: steady strikes build FLOW' : 'Strike (Space / tap) in a steady rhythm to build FLOW')
+      : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : need >= 0 ? `Skills light up when you have enough ◆` : 'Use a skill! Back-to-back skills = CHAIN bonus'; hint.classList.toggle('warn', th); }
+  const fl = $('#bFlow'); if(fl){ const n = BT.flow || 0; fl.innerHTML = n ? `FLOW ${'<i></i>'.repeat(n)}${'<s></s>'.repeat(FLOW.max - n)}` : ''; fl.classList.toggle('max', n >= FLOW.max); }
   const ch = $('#bChain'); ch.textContent = BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
   $$('#bSkills .skb').forEach(b => {
     if(b.classList.contains('locked') || b.classList.contains('strike')) return;

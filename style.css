@@ -350,6 +350,13 @@ select{background:rgba(10,14,32,.8);border:1px solid var(--line);border-radius:6
 .affs .aff b{font-size:26px}
 .affs .aff small{font-size:14px;color:#c4cde8}
 
+/* ---------- flow ---------- */
+.flow{display:flex;align-items:center;gap:3px;font-family:"Bebas Neue",sans-serif;font-size:20px;letter-spacing:.08em;color:#9ff0b8}
+.flow i,.flow s{display:inline-block;width:8px;height:14px;border-radius:2px;transform:skewX(-12deg)}
+.flow i{background:#9ff0b8;box-shadow:0 0 8px rgba(159,240,184,.7)}
+.flow s{background:rgba(255,255,255,.15)}
+.flow.max{color:#ffd27a} .flow.max i{background:#ffd27a;box-shadow:0 0 10px rgba(255,210,122,.8)}
+
 /* ---------- breaker crystals ---------- */
 .b-skills{flex-direction:column;align-items:flex-end;gap:8px}
 .sk-row{display:flex;gap:12px;align-items:flex-end}
