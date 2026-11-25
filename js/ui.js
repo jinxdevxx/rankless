@@ -94,7 +94,7 @@ function renderHome(){
       <div class="rank r-${S.rank}">${S.rank}</div>
       <div>
         <div class="pname" style="color:${a.color}">${esc(S.name)}</div>
-        <div class="psub">Lv ${S.level} · ${a.title}</div>
+        <div class="psub">Lv ${S.level} · ${specOf() ? specOf().name : a.title}</div>
         <div class="xp"><i style="width:${(S.xp/xpNeed(S.level)*100).toFixed(1)}%"></i></div>
       </div>
       <div class="cp"><small>POWER</small><b>${fmt(teamPower())}</b></div>
@@ -242,7 +242,7 @@ function sheetHero(){
   const slots = SLOTS.map(sl => { const it = S.eq[sl];
     return `<button class="slot ${it?'has':''}" style="--r:${it?RARITY[it.rar].color:'#2a3150'}" data-a="${it?'item':'sheet'}" data-id="${it?it.id:'bag'}">
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
-  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i><span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
+  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i>${specOf() && specOf().skill.i === i ? ` <i class="up">▲ ${specOf().name}</i>` : ''}<span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
     <div class="box sys"><div class="bt">STATUS <span class="pts ${S.points?'on':''}">${S.points} points</span></div>
       <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
@@ -251,9 +251,19 @@ function sheetHero(){
   <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div>
     ${(() => { const sc = setCounts(S.eq); const ids = Object.keys(sc); if(!ids.length) return '<div class="hint">Epic and better items from each gate can belong to a set. Wear 2 or 4 pieces for bonuses.</div>';
       return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
+  ${jobBox()}
   <div class="box"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
 
+function jobBox(){
+  const list = SPECS[S.aff] || [], cur = specOf();
+  if(!isUnlocked('job')) return `<div class="box"><div class="bt">JOB CHANGE</div><div class="hint">Reach <b>Rank C</b> to choose a specialization with a new passive bonus and a stronger skill.</div></div>`;
+  const cost = Math.round(goldFor(S.level)*40);
+  return `<div class="box sys"><div class="bt">JOB CHANGE ${cur ? `<span class="pts on">${cur.name}</span>` : ''}</div><div class="jobs">${list.map(sp => {
+    const on = cur && cur.id === sp.id, sk = AFF[S.aff].skills[sp.skill.i];
+    return `<div class="job ${on ? 'on' : ''}"><b>${sp.name}</b><small>${sp.desc}</small><span class="perk">${sp.perk} · upgrades <i>${sk.name}</i></span>
+      ${on ? '<span class="tag">ACTIVE</span>' : `<button class="btn small ${cur ? '' : 'primary'}" data-a="chooseSpec" data-id="${sp.id}" ${cur && S.gold < cost ? 'disabled' : ''}>${cur ? `Switch (${fmt(cost)} Gold)` : 'Choose'}</button>`}</div>`; }).join('')}</div></div>`;
+}
 function itemCard(it, eq){
   return `<button class="icard ${it.isNew?'new':''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
     ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}</button>`;
@@ -503,6 +513,9 @@ function act(a, el){
     case 'starUp': { const st = S.comps[id], need = shardNeed(id)*STAR_COST[st];
       if(st < MAX_STARS && (S.shards[id]||0) >= need){ S.shards[id] -= need; S.comps[id]++; toast('STAR UP', `${ENEMY_TYPES[id].name} is now ${S.comps[id]}★`, 'gold'); save(); renderSheet(); renderHome(); } break; }
     case 'skill': useSkill(+id); break;
+    case 'chooseSpec': { if(!isUnlocked('job')) break; const cost = Math.round(goldFor(S.level)*40);
+      if(S.spec){ if(S.gold < cost) break; S.gold -= cost; }
+      S.spec = id; save(); SFX.unlockFx(); toast('JOB CHANGE', `You are now a ${specOf().name}.`, 'gold'); renderSheet(); renderHome(); break; }
     case 'strike': heroAction(); break;
     case 'ult': useUlt(); break;
     case 'speed': S.settings.speed = S.settings.speed >= 3 ? 1 : S.settings.speed + 1; syncFarmUI(); save(); break;

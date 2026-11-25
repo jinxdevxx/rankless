@@ -17,11 +17,17 @@
 - Loot: 7 slots, 5 rarities, random bonus stats, enhance to +15, item sets (Tidecaller, Railbreaker, Frostbound)
 - Legion: bind monsters with Soul Shards and raise their stars
 - Hunter Arena with rival and Rank Exams (E to B)
+- Job Change at Rank C: 2 specializations per power
 - Features unlock step by step; auto-equip and auto stats (both optional)
 - Offline farming, sound effects and music, live patch notifications
 
 ## Changelog
 Every change to the game is listed here. Newest first.
+
+### v0.9.0 – Job Change
+- Job Change unlocks at Rank C with two specializations per power (8 jobs in total).
+- Each job adds a passive bonus and upgrades one skill; switching later costs Gold.
+- Code: `SPECS`, `specOf()`, `skillDef()` and `specEnergy()` in `js/data.js`; job stats applied in `calcStats()`.
 
 ### v0.8.2 – Smooth Updates
 - "Update now" reloads with fresh files so the new version really loads.

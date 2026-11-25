@@ -202,7 +202,7 @@ function killUnit(u){
   u.dead = true; u.hp = 0; u.state = 'dead'; u.deathT = 0;
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
-    BT.kills++; gainEnergy(ENERGY.kill); SFX.kill(u.boss);
+    BT.kills++; gainEnergy(ENERGY.kill + specEnergy('kill')); SFX.kill(u.boss);
     BT.streak = (BT.streakT > 0 ? (BT.streak||0) : 0) + 1; BT.streakT = 1.2;
     if(BT.streak >= 2) BT.banner = {txt: ['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'MASSACRE'][Math.min(4, BT.streak)], t:1.1, c: BT.streak >= 4 ? '#ff7a59' : '#ffd27a'};
     const hs = heroStats();
@@ -235,7 +235,7 @@ function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT
 function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)) return;
-  const sk = AFF[S.aff].skills[i];
+  const sk = skillDef(i);
   BT.energy -= SKILL_COST[i]; BT.gcd = .45; SFX.skill(S.aff);
   BT.ult = Math.min(100, BT.ult + SKILL_COST[i]*12);
   // chain: skills used back-to-back hit harder
@@ -372,7 +372,7 @@ function stepUnit(u, dt){
         const col = u.side === 'p' ? (u.kind === 'hero' ? AFF[S.aff].color : u.art.rim) : u.art.rim;
         BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:Math.max(40, t.size*.6)*k, rot: u.side === 'p' ? -.5 : 2.6, c:col, life:.22, max:.22});
         dealDamage(u, t, u.manual ? .85 : 1, {});
-        if(u.manual){ gainEnergy(ENERGY.strike); u.manual = false; }
+        if(u.manual){ gainEnergy(ENERGY.strike*specEnergy('strike')); u.manual = false; }
         if(u.boss) BT.shake = Math.max(BT.shake, .18);
       }
       break; }

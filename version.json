@@ -1,11 +1,11 @@
 {
-  "version": "0.8.2",
+  "version": "0.9.0",
   "date": "2026-11-25",
-  "title": "Smooth Updates",
+  "title": "Job Change",
   "notes": [
-    "Update now reloads with fresh files, so the new version really loads.",
-    "If the server still delivers the old version for a moment, the game retries quietly instead of popping up again.",
-    "The big update popup appears only once per version. The banner stays until you update.",
-    "Wrong addresses inside the game's site now lead back to the game instead of a 404 page."
+    "Job Change unlocks at Rank C: pick one of two specializations for your power.",
+    "Flame: Inferno Lord or Phoenix Blade. Storm: Thunder God or Tempest Dancer. Void: Abyss Warden or Void Reaper. Blood: Crimson Berserker or Blood Sovereign.",
+    "Each job gives a passive bonus and makes one skill stronger (more damage, more hits, longer buffs or extra crystals).",
+    "Your job is shown under your name and in the Champion screen. Switching later costs Gold."
   ]
 }

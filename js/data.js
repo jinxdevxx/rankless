@@ -183,5 +183,45 @@ const UNLOCKS = {
           hint:'Collect 12 Soul Shards of one monster', prog:() => Object.keys(S.comps).length ? 1 : Math.max(0, ...Object.keys(S.shards).map(k => (S.shards[k]||0)/shardNeed(k)))},
   arena: {name:'Hunter Arena', icon:'arena',  desc:'Beat hunters and pass the Rank Exam to climb to the next rank.',
           hint:'Defeat the Harbor Warden (Floor 10)', prog:() => (S.gates.E||0)/10},
+  job:   {name:'Job Change',   icon:'hero',   desc:'Choose a specialization for your power: a new passive bonus and a stronger skill.',
+          hint:'Reach Rank C', prog:() => RANKS.indexOf(S.rank) >= 2 ? 1 : RANKS.indexOf(S.rank)/2},
 };
-const UNLOCK_ORDER = ['bag','hero','gates','legion','arena'];
+const UNLOCK_ORDER = ['bag','hero','gates','legion','arena','job'];
+
+/* ---------- job change (Rank C) ----------
+   stats: added to your champion   skill: changes one skill (index, multiplier factor, extra fields)
+   energy: crystal gain modifiers */
+const SPECS = {
+  flame:[
+    {id:'inferno', name:'Inferno Lord',   desc:'Master of wide fire. Inferno Ring hits 50% harder and burns longer.', stats:{skill:15},           skill:{i:1, mult:1.5, burn:.3}, perk:'+15% Skill DMG'},
+    {id:'phoenix', name:'Phoenix Blade',  desc:'A duelist reborn in flame. Ember Slash hits 60% harder and heals you.', stats:{crit:10, critDmg:20}, skill:{i:0, mult:1.6, lifesteal:.3}, perk:'+10% Crit Rate, +20% Crit DMG'},
+  ],
+  storm:[
+    {id:'thunder', name:'Thunder God',    desc:'Lightning obeys you. Chain Storm jumps 3 more times.',              stats:{skill:20},           skill:{i:1, hits:3}, perk:'+20% Skill DMG'},
+    {id:'tempest', name:'Tempest Dancer', desc:'Never stop moving. Strikes charge 40% more crystals.',                stats:{spd:15},             energy:{strike:1.4}, skill:{i:0, mult:1.3}, perk:'+15% Attack Speed'},
+  ],
+  void:[
+    {id:'warden',  name:'Abyss Warden',   desc:'An unbreakable wall. Shadow Veil shields 60% more.',                stats:{hpP:20, def:15},     skill:{i:2, shield:1.6}, perk:'+20% HP, +15 DEF'},
+    {id:'reaper',  name:'Void Reaper',    desc:'Every death feeds you. Kills give +0.5 crystal, Void Pierce hits 40% harder.', stats:{atkP:10},  energy:{kill:.5}, skill:{i:0, mult:1.4}, perk:'+10% ATK'},
+  ],
+  blood:[
+    {id:'berserker', name:'Crimson Berserker', desc:'Rage without end. Berserk lasts 4s longer and grants more ATK.', stats:{atkP:12},          skill:{i:2, dur:4, atk:.2}, perk:'+12% ATK'},
+    {id:'sovereign', name:'Blood Sovereign',   desc:'Rule through blood. Blood Rain hits 40% harder.',               stats:{lifesteal:6, hpP:10}, skill:{i:1, mult:1.4}, perk:'+6% Lifesteal, +10% HP'},
+  ],
+};
+function specOf(){ const list = SPECS[S.aff] || []; return list.find(x => x.id === S.spec) || null; }
+/* a skill with your job's changes applied */
+function skillDef(i){
+  const base = AFF[S.aff].skills[i], sp = specOf();
+  if(!sp || !sp.skill || sp.skill.i !== i) return base;
+  const m = sp.skill, sk = Object.assign({}, base);
+  if(m.mult) sk.mult = base.mult * m.mult;
+  if(m.hits) sk.hits = (base.hits || 1) + m.hits;
+  if(m.burn) sk.burn = (base.burn || 0) + m.burn;
+  if(m.lifesteal) sk.lifesteal = (base.lifesteal || 0) + m.lifesteal;
+  if(m.shield) sk.shield = base.shield * m.shield;
+  if(m.dur) sk.dur = base.dur + m.dur;
+  if(m.atk) sk.atk = (base.atk || 0) + m.atk;
+  return sk;
+}
+function specEnergy(k){ const sp = specOf(); return sp && sp.energy && sp.energy[k] || (k === 'kill' ? 0 : 1); }

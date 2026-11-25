@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [ ] Game shows 404: repo was set to private, GitHub Pages (free plan) only works for public repos. Waiting for the player to make it public or choose other hosting.
 - [x] Simpler, better-looking start (v0.4.0)
 - [x] Manual skills instead of auto, more creative skill resource (v0.5.0: Breaker Crystals)
 - [x] Clear in-game update notification (v0.5.0)
@@ -19,12 +20,12 @@ Open requests from the player come first. Every development round starts here.
 - [ ] Keep balancing after every gameplay change (bot runs)
 
 ## Done recently
+- Job Change at Rank C (v0.9.0)
 - Combat feel: hit-stop, multi-kills, K.O. finisher, boss phases (v0.8.1)
 - Daily Gates (v0.8.0)
 - Item sets (v0.8.0)
 
 ## Next up
-- Job Change at Rank C
 
 ## Planned
 - Job Change at Rank C, skill tree

@@ -131,6 +131,7 @@ function calcStats(src){
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
+  if(src === S && S.spec){ const sp = specOf(); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
     if(sc[id] >= 2) for(const k in st.b2) o[k] += st.b2[k];
