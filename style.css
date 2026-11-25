@@ -846,3 +846,6 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .big-next .cd{display:inline-grid;place-items:center;width:26px;height:26px;margin-left:6px;border-radius:50%;background:rgba(0,0,0,.25);font:400 18px "Bebas Neue",sans-serif;animation:cdpulse 1s ease-in-out infinite}
 @keyframes cdpulse{50%{transform:scale(1.15)}}
 #bResult .autobar.on small{font-size:14px;font-weight:800}
+
+.tnode .td .tnx{color:#b9ffcf;font-weight:900}
+.tnode .td .tpw{color:#ffd27a;font-weight:900}

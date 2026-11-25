@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.17.3 – Stronger Talents
+- TALENT_W front-loads talent ranks (x2 for ranks 1–3, x0.6 for 8–10); Sharp Blade 4 %/rank, Tough 5 %/rank; talentNext() shows real stat and power gain.
+- Tower mobs: theme palette, size variance, MOB_AFFIXES with aura + name tag + reward bonus; towerMod() uses an integer hash.
+
 ### v0.17.2 – Keep Climbing
 - Tower auto-continue also when AUTO FARM / AUTO ATTACK is on (towerAuto), 3 s countdown on the next-floor button and in the auto bar (autoCountdown); loss steps one floor down.
 

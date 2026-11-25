@@ -49,14 +49,14 @@ const MAX_PLUS = 15;
 const TALENT_MAX = 10;
 const TALENTS = {
   might:  {name:'Might',   color:'#ff8a5c', nodes:[
-    {id:'blade',  name:'Sharp Blade',  stat:'atkP',     per:2,   max:10, req:0,  desc:'+2% ATK'},
+    {id:'blade',  name:'Sharp Blade',  stat:'atkP',     per:4,   max:10, req:0,  desc:'+4% ATK'},
     {id:'eye',    name:'Keen Eye',     stat:'crit',     per:.6,  max:10, req:5,  desc:'+0.6% Crit Rate'},
     {id:'brutal', name:'Brutal Hits',  stat:'critDmg',  per:4,   max:10, req:10, desc:'+4% Crit DMG'},
     {id:'arts',   name:'Rift Arts',    stat:'skill',    per:4,   max:10, req:15, desc:'+4% Skill DMG'},
     {id:'k_berserk', name:'Berserker', key:'berserk',   max:1,   req:20, desc:'KEYSTONE: +25% damage while below 50% HP'},
     {id:'k_exec',    name:'Executioner', key:'exec',    max:1,   req:30, desc:'KEYSTONE: +50% damage to enemies below 30% HP'}]},
   guard:  {name:'Guard',   color:'#7fd8ff', nodes:[
-    {id:'tough',  name:'Tough',        stat:'hpP',      per:3,   max:10, req:0,  desc:'+3% HP'},
+    {id:'tough',  name:'Tough',        stat:'hpP',      per:5,   max:10, req:0,  desc:'+5% HP'},
     {id:'iron',   name:'Iron Skin',    stat:'defP',     per:5,   max:10, req:5,  desc:'+5% DEF'},
     {id:'leech',  name:'Blood Thirst', stat:'lifesteal',per:.5,  max:10, req:10, desc:'+0.5% Lifesteal'},
     {id:'giant',  name:'Bulwark',      stat:'dr',       per:1.2, max:10, req:15, desc:'-1.2% damage taken'},
@@ -70,6 +70,12 @@ const TALENTS = {
     {id:'k_treasure', name:'Treasure Sense', key:'treasure', max:1, req:20, desc:'KEYSTONE: elite and boss floors drop 1 extra item'},
     {id:'k_crystal',  name:'Ki Heart',       key:'crystal',  max:1, req:30, desc:'KEYSTONE: start every fight with +40 Ki'}]},
 };
+/* front-loaded ranks: the first 3 ranks are worth double, ranks 8-10 a bit less, so every early point is felt */
+const TALENT_W = [2, 2, 2, 1, 1, 1, 1, .6, .6, .6];
+function talentValue(nd, r){ let v = 0; for(let i = 0; i < Math.min(r, TALENT_W.length); i++) v += TALENT_W[i]*nd.per; return v; }
+/* which hero stat a talent finally changes (for showing real numbers) */
+const TALENT_SHOW = {atkP:['atk','ATK'], hpP:['hp','HP'], defP:['def','DEF'], crit:['crit','% Crit'], critDmg:['critDmg','% Crit DMG'], skill:['skill','% Skill DMG'],
+  lifesteal:['lifesteal','% Lifesteal'], dr:['dr','% less damage'], gold:['gold','% Gold'], xp:['xp','% XP'], petP:['petP','% Spirit DMG'], spd:['spd','% Atk Speed']};
 function talentNodes(){ return Object.values(TALENTS).flatMap(b => b.nodes); }
 function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)); }
 function talentSpent(br){ let n = 0; for(const b in TALENTS) if(!br || b === br) for(const nd of TALENTS[b].nodes) n += (S.talents && S.talents[nd.id]) || 0; return n; }
@@ -233,6 +239,15 @@ const E_EASE = [0, .35, .42, .48, .54, .6, .66, .72, .78, .84, .9];
    Every 5th floor has an elite and a chest on first clear. */
 const TOWER = {lvPer:.9, gold:16, xp:12, ease:.8, chestEvery:5};
 /* floor modifiers keep the climb fresh (elite/boss floors have none) */
+/* tower monster affixes: visible aura + name tag + a small twist (chance grows with the floor) */
+const MOB_AFFIXES = [
+  {id:'blazing',  name:'Blazing',  color:'#ff7a3c', atk:1.15},
+  {id:'armored',  name:'Armored',  color:'#c9d6ee', hp:1.3},
+  {id:'swift',    name:'Swift',    color:'#7fe0ff', spd:1.3},
+  {id:'vampiric', name:'Vampiric', color:'#ff3d6a', lifesteal:12},
+  {id:'giant',    name:'Giant',    color:'#ffd27a', hp:1.5, size:1.3},
+  {id:'shadow',   name:'Shadow',   color:'#b48cff', atk:1.1, hp:1.1},
+];
 const TOWER_MODS = [
   {id:'gold',   name:'Golden',      icon:'🪙', desc:'x2 Gold',                       gold:2,   xp:1,   hp:1,   spd:1},
   {id:'giant',  name:'Giants',      icon:'🗿', desc:'Enemies +40% HP · x1.6 XP',     gold:1,   xp:1.6, hp:1.4, spd:1},
@@ -240,7 +255,7 @@ const TOWER_MODS = [
   {id:'frenzy', name:'Frenzy',      icon:'⚡', desc:'Enemies 25% faster · x1.5 rewards', gold:1.5, xp:1.5, hp:1, spd:1.25},
   {id:'spirit', name:'Spirit Surge',icon:'✨', desc:'Your spirits deal x2 damage',   gold:1.1, xp:1.1, hp:1, spd:1, pet:2},
 ];
-function towerMod(f){ if(f % 5 === 0) return null; return TOWER_MODS[(f*7 + 3) % TOWER_MODS.length]; }
+function towerMod(f){ if(f % 5 === 0) return null; let h = Math.imul(f ^ (f >>> 16), 0x45d9f3b); h = Math.imul(h ^ (h >>> 16), 0x45d9f3b); h ^= h >>> 16; return TOWER_MODS[(h >>> 0) % TOWER_MODS.length]; }
 function towerLevel(f){ return Math.max(1, Math.round(1 + (f - 1)*TOWER.lvPer)); }
 function towerGate(f){ const L = towerLevel(f); return L >= 24 ? GATES[2] : L >= 12 ? GATES[1] : GATES[0]; }
 function towerReward(f){ const L = towerLevel(f); return {gold:Math.round(goldFor(L)*TOWER.gold), xp:Math.round(xpFor(L)*TOWER.xp)}; }

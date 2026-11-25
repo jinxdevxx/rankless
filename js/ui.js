@@ -264,6 +264,18 @@ function sheetArena(){
 }
 
 /* ---------- Stats tab: big numbers, stat points, talent tree ---------- */
+/* real numbers: what the NEXT rank of a talent gives you right now */
+function talentNext(nd, r){
+  const now = talentValue(nd, r), name = nd.desc.replace(/^\+[\d.]+%? ?/, '');
+  if(r >= nd.max) return `Maxed · +${+now.toFixed(1)}% ${name}`;
+  const sh = TALENT_SHOW[nd.stat], cur = heroStats();
+  const t2 = Object.assign({}, S.talents, {[nd.id]: r + 1});
+  const nx = calcStats({level:S.level, stats:S.stats, eq:S.eq, spec:S.spec, enchant:S.enchant, talents:t2, pets:S.pets});
+  const d = sh ? nx[sh[0]] - cur[sh[0]] : 0, abs = sh && (sh[0] === 'atk' || sh[0] === 'hp' || sh[0] === 'def');
+  const gain = abs ? `+${fmt(d)} ${sh[1]}` : `+${(+d.toFixed(1))}${sh ? sh[1] : ''}`;
+  const pw = powerOf(nx) - powerOf(cur);
+  return `<b class="tnx">Next: ${gain}</b>${pw >= 1 ? ` <b class="tpw">(+${fmt(pw)} Power)</b>` : ''}${r ? ` · now +${+now.toFixed(1)}%` : ''}`;
+}
 function sheetStats(){
   const hs = heroStats();
   const big = [['Max HP', fmt(hs.hp), '#5dff9b'], ['ATK', fmt(hs.atk), '#ff8a5c'], ['DEF', fmt(hs.def), '#9fd8ff'], ['Power', fmt(teamPower()), '#f7c75a']]
@@ -277,7 +289,7 @@ function sheetStats(){
   const tree = Object.entries(TALENTS).map(([bk, br]) => `<div class="tbranch" style="--c:${br.color}"><div class="tbh"><b>${br.name}</b><small>${talentSpent(bk)} pts</small></div>
     ${br.nodes.map(nd => { const r = (S.talents[nd.id]||0), open = talentOpenNode(bk, nd), can = open && free > 0 && r < nd.max;
       return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
-        <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? `${nd.desc}${nd.key ? '' : ' per rank'}${r && !nd.key ? ` · now +${+(nd.per*r).toFixed(1)}` : ''}` : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
+        <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? (nd.key ? nd.desc : talentNext(nd, r)) : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
   return `<div class="bigstats">${big}</div>
     <div class="cols">
       <div class="box sys"><div class="bt">STAT POINTS <span class="pts ${S.points?'on':''}">${S.points} free</span></div>
@@ -286,7 +298,7 @@ function sheetStats(){
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
     <div class="box"><div class="bt">TALENT TREE <span class="pts ${free?'on':''}">${free} talent point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
-      <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks, ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
+      <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
       <div class="ttree">${tree}</div></div>`;
 }
 function sheetHero(){

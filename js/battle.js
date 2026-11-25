@@ -147,12 +147,29 @@ function newBattle(o){
   ((S.pets && S.pets.active) || []).forEach((id, i) => { const lv = S.pets.owned[id]; if(lv && PETS[id]) b.units.push(prep(petUnit(id, lv, i + 1))); });
   return b;
 }
+/* tower monsters wear the colours of the place they live in, vary in size and can carry an affix */
+function decorateTowerMob(u){
+  const th = THEMES[BT.theme]; if(!th) return;
+  u.art = Object.assign({}, u.art, {body:mixHex(u.art.body, th.sky[1], .35), rim:mixHex(u.art.rim, th.accent, .55), eye:th.accent2});
+  if(!u.boss) u.size *= u.elite ? 1.15 : rand(.9, 1.12);
+  const chance = Math.min(.6, .12 + BT.floor*.015);
+  if(!u.boss && Math.random() < (u.elite ? 1 : chance)){
+    const a = pick(MOB_AFFIXES); u.affix = a; u.auraC = a.color;
+    if(a.hp){ u.maxHp *= a.hp; u.hp = u.maxHp; }
+    if(a.atk) u.atk *= a.atk;
+    if(a.spd) u.interval /= a.spd;
+    if(a.lifesteal) u.lifesteal = a.lifesteal;
+    if(a.size) u.size *= a.size;
+    u.goldVal = (u.goldVal||0)*1.3; u.xpVal = (u.xpVal||0)*1.3;
+  }
+}
 function spawnWave(){
   BT.waveIdx++;
   const wave = BT.waves[BT.waveIdx]; if(!wave) return;
   let slot = 0;
   wave.forEach(type => {
     const u = prep(enemyUnit(type, BT.L, ENEMY_TYPES[type].boss ? 0 : slot++));
+    if(BT.mode === 'tower') decorateTowerMob(u);
     if(u.boss){ BT.boss = u; slot = 1; }
     BT.units.push(u);
   });
@@ -737,6 +754,10 @@ function renderBattle(t, dt){
     const windup = !u.dead && u.side === 'e' && u.state === 'idle' && u.tele && (u.interval - u.timer) <= TELE;
     const pose = u.dead ? 'hurt' : (u.state === 'dash' || u.state === 'strike' || u.state === 'skill') ? 'lunge' : u.state === 'cast' ? 'cast' : u.flash > 0 ? 'hurt' : windup ? 'windup' : 'idle';
     const alpha = u.dead ? clamp(1 - u.deathT/.8, 0, 1) : 1;
+    if(u.auraC && !u.dead){ const ay = u.y - u.size*k*.45, ar = u.size*k*(.62 + Math.sin(t*3 + u.slot)*.04);
+      const ag = c.createRadialGradient(u.x, ay, ar*.2, u.x, ay, ar); ag.addColorStop(0, u.auraC + '55'); ag.addColorStop(1, u.auraC + '00');
+      c.fillStyle = ag; c.beginPath(); c.arc(u.x, ay, ar, 0, 7); c.fill();
+      c.save(); c.strokeStyle = u.auraC; c.globalAlpha = .55; c.lineWidth = 2; c.beginPath(); c.ellipse(u.x, u.y, u.size*k*.42, u.size*k*.09, 0, 0, 7); c.stroke(); c.restore(); }
     if(u.enraged && !u.dead){ const rg = c.createRadialGradient(u.x, u.y - u.size*k*.5, 10, u.x, u.y - u.size*k*.5, u.size*k*.8);
       rg.addColorStop(0, 'rgba(255,90,60,.35)'); rg.addColorStop(1, 'rgba(255,90,60,0)'); c.fillStyle = rg; c.fillRect(u.x - u.size*k, u.y - u.size*k*1.4, u.size*k*2, u.size*k*1.6); }
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
@@ -786,6 +807,7 @@ function renderBattle(t, dt){
 }
 function drawHpBar(c, u, k){
   const w = Math.max(44, u.size*.45)*k, h = 5*Math.max(.8,k), x = u.x - w/2, y = u.y - u.size*k - 12*k;
+  if(u.affix){ c.save(); c.font = `900 ${11*Math.max(.85,k)}px Nunito`; c.textAlign = 'center'; c.fillStyle = u.affix.color; c.shadowColor = '#000'; c.shadowBlur = 4; c.fillText(u.affix.name.toUpperCase(), u.x, y - 5); c.restore(); }
   c.fillStyle = 'rgba(0,0,0,.65)'; c.fillRect(x-1, y-1, w+2, h+2);
   const exe = u.side === 'e' && u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT;
   c.fillStyle = u.side === 'p' ? '#5dff9b' : exe ? '#ffd27a' : '#ff3d5e'; c.fillRect(x, y, w*clamp(u.hp/u.maxHp,0,1), h);

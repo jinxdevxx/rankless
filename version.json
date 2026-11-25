@@ -1,9 +1,11 @@
 {
-  "version": "0.17.2",
+  "version": "0.17.3",
   "date": "2026-11-25",
-  "title": "Keep Climbing",
+  "title": "Stronger Talents",
   "notes": [
-    "Training Tower: with AUTO FARM or AUTO ATTACK on, the next floor starts by itself after a win. A 3-second countdown runs on the button, press stop (or any button) to stay.",
-    "After a loss the tower goes back one floor automatically, so auto farming never gets stuck."
+    "Talent points feel stronger early: the first 3 ranks of every talent count double, Sharp Blade and Tough give more.",
+    "Each talent shows what the next point really gives you, e.g. 'Next: +8 ATK (+59 Power)'.",
+    "Training Tower monsters wear the colours of their place, vary in size and often carry affixes with glowing auras: Giant, Shadow, Vampiric, Blazing, Armored, Swift (more rewards).",
+    "Tower floor modifiers are now truly mixed."
   ]
 }

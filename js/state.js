@@ -140,7 +140,7 @@ function calcStats(src){
     for(const a of it.affixes) o[a.k] += a.v;
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
-  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat) o[nd.stat] += nd.per*r; }
+  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat) o[nd.stat] += talentValue(nd, r); }
   o.dr = Math.min(40, o.dr);
   if(src.pets) for(const id of src.pets.active || []){ const lv = src.pets.owned[id]; if(lv && PETS[id]) o[PETS[id].bonus] += petBonus(id, lv); }
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
