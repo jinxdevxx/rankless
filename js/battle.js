@@ -173,6 +173,7 @@ function dealDamage(att, tgt, mult, opt={}){
   dmg = Math.max(0, dmg);
   tgt.hp -= dmg; tgt.flash = .1;
   if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
+  if(dmg > 0 && att.side === 'p' && (crit || opt.skill)){ BT.hitstop = Math.max(BT.hitstop||0, crit && opt.skill ? .07 : .035); BT.zoom = Math.max(BT.zoom||0, opt.skill ? .03 : .018); }
   if(dmg > 0){
     const big = opt.skill || crit;
     addText(tgt, fmt(dmg), tgt.side === 'p' ? '#ff6b7a' : crit ? '#ffd166' : opt.color || '#ffffff', big ? (crit ? 34 : 28) : 22, crit);
@@ -202,6 +203,8 @@ function killUnit(u){
   burst(u.x, u.y - u.size*bk()*.5, u.art.rim, 22);
   if(u.side === 'e'){
     BT.kills++; gainEnergy(ENERGY.kill); SFX.kill(u.boss);
+    BT.streak = (BT.streakT > 0 ? (BT.streak||0) : 0) + 1; BT.streakT = 1.2;
+    if(BT.streak >= 2) BT.banner = {txt: ['', '', 'DOUBLE KILL', 'TRIPLE KILL', 'MASSACRE'][Math.min(4, BT.streak)], t:1.1, c: BT.streak >= 4 ? '#ff7a59' : '#ffd27a'};
     const hs = heroStats();
     BT.gold += (u.goldVal||0) * (1 + hs.gold/100);
     BT.xp += (u.xpVal||0) * (1 + hs.xp/100);
@@ -322,6 +325,12 @@ function stepUnit(u, dt){
   if(u.flash > 0) u.flash -= dt;
   for(const b in u.buffs){ u.buffs[b].t -= dt; if(u.buffs[b].t <= 0) delete u.buffs[b]; }
   if(u.dead){ u.deathT += dt; return; }
+  if(u.boss && u.kind === 'enemy' && BT.mode === 'gate'){
+    const r = u.hp/u.maxHp;
+    if(!u.enraged && r < .5){ u.enraged = true; u.interval *= .72; u.atk *= 1.15; BT.banner = {txt:'ENRAGED!', t:1.4, c:'#ff7a59'}; BT.shake = .5; addText(u, 'ENRAGED', '#ff7a59', 30); }
+    if(!u.summoned && r < .3){ u.summoned = true; const pool = BT.gate.enemies;
+      for(let i=1;i<=2;i++){ const add = prep(enemyUnit(pick(pool), BT.L, i)); BT.units.push(add); } BT.banner = {txt:'REINFORCEMENTS', t:1.3, c:'#ffd27a'}; }
+  }
   if(u.burn){ u.burn.t -= dt; const d = u.burn.dps*dt; u.hp -= d; u.burnTick = (u.burnTick||0) + d;
     if(u.burnTick > u.maxHp*.02){ addText(u, fmt(u.burnTick), '#ff9a3c', 16); u.burnTick = 0; }
     if(Math.random() < dt*12) BT.fx.push({k:'p', x:u.x + rand(-15,15)*k, y:u.y - rand(10,u.size*.8)*k, vx:0, vy:-60, c:'#ff8a3c', life:.5, max:.5});
@@ -389,6 +398,11 @@ function stepUnit(u, dt){
 function stepBattle(dt){
   if(!BT) return;
   // cut-in slows time
+  if(BT.hitstop > 0){ BT.hitstop -= dt; return; }
+  if(BT.zoom > 0) BT.zoom = Math.max(0, BT.zoom - dt*.12);
+  if(BT.streakT > 0) BT.streakT -= dt;
+  if(BT.banner){ BT.banner.t -= dt; if(BT.banner.t <= 0) BT.banner = null; }
+  if(BT.koT > 0) BT.koT -= dt;
   if(BT.slowmo > 0){ BT.slowmo -= dt; dt *= .3; }
   if(BT.strikeCd > 0) BT.strikeCd -= dt;
   BT.sincePress = (BT.sincePress ?? 9) + dt;
@@ -443,7 +457,7 @@ function stepBattle(dt){
   const enemiesLeft = alive('e').length;
   if(!enemiesLeft && !BT.pending.length){
     if(BT.mode === 'gate' && BT.waveIdx < BT.waves.length-1){ BT.nextWaveT = (BT.nextWaveT ?? .6) - dt; if(BT.nextWaveT <= 0){ BT.nextWaveT = undefined; spawnWave(); onWaveUI(); } }
-    else { BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
+    else { if(BT.winT === undefined){ BT.slowmo = .9; BT.koT = 1.4; BT.zoom = .06; BT.flashT = .1; } BT.winT = (BT.winT ?? .9) - dt; if(BT.winT <= 0) finishBattle(true); }
   }
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
 }
@@ -523,6 +537,7 @@ function renderBattle(t, dt){
   const c = ctx, k = bk();
   c.save();
   if(BT.shake > 0){ const s = Math.min(1, BT.shake)*10; c.translate(rand(-s,s), rand(-s,s)); }
+  if(BT.zoom > 0){ const z = 1 + BT.zoom, fx = VW*.55, fy = groundY() - VH*.15; c.translate(fx, fy); c.scale(z, z); c.translate(-fx, -fy); }
   c.drawImage(getBg(BT.theme), 0, 0, VW, VH);
   sceneFx(BT.theme, t, dt);
   if(BT.mode === 'gate'){ const T = THEMES[BT.theme], pr = Math.min(VH*.17, VW*.12); drawPortal(c, VW*.97, groundY() - pr*1.15, pr, t, T.accent, T.accent2, .9); }
@@ -532,6 +547,8 @@ function renderBattle(t, dt){
     if(u.dead && u.deathT > .8) continue;
     const pose = u.dead ? 'hurt' : (u.state === 'dash' || u.state === 'strike' || u.state === 'skill') ? 'lunge' : u.state === 'cast' ? 'cast' : u.flash > 0 ? 'hurt' : 'idle';
     const alpha = u.dead ? clamp(1 - u.deathT/.8, 0, 1) : 1;
+    if(u.enraged && !u.dead){ const rg = c.createRadialGradient(u.x, u.y - u.size*k*.5, 10, u.x, u.y - u.size*k*.5, u.size*k*.8);
+      rg.addColorStop(0, 'rgba(255,90,60,.35)'); rg.addColorStop(1, 'rgba(255,90,60,0)'); c.fillStyle = rg; c.fillRect(u.x - u.size*k, u.y - u.size*k*1.4, u.size*k*2, u.size*k*1.6); }
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
     drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0, alpha);
     if(!u.dead && !(u.boss || u.kind === 'hunter')) drawHpBar(c, u, k);
@@ -566,6 +583,12 @@ function renderBattle(t, dt){
     c.strokeText(`${BT.combo}`, VW - 24, y); c.fillStyle = BT.combo > 50 ? '#ff2e88' : BT.combo > 20 ? '#ffd166' : '#fff'; c.fillText(`${BT.combo}`, VW - 24, y);
     c.font = `600 ${Math.round(16*Math.max(.7,k))}px Nunito`; c.fillStyle = '#cfd6ff'; c.fillText('HIT COMBO', VW - 24, y + 18);
   }
+  if(BT.banner){ const b = BT.banner, a = clamp(b.t*2, 0, 1), sc = 1 + Math.max(0, b.t - .9)*1.5;
+    c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.font = `${Math.round(54*Math.max(.7,k)*sc)}px "Bebas Neue", sans-serif`;
+    c.lineWidth = 6; c.strokeStyle = 'rgba(30,16,20,.85)'; c.strokeText(b.txt, VW*.6, VH*.3); c.fillStyle = b.c; c.fillText(b.txt, VW*.6, VH*.3); c.restore(); }
+  if(BT.koT > 0){ const p = 1 - BT.koT/1.4, a = clamp(BT.koT*2, 0, 1), sc = 1.6 - Math.min(.6, p*3);
+    c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.font = `${Math.round(140*Math.max(.6,k)*sc)}px "Bebas Neue", sans-serif`;
+    c.lineWidth = 10; c.strokeStyle = 'rgba(30,16,20,.9)'; c.strokeText('K.O.', VW/2, VH*.45); c.fillStyle = '#ffd27a'; c.fillText('K.O.', VW/2, VH*.45); c.restore(); }
   if(BT.flashT > 0){ c.fillStyle = `rgba(255,255,255,${BT.flashT*2})`; c.fillRect(-20,-20,VW+40,VH+40); }
   c.restore();
   if(BT.cutin) drawCutin(c, BT.cutin, t);

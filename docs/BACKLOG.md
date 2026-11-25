@@ -19,11 +19,11 @@ Open requests from the player come first. Every development round starts here.
 - [ ] Keep balancing after every gameplay change (bot runs)
 
 ## Done recently
+- Combat feel: hit-stop, multi-kills, K.O. finisher, boss phases (v0.8.1)
 - Daily Gates (v0.8.0)
 - Item sets (v0.8.0)
 
 ## Next up
-- More combat juice (hit-stop, finisher moments, boss phases)
 - Job Change at Rank C
 
 ## Planned
