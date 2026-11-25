@@ -129,6 +129,13 @@ function startDaily(kind){
   spawnWave();
   enterBattle();
 }
+function startMaster(){
+  const lv = Math.min(MASTER_MAX, (S.master.lv||0) + 1), h = masterFoe(lv);
+  BT = newBattle({mode:'arena', rank:'M', idx:lv, exam:false, master:lv, hunter:h, theme:'t_void', L:h.lv, waves:[]});
+  const hu = prep(hunterUnit(h)); BT.units.push(hu); BT.boss = hu;
+  (h.comps||[]).forEach((type,i) => BT.units.push(prep(compUnit(type, i+1, h.lv, 1 + h.gear, 1, 'e'))));
+  enterBattle();
+}
 function startArena(rank, idx, exam){
   const h = exam ? EXAMS[rank] : HUNTERS[rank][idx];
   BT = newBattle({mode:'arena', rank, idx, exam, hunter:h, theme:'arena', L:h.lv, waves:[]});
@@ -713,6 +720,11 @@ function finishBattle(win){
     }
   } else {
     if(win){
+      if(BT.master){ const lv = BT.master; if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 45 : 12)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 20 : 6)); r.stones = r.first ? 20 + lv : 5;
+        if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; r.masterUp = lv; }
+        r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
+      } else {
       const h = BT.hunter, rank = BT.rank;
       const first = BT.exam ? true : BT.idx >= (S.arena[rank]||0);
       r.first = first;
@@ -722,6 +734,7 @@ function finishBattle(win){
       if(first){ r.items.push(randomItem(h.lv, BT.exam ? 2.5 : 1)); r.diamonds += BT.exam ? 10 : 2; }
       if(BT.exam){ S.rank = EXAMS[rank].next; r.rankUp = S.rank; const ng = GATES.find(g => g.rank === S.rank); if(ng) r.newGate = ng.name; }
       else S.arena[rank] = Math.max(S.arena[rank]||0, BT.idx+1);
+      }
     } else { r.gold = Math.round(goldFor(BT.hunter.lv)*6); r.xp = Math.round(r.xp*.5 + xpFor(BT.hunter.lv)*3); }
   }
   // apply

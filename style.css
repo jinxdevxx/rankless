@@ -849,3 +849,13 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 
 .tnode .td .tnx{color:#b9ffcf;font-weight:900}
 .tnode .td .tpw{color:#ffd27a;font-weight:900}
+
+/* ---------- new ranks + master league (v0.18.0) ---------- */
+.r-SS{background:linear-gradient(160deg,#ffd27a,#ff3d6a 55%,#3a0818);color:#fff6dc;font-size:.82em}
+.r-M{background:linear-gradient(160deg,#ffffff,#c9a8ff 40%,#2a1450);color:#1a0d30}
+.masterbar{display:flex;align-items:center;gap:12px;margin:10px 0;font-weight:800} .masterbar b{font:400 28px "Bebas Neue",sans-serif;color:var(--gold)}
+.masterbar .bar{flex:1;height:10px} .masterbar .bar i{background:linear-gradient(90deg,#c9a8ff,#ffd27a)}
+.mladder{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.mlv{flex:1;min-width:80px;padding:8px 10px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);text-align:center}
+.mlv b{display:block;font:400 30px "Bebas Neue",sans-serif} .mlv span{font:900 10px Nunito,sans-serif;letter-spacing:.12em;color:var(--muted)}
+.mlv.next{border-color:var(--gold);box-shadow:0 0 16px -6px var(--gold)} .mlv.next b{color:var(--gold)} .mlv.done{opacity:.55}

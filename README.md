@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.0 – Road to S+
+- RANKS extended to E D C B A S SS(S+) M(Master) with rankLabel(); gates B (Abyssal Rift, baseLv 36), A (Tempest Spire, 48), S (Sunken Sun, 60), SS (Eclipse Throne, 72) with 20 new enemy types (new palettes on existing styles), elites and bosses; hunters + exams for B/A/S/SS; S+ exam = Master Trial.
+- Master League (mode arena with BT.master): masterFoe(lv) generator, Lv 1–99, rewards, ladder UI, NEXT button.
+- Sets Abyssborn / Tempest / Solar Crown / Eclipse; towerGate() uses all gates.
+- XP curve: base 165 → 280, growth after Lv 30 1.21 → 1.085; gate mults B 1.3, A 1.15, S/SS 1.0; REC_MULT for new gates.
+- Long bot runs (spamskill): E→B ~30 min, B→A ~20 min, A ~170 min; S still being tuned.
+
 ### v0.17.3 – Stronger Talents
 - TALENT_W front-loads talent ranks (x2 for ranks 1–3, x0.6 for 8–10); Sharp Blade 4 %/rank, Tough 5 %/rank; talentNext() shows real stat and power gain.
 - Tower mobs: theme palette, size variance, MOB_AFFIXES with aura + name tag + reward bonus; towerMod() uses an integer hash.

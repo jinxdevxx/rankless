@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{},
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{}, master:{lv:0},
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -38,7 +38,7 @@ let SLOT = null;                       // active save slot (1..3)
 const slotKey = id => 'rankless_slot_' + id;
 function normalizeSave(s){
   const out = Object.assign(defaultSave(), s);
-  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets','tower','talents']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
+  for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets','tower','talents','master']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
   return out;
 }
 function readMeta(){ try{ return JSON.parse(localStorage.getItem(META_KEY)) || {last:null}; }catch(e){ return {last:null}; } }
@@ -70,7 +70,7 @@ function parseCode(code){
 
 /* ---------- XP & economy curves ---------- */
 // early levels come fast (hook), later levels follow the full curve
-const xpNeed  = lv => Math.floor(165 * Math.pow(1.21, lv-1) * Math.min(1, .2 + lv*.08));
+const xpNeed  = lv => Math.floor(280 * Math.pow(1.21, Math.min(lv, 30)-1) * Math.pow(1.085, Math.max(0, lv-30)) * Math.min(1, .2 + lv*.08));   // flatter after Lv 30 so high ranks stay reachable
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
 const enemyHp = L  => 800 * Math.pow(1.16, L-1);
@@ -102,7 +102,7 @@ function makeItem(slot, ilvl, rar, set){
   };
 }
 /* higher gates drop fewer Commons: a Common roll is upgraded to Rare with this chance */
-const COMMON_UPGRADE = {E:0, D:.6, C:.85};
+const COMMON_UPGRADE = {E:0, D:.6, C:.85, B:.95, A:1, S:1, SS:1};
 function randomItem(ilvl, bonus=0, gateId){
   let rar = rollRarity(bonus);
   if(rar === 0 && Math.random() < (COMMON_UPGRADE[gateId] || 0)) rar = 1;
@@ -174,7 +174,7 @@ function teamPower(){
 // recommended Power, calibrated on bot playthroughs (power at which floors were cleared)
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
-const REC_MULT = {E:1.2, D:1.5, C:1.0};   // v0.16.0: median bot power at first clear
+const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.5, SS:.45, M:.45};   // v0.16.0: median bot power at first clear
 function recPower(gateId, floor){ const g = GATES.find(x => x.id === gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] || 1)); }
 
 /* ---------- inventory helpers ---------- */

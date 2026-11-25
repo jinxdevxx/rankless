@@ -23,6 +23,8 @@ Add new player feedback here as a new point, so it is never forgotten.
 8c. **Automation**: AUTO ATTACK + AUTO FARM farm fully automatically; Training Tower auto-continues with a 3 s countdown; Arena has NEXT FIGHT after wins; Tower changes place every 5 floors.
 9. **Update flow**: version bump, English patch notes, README changelog entry for every change, live-update post (German, short), devlog updated.
 
+10. **Long game**: ranks E→S+ each with gate + arena + exam, Master League 1–99 reachable; long bot (`node tools/bot_balance.js flame spamskill 900`) shows no wall (>10 losses on a floor) in any gate; E→B ≈ 60 bot-min target.
+
 ## Improve continuously (pick the weakest point each round)
 - RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.
 - Combat must be more fun and creative WITHOUT being harder to play: e.g. easy skill combos, weak points that open up, boss moves you answer with a skill. Small steps, one idea per round, ask for feedback.

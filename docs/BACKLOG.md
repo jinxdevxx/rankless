@@ -3,6 +3,10 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Game must go on after B: ranks A, S, S+ with gates and arenas (v0.18.0)
+- [x] Master League Lv 1–99 after S+ (v0.18.0)
+- [ ] Playtime: ~3 h to Rank B for a human, long game to S+ / Master (v0.18.0 first pass: bot E→B still ~30 min with skills; S gate too hard) – RECURRING
+- [ ] Monster design: nicer, more varied (tower affixes done; keep improving) – RECURRING
 - [x] Training Tower auto-continues to the next floor with a visible countdown when auto farming (v0.17.2)
 - [x] Enhance must show how much Gold/Stones you have next to the cost (v0.17.1)
 - [x] Crystals look bad / make no sense: replaced by a Ki bar (0–100) with Ki cost on every skill (v0.17.0)

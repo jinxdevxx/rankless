@@ -3,7 +3,9 @@
    RANKLESS - game data
    ========================================================= */
 const SAVE_KEY = 'rankless_v2';
-const RANKS = ['E','D','C','B','A','S'];
+const RANKS = ['E','D','C','B','A','S','SS','M'];   // SS is shown as S+, M = Master League
+const RANK_LABEL = {SS:'S+', M:'M'};
+function rankLabel(r){ return RANK_LABEL[r] || r; }
 const MAX_INV = 80;
 const OFFLINE_CAP_H = 8;
 
@@ -143,12 +145,36 @@ const ENEMY_TYPES = {
   fang:     {name:'Frost Fang',      style:'beast',    hp:.85, atk:1.2, spd:.95, role:'dps',    pal:{body:'#0e1a22',rim:'#9fe8ff',eye:'#bff6ff'}, comp:{hp:.85,atk:1.0}, desc:'Its bite freezes blood.'},
   specter:  {name:'Shrine Specter',  style:'ghost',    hp:.85, atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#141824',rim:'#bfe9ff',eye:'#ffffff'}, comp:{hp:.85,atk:.65}, desc:'A restless spirit. Heals its weakest ally.'},
   oni:      {name:'Ice Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
+  // B-Rank: Abyssal Rift
+  shade:    {name:'Abyss Shade',     style:'ghost',    hp:.85, atk:1.15,spd:1.2, role:'dps',    pal:{body:'#120a1e',rim:'#b05cff',eye:'#ff5ad1'}, comp:{hp:.8,atk:.9}, desc:'A shadow that forgot it was ever a person.'},
+  reaver:   {name:'Rift Reaver',     style:'beast',    hp:.9,  atk:1.2, spd:.9,  role:'dps',    pal:{body:'#1a0a14',rim:'#ff3d8a',eye:'#ffe14d'}, comp:{hp:.85,atk:1.0}, desc:'Tears through armor and nerve.'},
+  lich:     {name:'Void Lich',       style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c0a1a',rim:'#7f8cff',eye:'#d8e0ff'}, comp:{hp:.8,atk:.6}, desc:'Mends the broken with stolen life.'},
+  colossus: {name:'Abyss Colossus',  style:'golem',    hp:3.0, atk:1.4, spd:2.2, role:'tank',   elite:true, pal:{body:'#140c22',rim:'#b05cff',eye:'#ff3d6a'}, comp:{hp:1.9,atk:.7}, desc:'A walking wall of rift stone.'},
+  abyssking:{name:'The Abyss King',  style:'warden',   hp:4.2, atk:1.9, spd:2.2, role:'tank',   boss:true, pal:{body:'#0e0818',rim:'#c27bff',eye:'#ff3d6a'}, comp:{hp:2,atk:1.1}, desc:'Ruler of the rift below the city.'},
+  // A-Rank: Tempest Spire
+  stalker:  {name:'Storm Stalker',   style:'beast',    hp:.85, atk:1.25,spd:.85, role:'dps',    pal:{body:'#0a1420',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:.85,atk:1.0}, desc:'Moves with the lightning.'},
+  harpy:    {name:'Thunder Harpy',   style:'blob',     hp:.75, atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#0f1a26',rim:'#7fe0ff',eye:'#ffffff'}, comp:{hp:.7,atk:.95}, desc:'Rains sparks from above.'},
+  sage:     {name:'Storm Sage',      style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c1622',rim:'#9fe8ff',eye:'#fff06a'}, comp:{hp:.8,atk:.6}, desc:'Calls rain that heals its kin.'},
+  titan:    {name:'Iron Titan',      style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
+  stormlord:{name:'The Storm Lord',  style:'conductor',hp:4.2, atk:1.9, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
+  // S-Rank: Sunken Sun
+  ember:    {name:'Sun Ember',       style:'blob',     hp:.8,  atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#26120a',rim:'#ffb347',eye:'#fff1c0'}, comp:{hp:.7,atk:.95}, desc:'A fallen piece of a dying sun.'},
+  sunhound: {name:'Solar Hound',     style:'beast',    hp:.9,  atk:1.25,spd:.9,  role:'dps',    pal:{body:'#24140a',rim:'#ffd27a',eye:'#ff5a3c'}, comp:{hp:.85,atk:1.0}, desc:'Its howl melts stone.'},
+  priest:   {name:'Ash Priest',      style:'husk',     hp:1.0, atk:.95, spd:1.5, role:'tank',   pal:{body:'#1e140e',rim:'#ff8a3c',eye:'#fff1c0'}, comp:{hp:1.15,atk:.55}, desc:'Prays to a sun that is gone.'},
+  sunoni:   {name:'Sun Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#24100a',rim:'#ffb347',eye:'#ff3d3d'}, comp:{hp:1.9,atk:.8}, desc:'Burns with borrowed light.'},
+  sunqueen: {name:'The Sunken Queen',style:'matriarch',hp:4.0, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#1e1008',rim:'#ffd27a',eye:'#ff8a3c'}, comp:{hp:1.3,atk:1.5}, desc:'She drowned the sun to keep it.'},
+  // S+ Rank: Eclipse Throne
+  eclipse:  {name:'Eclipse Wraith',  style:'ghost',    hp:.85, atk:1.25,spd:1.2, role:'dps',    pal:{body:'#08060e',rim:'#ff3d6a',eye:'#ffffff'}, comp:{hp:.8,atk:1.0}, desc:'Darkness with a grudge.'},
+  hunterx:  {name:'Fallen Hunter',   style:'husk',     hp:1.0, atk:1.1, spd:1.3, role:'tank',   pal:{body:'#0a0a12',rim:'#e8e8f0',eye:'#ff3d6a'}, comp:{hp:1.15,atk:.6}, desc:'Once a Breaker. Never again.'},
+  oracle:   {name:'Black Oracle',    style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0a0612',rim:'#ffd27a',eye:'#ff3d6a'}, comp:{hp:.8,atk:.6}, desc:'Sees your death and smiles.'},
+  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:3.2, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
+  emperor:  {name:'The Eclipse Emperor',style:'warden',hp:4.4, atk:2.0, spd:2.1, role:'tank',   boss:true, pal:{body:'#06040a',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2.2,atk:1.2}, desc:'The one who closed the sky.'},
   matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:4.2, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
 function shardNeed(type){ const t = ENEMY_TYPES[type]; return t.boss ? 40 : t.elite ? 20 : 12; }
 const STAR_COST = [0, 1, 2, 4, 8]; // x shardNeed to reach star i+1
 const MAX_STARS = 5;
-const PARTY_SLOTS = {E:1, D:2, C:3, B:3, A:3, S:3};
+const PARTY_SLOTS = {E:1, D:2, C:3, B:3, A:3, S:3, SS:3, M:3};
 const ROLE_LABEL = {tank:'Tank', dps:'Striker', ranged:'Ranged', healer:'Healer'};
 
 /* ---------- gates ---------- */
@@ -159,6 +185,14 @@ const GATES = [
     desc:'An abandoned metro line where the last train still runs.'},
   {id:'C', rank:'C', name:'Frozen Shrine',  baseLv:24, mult:1.6, theme:'shrine', enemies:['fang','specter','spitter'], elite:'oni', boss:'matriarch',
     desc:'An ancient mountain shrine swallowed by eternal winter.'},
+  {id:'B', rank:'B', name:'Abyssal Rift',   baseLv:36, mult:1.3, theme:'t_ember', enemies:['shade','reaver','lich'], elite:'colossus', boss:'abyssking',
+    desc:'A wound under the city where the rift breathes.'},
+  {id:'A', rank:'A', name:'Tempest Spire',  baseLv:48, mult:1.15, theme:'t_storm', enemies:['stalker','harpy','sage'], elite:'titan', boss:'stormlord',
+    desc:'A tower of stone and lightning above the clouds.'},
+  {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:1.0, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
+    desc:'A drowned temple where a dead sun still glows.'},
+  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:1.0, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
+    desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
 ];
 const FLOORS = 10;
 
@@ -185,11 +219,54 @@ const HUNTERS = {
     {name:'Vex',            title:'The Nameless',         aff:'flame', lv:32, hair:0, gear:3, comps:['oni','specter'], line:"..."},
     {name:'Ren Kurogane',   title:'Your Rival',           aff:'void',  lv:34, hair:0, gear:3, comps:['brute','wraith','fang'], rival:true, line:"Fine. I'll go all out."},
   ],
+  B:[
+    {name:'Kaito Sable',    title:'Rift Diver',           aff:'void',  lv:38, hair:2, gear:3, comps:['shade','reaver'], line:"The rift taught me not to be afraid. Did it teach you?"},
+    {name:'Mei Arashi',     title:'Blade Dancer',         aff:'storm', lv:40, hair:1, gear:3, comps:['reaver','lich'], line:"Dance with me. Try not to fall."},
+    {name:'Brom Halden',    title:'The Wall',             aff:'blood', lv:42, hair:2, gear:3, comps:['colossus','shade'], line:"Nobody gets past me."},
+    {name:'Lyra Night',     title:'Silent Assassin',      aff:'void',  lv:44, hair:1, gear:4, comps:['shade','lich'], line:"..."},
+    {name:'Ren Kurogane',   title:'Your Rival',           aff:'void',  lv:46, hair:0, gear:4, comps:['colossus','reaver','lich'], rival:true, line:"B-Rank, huh. So am I."},
+  ],
+  A:[
+    {name:'Aiko Thunder',   title:'Storm Caller',         aff:'storm', lv:50, hair:1, gear:4, comps:['stalker','harpy'], line:"Feel the static? That's your heart giving up."},
+    {name:'Garrick Stone',  title:'Guild Master',         aff:'blood', lv:52, hair:2, gear:4, comps:['titan','sage'], line:"I built my guild from nothing. You won't take it."},
+    {name:'Soren Vale',     title:'Twin Blades',          aff:'flame', lv:54, hair:0, gear:4, comps:['stalker','stalker'], line:"Two blades. One you see. One you don't."},
+    {name:'Nyx',            title:'The Eclipse Herald',   aff:'void',  lv:56, hair:1, gear:4, comps:['harpy','sage','stalker'], line:"The Emperor is watching you."},
+    {name:'Ren Kurogane',   title:'Your Rival',           aff:'void',  lv:58, hair:0, gear:4, comps:['titan','harpy','sage'], rival:true, line:"I won't lose to you again. Not here."},
+  ],
+  S:[
+    {name:'Ignis Rae',      title:'Living Flame',         aff:'flame', lv:62, hair:1, gear:4, comps:['ember','sunhound'], line:"I am the fire the sun forgot."},
+    {name:'Tomoe Hoshi',    title:'Sword Saint',          aff:'storm', lv:64, hair:1, gear:4, comps:['sunhound','priest'], line:"One cut. That is all I need."},
+    {name:'Varek',          title:'Blood King',           aff:'blood', lv:66, hair:2, gear:4, comps:['sunoni','priest'], line:"Kneel, and I may let you keep your rank."},
+    {name:'Celeste',        title:'Sun Priestess',        aff:'flame', lv:68, hair:1, gear:4, comps:['ember','priest','sunhound'], line:"The sun chose me. Whom did it choose for you?"},
+    {name:'Ren Kurogane',   title:'Your Rival',           aff:'void',  lv:70, hair:0, gear:4, comps:['sunoni','ember','priest'], rival:true, line:"S-Rank. One of us stops here."},
+  ],
+  SS:[
+    {name:'Hollow',         title:'The Fallen Hunter',    aff:'void',  lv:74, hair:0, gear:4, comps:['eclipse','hunterx'], line:"I was S+ once. Look what it made me."},
+    {name:'Asuka Reiga',    title:'Heaven Splitter',      aff:'storm', lv:76, hair:1, gear:4, comps:['eclipse','oracle'], line:"I split the sky once. You are smaller."},
+    {name:'Draven Kross',   title:'Crimson Tyrant',       aff:'blood', lv:78, hair:2, gear:4, comps:['behemoth','oracle'], line:"Your blood will paint the throne room."},
+    {name:'Shiro',          title:'The White Blade',      aff:'flame', lv:80, hair:1, gear:4, comps:['hunterx','eclipse','oracle'], line:"Show me the blade that climbed this far."},
+    {name:'Ren Kurogane',   title:'Your Rival',           aff:'void',  lv:82, hair:0, gear:4, comps:['behemoth','eclipse','oracle'], rival:true, line:"Whatever happens... you were worth it."},
+  ],
 };
+/* ---------- Master League: after S+, an endless ladder from level 1 to 99 ---------- */
+const MASTER_MAX = 99;
+const MASTER_NAMES = ['Kage','Rin Solace','Takeshi Mori','Elara Vance','Juno Blackthorn','Haku','Seren Ash','Ryuji Kane','Vale Starling','Oboro','Kira Neon','Draken','Amaya Frost','Sable','Zero'];
+const MASTER_TITLES = ['Master Breaker','Gate Sovereign','Legend of the Rift','Sky Splitter','Undying Blade','Crowned Hunter','Myth Walker'];
+function masterFoe(lv){
+  const n = MASTER_NAMES[(lv*7) % MASTER_NAMES.length], t = MASTER_TITLES[(lv*3) % MASTER_TITLES.length];
+  const pool = ['eclipse','hunterx','oracle','behemoth','sunoni','titan','colossus'];
+  return {name:n, title:`${t} · Master Lv ${lv}`, aff:ELEMENTS_ALL[lv % ELEMENTS_ALL.length], lv:84 + Math.round(lv*1.3), hair:lv % 3, gear:4,
+    comps:[pool[lv % pool.length], pool[(lv*3+1) % pool.length]].slice(0, lv < 20 ? 1 : 2), rival:lv % 10 === 0, line: lv % 10 === 0 ? 'A wall of the Master League. Break it.' : 'Masters do not hold back.', master:lv};
+}
+const ELEMENTS_ALL = ['flame','storm','void','blood'];
 const EXAMS = {
   E:{name:'Haruto Gale', title:'D-Rank Examiner', aff:'storm', lv:13, hair:2, gear:2, comps:['brute'], next:'D', line:"Show me you deserve the next rank."},
   D:{name:'Akane Rho',   title:'C-Rank Examiner', aff:'flame', lv:25, hair:1, gear:2, comps:['golem','wraith'], next:'C', line:"Many have stood where you stand. Few walked out."},
   C:{name:'Seiji Valen', title:'B-Rank Examiner', aff:'blood', lv:37, hair:0, gear:3, comps:['oni','specter','fang'], next:'B', line:"Prove you are no longer rankless."},
+  B:{name:'Mira Kaen',   title:'A-Rank Examiner', aff:'storm', lv:49, hair:1, gear:4, comps:['colossus','lich','reaver'], next:'A', line:"A-Rank is where legends start. Or end."},
+  A:{name:'Orin Vael',   title:'S-Rank Examiner', aff:'flame', lv:61, hair:2, gear:4, comps:['titan','sage','harpy'], next:'S', line:"Few have earned the S. Show me why you should."},
+  S:{name:'The Arbiter', title:'S+ Examiner',     aff:'void',  lv:73, hair:0, gear:4, comps:['sunoni','priest','ember'], next:'SS', line:"Beyond S there is only the throne."},
+  SS:{name:'The Eclipse Emperor', title:'Master Trial', aff:'blood', lv:85, hair:2, gear:4, comps:['behemoth','oracle','eclipse'], next:'M', line:"Take the throne if you can. Then the real climb begins."},
 };
 
 /* ---------- weapon enchantment (Rift Diamonds) ----------
@@ -206,8 +283,12 @@ const SETS = {
   tide: {name:'Tidecaller',  gate:'E', color:'#7fd3ff', b2:{hpP:10},  b4:{atkP:15, lifesteal:4}, d2:'+10% HP',            d4:'+15% ATK, +4% Lifesteal'},
   rail: {name:'Railbreaker', gate:'D', color:'#ffb066', b2:{spd:8},   b4:{crit:6, critDmg:20},  d2:'+8% Attack Speed',   d4:'+6% Crit Rate, +20% Crit DMG'},
   frost:{name:'Frostbound',  gate:'C', color:'#c9e8ff', b2:{hpP:12},  b4:{skill:25},            d2:'+12% HP',            d4:'+25% Skill DMG'},
+  abyss:  {name:'Abyssborn',   gate:'B', color:'#c27bff', b2:{atkP:10}, b4:{lifesteal:5, critDmg:25}, d2:'+10% ATK', d4:'+5% Lifesteal, +25% Crit DMG'},
+  tempest:{name:'Tempest',     gate:'A', color:'#4cc9ff', b2:{spd:10},  b4:{crit:8, skill:20},     d2:'+10% Attack Speed', d4:'+8% Crit Rate, +20% Skill DMG'},
+  solar:  {name:'Solar Crown', gate:'S', color:'#ffd27a', b2:{hpP:15},  b4:{atkP:18, gold:20},     d2:'+15% HP', d4:'+18% ATK, +20% Gold Find'},
+  eclipse:{name:'Eclipse',     gate:'SS',color:'#ff3d6a', b2:{atkP:12, hpP:12}, b4:{critDmg:40, lifesteal:6}, d2:'+12% ATK, +12% HP', d4:'+40% Crit DMG, +6% Lifesteal'},
 };
-const SET_OF_GATE = {E:'tide', D:'rail', C:'frost'};
+const SET_OF_GATE = {E:'tide', D:'rail', C:'frost', B:'abyss', A:'tempest', S:'solar', SS:'eclipse'};
 
 /* ---------- daily gates ---------- */
 /* ---------- Spirit Legion: magic pets you BUY with gold ----------
@@ -257,7 +338,7 @@ const TOWER_MODS = [
 ];
 function towerMod(f){ if(f % 5 === 0) return null; let h = Math.imul(f ^ (f >>> 16), 0x45d9f3b); h = Math.imul(h ^ (h >>> 16), 0x45d9f3b); h ^= h >>> 16; return TOWER_MODS[(h >>> 0) % TOWER_MODS.length]; }
 function towerLevel(f){ return Math.max(1, Math.round(1 + (f - 1)*TOWER.lvPer)); }
-function towerGate(f){ const L = towerLevel(f); return L >= 24 ? GATES[2] : L >= 12 ? GATES[1] : GATES[0]; }
+function towerGate(f){ const L = towerLevel(f); let g = GATES[0]; for(const x of GATES) if(L >= x.baseLv) g = x; return g; }
 function towerReward(f){ const L = towerLevel(f); return {gold:Math.round(goldFor(L)*TOWER.gold), xp:Math.round(xpFor(L)*TOWER.xp)}; }
 /* Training: repeatable, no loot, lots of XP */
 const TRAIN_XP = 22;

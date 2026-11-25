@@ -94,7 +94,7 @@ function renderHome(){
   const a = AFF[S.aff], hs = heroStats();
   $('#topbar').innerHTML = `
     <div class="prof">
-      <div class="rank r-${S.rank}">${S.rank}</div>
+      <div class="rank r-${S.rank}">${rankLabel(S.rank)}</div>
       <div>
         <div class="pname" style="color:${a.color}">${esc(S.name)}</div>
         <div class="psub">Lv ${S.level} · ${specOf() ? specOf().name : a.title}</div>
@@ -124,7 +124,7 @@ function renderHome(){
   const todoHtml = todo.length ? `<div class="todo">${todo.map(([id, txt, cls]) => `<button class="tchip ${cls}" data-a="sheet" data-id="${id}">${txt}</button>`).join('')}</div>` : '';
   $('#homeActions').innerHTML = `${todoHtml}
     <button class="cta gate fight" data-a="quickGate">
-      <small>${g.rank}-RANK GATE · ${nf > FLOORS ? `DEEP FLOOR ${nf}` : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
+      <small>${rankLabel(g.rank)}-RANK GATE · ${nf > FLOORS ? `DEEP FLOOR ${nf}` : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
       <span>${g.name}</span>
     </button>
     ${isUnlocked('arena') ? `<button class="cta arena" data-a="sheet" data-id="arena">
@@ -231,21 +231,35 @@ function sheetGates(){
         <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>`;
     }
     return `<div class="gatecard ${unlocked?'':'locked'}" style="--a:${T.accent};--b:${T.sky[2]}">
-      <div class="gh"><span class="grank r-${g.rank}">${g.rank}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
+      <div class="gh"><span class="grank r-${g.rank}">${rankLabel(g.rank)}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
       <span class="gprog">${unlocked ? (cl > FLOORS ? `Deep ${cl}` : `${Math.min(cl, FLOORS)} / ${FLOORS}`) : `${ICON.lock} Rank ${g.rank}`}</span></div>
       ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = recPower(g.id, nd);
           return `<div class="deeprow"><div><b>Deep Floors</b><small>Endless floors with stronger enemies and better loot. Boss every 5 floors. Best: ${cl > FLOORS ? cl : '–'}</small></div>
           <button class="btn primary" data-a="startGate" data-g="${g.id}" data-f="${nd}">Floor ${nd} <small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>
           ${cl > FLOORS ? `<button class="btn" data-a="startGate" data-g="${g.id}" data-f="${cl}">Farm ${cl}</button>` : ''}</div>`; })() : ''}
         <div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b>${cl >= FLOORS ? ' · Stuck? Farm Deep Floors for better gear.' : ''}</div>` :
-        `<div class="hint">Pass the ${RANKS[RANKS.indexOf(g.rank)-1]}-Rank Exam in the Arena to unlock.</div>`}
+        `<div class="hint">Pass the ${rankLabel(RANKS[RANKS.indexOf(g.rank)-1])}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('').replace(/^/, towerCard + daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
+  }).join('').replace(/^/, towerCard + daily);
 }
 
+function sheetMaster(){
+  const lv = S.master.lv || 0, nx = Math.min(MASTER_MAX, lv + 1), h = masterFoe(nx), tp = teamPower();
+  const p = Math.round(floorPower(h.lv + 3) * REC_MULT.M);
+  const ladder = [nx + 2, nx + 1, nx, lv].filter(x => x >= 1 && x <= MASTER_MAX).map(x => `<div class="mlv ${x === nx ? 'next' : x <= lv ? 'done' : ''}"><b>${x}</b><span>${x === nx ? 'NEXT' : x <= lv ? 'CLEARED' : ''}${x % 10 === 0 ? ' · 💀 Wall' : ''}</span></div>`).join('');
+  return `<div class="arena-head"><div class="rank big r-M">M</div><div><h3>Master League</h3>
+    <p>You conquered every rank. Now climb from Master Lv 1 to <b>${MASTER_MAX}</b>. Every new level pays Gold, XP, Mana Stones, a Rift Diamond and an item. Every 10th level is a wall with 5 Diamonds.</p></div></div>
+    <div class="masterbar"><span>Master Lv <b>${lv}</b> / ${MASTER_MAX}</span><div class="bar"><i style="width:${lv/MASTER_MAX*100}%"></i></div></div>
+    <div class="mladder">${ladder}</div>
+    ${lv >= MASTER_MAX ? '<div class="empty">You are the strongest Breaker alive. Level 99 Master.</div>' : `<div class="hcard ${h.rival ? 'exam' : ''}">
+      <img src="${hunterPortrait(h)}" alt="">
+      <div class="hinfo"><small>MASTER LV ${nx}</small><b>${esc(h.name)}</b><span>${esc(h.title)} · ${AFF[h.aff].name}</span><em>"${esc(h.line)}"</em></div>
+      <div class="hside"><span class="pw ${tp >= p ? 'ok' : 'hard'}">${fmt(p)}</span><button class="btn primary" data-a="startMaster">Fight</button></div></div>`}`;
+}
 function sheetArena(){
   const rank = S.rank, list = HUNTERS[rank], exam = EXAMS[rank];
-  if(!list) return `<div class="empty">You have conquered every arena so far. More ranks are coming soon.</div>`;
+  if(rank === 'M') return sheetMaster();
+  if(!list) return `<div class="empty">You have conquered every arena so far.</div>`;
   const done = S.arena[rank]||0, tp = teamPower();
   const card = (h, i, isExam) => {
     const beaten = !isExam && i < done, open = isExam ? done >= list.length : i <= done;
@@ -258,8 +272,8 @@ function sheetArena(){
         <button class="btn ${open?'primary':''}" data-a="startArena" data-i="${isExam?-1:i}" ${open?'':'disabled'}>${beaten ? 'Rematch' : isExam ? 'Take Exam' : 'Fight'}</button></div>
     </div>`;
   };
-  return `<div class="arena-head"><div class="rank big r-${rank}">${rank}</div><div><h3>${rank}-Rank League</h3>
-    <p>Defeat every hunter to unlock the Rank Exam. Passing it promotes you to <b>${exam.next}-Rank</b> and opens new gates.</p></div></div>
+  return `<div class="arena-head"><div class="rank big r-${rank}">${rankLabel(rank)}</div><div><h3>${rankLabel(rank)}-Rank League</h3>
+    <p>Defeat every hunter to unlock the ${exam.next === 'M' ? '<b>Master Trial</b>. Win it to enter the <b>Master League</b> (Lv 1–99).' : `Rank Exam. Passing it promotes you to <b>${rankLabel(exam.next)}-Rank</b> and opens a new gate.`}</p></div></div>
     ${list.map((h,i) => card(h,i,false)).join('')}${card(exam,0,true)}`;
 }
 
@@ -529,6 +543,7 @@ function updateBattleHud(){
 
 /* the next arena opponent after a win: next hunter of your rank, then the rank exam */
 function nextArenaFight(){
+  if(S.rank === 'M') return (S.master.lv||0) < MASTER_MAX ? ['M', -2, false] : null;
   const rank = S.rank, list = HUNTERS[rank]; if(!list) return null;
   const done = S.arena[rank] || 0;
   if(done < list.length) return [rank, done, false];
@@ -555,7 +570,7 @@ function showResult(r){
     const left = dailyLeft(BT.kind);
     btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
   } else { const nx = win ? nextArenaFight() : null;
-    btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[2] ? 'RANK EXAM' : 'NEXT FIGHT'} › <small>${esc(nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
+    btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[0] === 'M' ? `MASTER LV ${(S.master.lv||0) + 1}` : nx[2] ? (EXAMS[nx[0]].next === 'M' ? 'MASTER TRIAL' : 'RANK EXAM') : 'NEXT FIGHT'} › <small>${esc(nx[0] === 'M' ? masterFoe((S.master.lv||0) + 1).name : nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
   const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack);
   const autoOn = (towerAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
@@ -564,8 +579,9 @@ function showResult(r){
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'tower' ? `Training Tower · Floor ${BT.floor}${r.first && win ? ' · NEW BEST' : ''}` : BT.mode === 'rush' ? `${BT.kind === 'xp' ? 'Training' : 'Gold Rush'} · ${BT.gate.name}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${!win && timingMode() && (BT.whiffs||0) >= 3 ? `<div class="hint" style="margin:8px auto;max-width:440px;color:#ffd27a">You pressed too early ${BT.whiffs}× and stumbled. Don't mash: wait until the ring is inside the gold zone, then press once.</div>` : ''}
     ${win && timingMode() && BT.perfects ? `<div class="rsub" style="color:#ffd27a">PERFECT hits: ${BT.perfects}</div>` : ''}
+    ${r.masterUp ? `<div class="rankup"><small>MASTER LEAGUE</small><b>Master Lv ${r.masterUp}</b><span>${r.masterUp >= MASTER_MAX ? 'The very top. Legend.' : 'Next: Master Lv ' + (r.masterUp + 1)}</span></div>` : ''}
     ${r.chest ? `<div class="rankup chest"><small>TOWER CHEST · FLOOR ${BT.floor}</small><b>🎁 Bonus loot!</b><span>+${r.stones} Mana Stones · +${r.diamonds} Rift Diamond${r.diamonds > 1 ? 's' : ''}</span></div>` : ''}
-    ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
+    ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${rankLabel(RANKS[RANKS.indexOf(r.rankUp)-1])} → ${r.rankUp === 'M' ? 'MASTER' : rankLabel(r.rankUp)}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'}</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
     <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
     ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
@@ -713,9 +729,10 @@ function act(a, el){
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
-    case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx) startArena(nx[0], nx[1], nx[2]); break; }
+    case 'startMaster': UI.sheet = null; startMaster(); break;
+    case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx && nx[0] === 'M') startMaster(); else if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
-    case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else if(BT.master) startMaster(); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
