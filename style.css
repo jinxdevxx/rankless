@@ -877,3 +877,25 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .ptsb b{font-size:40px} .ptsb span{font-size:13px} .ptsb small{font-size:11px}
 .ptsb.st{cursor:default}
 @media (max-width:640px){ .ptsbar{flex-wrap:nowrap} .ptsb{padding:7px 10px;gap:8px} .ptsb b{font-size:32px} .ptsb span{font-size:11px;letter-spacing:.06em} }
+
+/* gold talent point badge (v0.18.5) */
+.tpbadge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px 3px;border-radius:999px;background:linear-gradient(100deg,#ffe08a,#f7b54a 55%,#ff8a5c);color:#2a1606;
+  font:400 20px "Bebas Neue",sans-serif;letter-spacing:.08em;line-height:1.1;box-shadow:0 0 18px -4px #ffb347,inset 0 1px 0 rgba(255,255,255,.6);animation:tpglow 1.6s ease-in-out infinite;vertical-align:middle;margin-left:8px}
+.tpbadge b{font-weight:400;font-size:26px;line-height:1}
+@keyframes tpglow{50%{box-shadow:0 0 28px -2px #ffb347,inset 0 1px 0 rgba(255,255,255,.6);transform:translateY(-1px)}}
+.ptsb.tal{flex-direction:column;align-items:flex-start;justify-content:center;gap:4px}
+.ptsb.tal .tpbadge{margin-left:0} .ptsb.tal small{color:#ffe2b8;margin-left:4px}
+@media (max-width:640px){ .tpbadge{font-size:16px;padding:3px 10px 2px} .tpbadge b{font-size:21px} }
+.ptsb{animation:none}
+@keyframes tpglow{50%{box-shadow:0 0 28px -2px #ffb347,inset 0 1px 0 rgba(255,255,255,.6)}}
+.ptsb .tpbadge b{color:#2a1606;font-size:26px;text-shadow:none;line-height:1}
+@media (max-width:640px){ .ptsb .tpbadge b{font-size:21px} }
+
+/* damage breakdown on the result screen (v0.18.5) */
+.dmgbd{max-width:440px;margin:8px auto 2px;text-align:left}
+.dmgbd .dbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.08)}
+.dmgbd .dbar i{display:block;height:100%}
+.dmgbd .dleg{display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:5px;font:800 12px Nunito,sans-serif;color:#e8e2f0}
+.dmgbd .dleg b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.dmgbd small{display:block;margin-top:3px;color:var(--muted);font-size:12px}
+@media (max-width:640px){ .b-top .tbtn{font-size:11px;padding:6px 8px} .b-top{flex-wrap:nowrap} }

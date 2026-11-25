@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.5 – Clear Numbers
+- dmgNumber(): merges hits per target + source within 0.45 s into one growing number with source icon/colour; BT.dmgBy tracks damage by source (hit/skill/parry/spirit); result screen shows dmgBreakdown() with a tip.
+- Gold .tpbadge for talent points; short battle toggle labels on phones.
+
 ### v0.18.4 – Points in Sight
 - Stats tab: compact glowing counters for free talent/stat points (tap → scroll to Talents), nav badge shows the number, 'Talent Tree' renamed 'Talents'.
 - Storm Lord HP 4.2 → 3.4, ATK 1.9 → 1.8 (bot wall at A-F10).

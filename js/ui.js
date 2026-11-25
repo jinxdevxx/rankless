@@ -308,7 +308,7 @@ function sheetStats(){
         <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? (nd.key ? nd.desc : talentNext(nd, r)) : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
   const tf = talentFree(), sp = S.points;
   const pointsBar = (tf || sp) ? `<div class="ptsbar">
-      ${tf ? `<button class="ptsb tal" data-a="goTalents"><b>${tf}</b><span>TALENT POINT${tf === 1 ? '' : 'S'}<small>tap to spend ›</small></span></button>` : ''}
+      ${tf ? `<button class="ptsb tal" data-a="goTalents"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>tap to spend ›</small></button>` : ''}
       ${sp ? `<div class="ptsb st"><b>${sp}</b><span>STAT POINT${sp === 1 ? '' : 'S'}<small>${S.settings.autoStats ? 'auto-assign is on' : 'press + below'}</small></span></div>` : ''}</div>` : '';
   return `${pointsBar}<div class="bigstats">${big}</div>
     <div class="cols">
@@ -317,7 +317,7 @@ function sheetStats(){
         <div class="hint">You get 3 stat points per level. VIT = more HP. If bosses hit you too hard, put points into VIT.</div></div>
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
-    <div class="box"><div class="bt" id="talentsHead">TALENTS <span class="pts big ${free?'on':''}">${free} Talent Point${free === 1 ? '' : 's'}</span><span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
+    <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
       <div class="ttree">${tree}</div></div>`;
 }
@@ -501,6 +501,11 @@ function syncFarmUI(){
   $('#bAuto').hidden = false;
   const ba = $('#bAtk'); if(ba){ ba.textContent = S.settings.autoAttack ? 'AUTO ATTACK: ON' : 'AUTO ATTACK: OFF'; ba.classList.toggle('on', !!S.settings.autoAttack); }
   $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
+  if(VW < 640){   // phones: short labels so the top bar fits in one row
+    $('#bFarm').textContent = {off:'⟳ Off', repeat:'⟳ Repeat', push:'⟳ Next'}[S.settings.farm];
+    if(ba) ba.textContent = S.settings.autoAttack ? 'ATK ON' : 'ATK OFF';
+    if(!tm) $('#bAuto').textContent = S.settings.autoSkill ? 'SKILL ON' : 'SKILL OFF';
+  }
   $('#bFarm').classList.toggle('on', S.settings.farm !== 'off');
   $('#bFarm').hidden = !(adv && BT && BT.mode === 'gate');
 }
@@ -555,6 +560,17 @@ function nextArenaFight(){
   if(done < list.length) return [rank, done, false];
   return EXAMS[rank] ? [rank, -1, true] : null;
 }
+/* where did your damage come from? helps to decide what to level and skill */
+function dmgBreakdown(){
+  const d = BT.dmgBy || {}, tot = Object.values(d).reduce((a,b) => a + b, 0); if(tot <= 0) return '';
+  const rows = [['hit','Strikes','#ffffff'],['skill','Skills',AFF[S.aff].color],['parry','Parries','#ffd166'],['spirit','Spirits','#c9a8ff']].filter(([k]) => d[k] > 0);
+  const top = rows.reduce((m, r) => d[r[0]] > d[m[0]] ? r : m, rows[0]);
+  const tip = {hit:'Strikes carry you: ATK, Crit and the Might talents pay off most.', skill:'Skills carry you: Will, Skill DMG and Rift Arts pay off most.',
+    parry:'Parries carry you: keep timing them, Ki and Crit help.', spirit:'Spirits carry you: level them up and take Spirit Bond.'}[top[0]];
+  return `<div class="dmgbd"><div class="dbar">${rows.map(([k,,c]) => `<i style="width:${d[k]/tot*100}%;background:${c}"></i>`).join('')}</div>
+    <div class="dleg">${rows.map(([k,l,c]) => `<span><b style="background:${c}"></b>${l} ${Math.round(d[k]/tot*100)}%</span>`).join('')}</div>
+    <small>${tip}</small></div>`;
+}
 function showResult(r){
   if(!BT) return;
   const win = r.win, g = BT.gate;
@@ -591,6 +607,7 @@ function showResult(r){
     <div class="rrow"><span class="cur gold">${ICON.gold}<b data-count="${r.gold}">+0</b></span><span class="cur cxp">XP <b data-count="${r.xp}">+0</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b data-count="${r.stones}">+0</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b data-count="${r.diamonds}">+0</b></span>`:''}</div>
     <div class="rxp"><span>Lv ${S.level - (r.levels||0)}</span><div class="bar"><i></i></div><span>Lv ${S.level - (r.levels||0) + 1}</span></div>
     ${r.levels ? `<div class="lvup pending">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
+    ${dmgBreakdown()}
     ${r.salvaged ? `<div class="salvline">♻ ${r.salvaged} useless drop${r.salvaged > 1 ? 's' : ''} auto-salvaged: <b>+${fmt(r.salvStones)}</b> ${ICON.stone} <b>+${fmt(r.salvGold)}</b> ${ICON.gold}</div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}

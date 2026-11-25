@@ -3,6 +3,8 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Talent points must stand out (gold badge) (v0.18.5)
+- [x] Damage numbers: less spam, show source (sword/skill/parry/spirit), help decide what to invest in (v0.18.5) – keep improving
 - [x] Free talent points must be clearly visible; rename to 'Talents', compact (v0.18.4)
 - [x] Game must keep running (auto farm) when the browser tab is in the background (v0.18.3)
 - [x] Game must go on after B: ranks A, S, S+ with gates and arenas (v0.18.0)

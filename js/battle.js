@@ -277,7 +277,7 @@ function doParry(h, threats, k, mash){
   h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
   BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:(mash ? 90 : 140)*k, c:'#ffd166', life:.45, max:.45});
   BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
-  dealDamage(h, t, mash ? 1.0 : 1.4, {color:'#ffd166'});
+  dealDamage(h, t, mash ? 1.0 : 1.4, {color:'#ffd166', parry:true});
   gainEnergy(ENERGY.parry*(mash ? .5 : 1)); BT.ult = Math.min(100, BT.ult + (mash ? 4 : 8));
   if(!mash){ addText(h, 'PERFECT PARRY', '#ffd166', 30); BT.slowmo = .35; BT.flashT = .06; }
   BT.shake = Math.max(BT.shake, mash ? .08 : .15); BT.parries = (BT.parries||0) + 1;
@@ -316,8 +316,9 @@ function dealDamage(att, tgt, mult, opt={}){
   if(dmg > 0) SFX.hit(crit, tgt.side === 'p');
   if(dmg > 0 && att.side === 'p' && (crit || opt.skill)){ BT.hitstop = Math.max(BT.hitstop||0, crit && opt.skill ? .07 : .035); BT.zoom = Math.max(BT.zoom||0, opt.skill ? .03 : .018); }
   if(dmg > 0){
-    const big = opt.skill || crit;
-    addText(tgt, fmt(dmg), tgt.side === 'p' ? '#ff6b7a' : crit ? '#ffd166' : opt.color || '#ffffff', big ? (crit ? 34 : 28) : 22, crit);
+    const src = att.side !== 'p' ? 'enemy' : att.kind === 'pet' ? 'spirit' : opt.skill ? 'skill' : opt.parry ? 'parry' : 'hit';
+    if(att.side === 'p'){ BT.dmgBy = BT.dmgBy || {}; BT.dmgBy[src] = (BT.dmgBy[src]||0) + dmg; }
+    dmgNumber(tgt, dmg, src, crit, att);
   }
   const ls = (att.lifesteal||0)/100 + (opt.lifesteal||0);
   if(ls > 0 && !att.dead){ att.hp = Math.min(att.maxHp, att.hp + dmg*ls); }
@@ -629,6 +630,24 @@ function stepBattle(dt){
   if(BT.hero.dead){ BT.heroDownT = (BT.heroDownT||0) + dt; if(BT.heroDownT > 1) finishBattle(false); }
 }
 
+/* damage numbers: hits from the same source on the same target within a short window merge into ONE growing number,
+   with a small icon + colour per source, so you always see where your damage comes from (no number spam) */
+const DMG_SRC = {hit:{icon:'', c:'#ffffff'}, skill:{icon:'✦ ', c:null}, parry:{icon:'⟲ ', c:'#ffd166'}, spirit:{icon:'❖ ', c:null}, enemy:{icon:'', c:'#ff6b7a'}};
+function dmgNumber(tgt, dmg, src, crit, att){
+  const now = BT.clock || 0, key = src + (crit ? '!' : '');
+  tgt._agg = tgt._agg || {};
+  const g = tgt._agg[key];
+  if(g && now - g.t < .45 && g.tx.life > .3){
+    g.sum += dmg; g.t = now; g.n++; g.tx.txt = g.prefix + fmt(g.sum) + (g.n > 1 ? ` ×${g.n}` : '') + (crit ? '!' : '');
+    g.tx.life = g.tx.max; g.tx.size = Math.min(g.base*1.5, g.tx.size + 1.2); return;
+  }
+  const meta = DMG_SRC[src] || DMG_SRC.hit;
+  const col = src === 'skill' ? AFF[S.aff].color2 : src === 'spirit' ? (att && att.art ? att.art.eye : '#c9a8ff') : crit && src !== 'enemy' ? '#ffd166' : meta.c;
+  const base = src === 'enemy' ? 22 : crit ? 30 : src === 'skill' ? 26 : src === 'spirit' ? 18 : 22;
+  addText(tgt, meta.icon + fmt(dmg) + (crit ? '!' : ''), col, base, crit);
+  const tx = BT.texts[BT.texts.length - 1]; tx.life = tx.max = 1.05;
+  tgt._agg[key] = {sum:dmg, t:now, n:1, tx, prefix:meta.icon, base:tx.size};
+}
 function addText(u, txt, c, size, crit){
   const k = bk();
   BT.texts.push({x:u.x + rand(-25,25)*k, y:u.y - u.size*k*.95 - rand(0,20)*k, txt, c, size:size*Math.max(.75,k), life:.9, max:.9, vy:70*k, crit});

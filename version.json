@@ -1,11 +1,11 @@
 {
-  "version": "0.18.4",
+  "version": "0.18.5",
   "date": "2026-11-25",
-  "title": "Points in Sight",
+  "title": "Clear Numbers",
   "notes": [
-    "Free points are impossible to miss: the Stats tab opens with a glowing 'Talent Points' and 'Stat Points' counter at the top. Tap Talent Points to jump straight to your talents.",
-    "The Stats button in the menu bar shows the number of free points.",
-    "'Talent Tree' is now simply 'Talents', with the number of points right next to it.",
-    "A-Rank boss (The Storm Lord) slightly softer."
+    "Much less number spam: hits from the same source on the same enemy merge into one growing number (e.g. 565 x2).",
+    "You can see where damage comes from: white = sword strikes, ✦ in your element colour = skills, ⟲ gold = parries, ❖ = spirits, gold with ! = critical hit.",
+    "After every fight a damage bar shows your split (e.g. Skills 68%, Parries 21%, Strikes 10%) with a tip on what to invest in.",
+    "Talent points now shine as a gold badge. On phones the battle buttons have short labels so everything fits."
   ]
 }
