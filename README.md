@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### Tooling
+- `tools/colleague_changes.sh`: reports collaborators' commits (author, time, message, changed files) once per development round; posted to the live-update chat only when there is something new.
+
 ### v0.11.0 – One Hero, Enchanted Blade
 - Character creation is name only; every hero starts with the neutral `steel` skill set (`AFF.steel`).
 - Weapon Enchant (`ELEMENTS`, `ENCHANT_COST`, `enchantCost()`, `syncAff()`): Flame/Storm/Void/Blood, levels 1-5, +12% Skill DMG per level, switchable; unlocks at Floor 5.
@@ -109,3 +112,4 @@ Every change to the game is listed here. Newest first.
 - `js/menu.js` – main menu (save slots) and Esc menu
 - `js/main.js` – boot, main loop, offline rewards, updates
 - `docs/BACKLOG.md` – open requests and roadmap
+- `tools/colleague_changes.sh` – lists new commits from collaborators (anything not made by Claude) for the live-update chat
