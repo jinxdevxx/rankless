@@ -113,7 +113,15 @@ function renderHome(){
   let goalHtml = '';
   if(goal) goalHtml = `<div class="goal"><small>NEXT UNLOCK</small><b>${ICON[UNLOCKS[goal.key].icon]} ${goal.name}</b><span>${goal.hint}</span><div class="bar"><i style="width:${Math.round(goal.p*100)}%"></i></div></div>`;
   else if(list){ const done = arenaDone >= list.length; goalHtml = `<div class="goal"><small>RANK GOAL</small><b>${done ? 'Pass the Rank Exam' : 'Defeat ' + esc(list[arenaDone].name)}</b><span>Rank up to ${EXAMS[S.rank].next} to open a new gate</span><div class="bar"><i style="width:${Math.round(arenaDone/(list.length+1)*100)}%"></i></div></div>`; }
-  $('#homeActions').innerHTML = `
+  // "ready" shortcuts: things worth doing right now, one tap away
+  const todo = [];
+  if(S.points > 0) todo.push(['hero', `+${S.points} stat point${S.points > 1 ? 's' : ''}`, 'pts']);
+  if(S.inv.some(i => i.isNew)) todo.push(['bag', 'New gear', 'new']);
+  if(isUnlocked('enchant')){ const lv = S.enchant ? S.enchant.lv : 0, c = lv < ENCHANT_MAX ? enchantCost(lv + 1) : null;
+    if(c && (S.diamonds||0) >= c.diamonds && S.gold >= c.gold) todo.push(['hero', 'Enchant ready', 'dia']); }
+  if(isUnlocked('gates')){ const d = Object.keys(DAILY).reduce((n,k) => n + dailyLeft(k), 0); if(d > 0) todo.push(['gates', `Daily Gates ${d}×`, 'day']); }
+  const todoHtml = todo.length ? `<div class="todo">${todo.map(([id, txt, cls]) => `<button class="tchip ${cls}" data-a="sheet" data-id="${id}">${txt}</button>`).join('')}</div>` : '';
+  $('#homeActions').innerHTML = `${todoHtml}
     <button class="cta gate fight" data-a="quickGate">
       <small>${g.rank}-RANK GATE · ${nf > FLOORS ? `DEEP FLOOR ${nf}` : `FLOOR ${nf} / ${FLOORS}`}</small><b>FIGHT</b>
       <span>${g.name}</span>

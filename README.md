@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.12.3 – Ready Check
+- Home screen "ready" chips: free stat points, new gear, affordable enchant, Daily Gates left. One tap jumps there.
+- Phone: compact top bar, so all three currencies fit.
+
 ### v0.12.2 – Read the Strike
 - Enemies wind up before attacking you: they lean back and glow red (clear parry cue).
 - Monster eyes flare during the wind-up and blink now and then.

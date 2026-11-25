@@ -661,3 +661,19 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 
 /* toasts sit top-right on wide screens so they never cover windows */
 @media (min-width:900px){ #toasts{left:auto;right:16px;transform:none;top:88px;width:380px;align-items:stretch} body.upd #toasts{top:150px} }
+
+/* ---------- home: ready shortcuts + compact mobile top bar (v0.12.3) ---------- */
+.todo{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+.tchip{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.16);background:rgba(24,19,32,.85);color:#fff;font:800 13px Nunito,sans-serif;cursor:pointer;animation:tpop .4s cubic-bezier(.2,1.6,.4,1) both}
+.tchip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,#f7c75a);box-shadow:0 0 8px var(--c,#f7c75a);animation:tblink 1.6s ease-in-out infinite}
+.tchip.pts{--c:#9ff0b8} .tchip.new{--c:#ffd27a} .tchip.dia{--c:#7fd8ff} .tchip.day{--c:#ff9b8f}
+.tchip:hover{filter:brightness(1.2);transform:translateY(-1px)}
+@keyframes tpop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes tblink{50%{opacity:.35}}
+@media (max-width:640px){
+  .todo{flex:1 1 100%;order:-2;justify-content:flex-start;gap:6px} .tchip{padding:5px 11px;font-size:12px}
+  .topbar .prof{min-width:0;flex:1 1 auto} .topbar .prof > div{min-width:0} .pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .xp{width:90px}
+  .curs{gap:4px;flex-shrink:0} .curs .ibtn{width:36px;height:36px}
+  .curs .cur{font-size:16px;padding:4px 7px 4px 6px;gap:3px} .curs .cur svg{font-size:15px}
+}

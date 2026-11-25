@@ -1,9 +1,9 @@
 {
-  "version": "0.12.2",
+  "version": "0.12.3",
   "date": "2026-11-25",
-  "title": "Read the Strike",
+  "title": "Ready Check",
   "notes": [
-    "Enemies now wind up before they hit you: they lean back and glow red, so you can see when to PARRY.",
-    "Monster eyes flare up during the wind-up and they blink now and then, so they feel more alive."
+    "Home screen shows what's ready right now: free stat points, new gear, an enchant you can afford and Daily Gates left. Tap a chip to jump there.",
+    "Phone: the top bar is more compact, so Gold, Stones and Diamonds all fit on screen."
   ]
 }
