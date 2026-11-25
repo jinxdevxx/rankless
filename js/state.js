@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{}, master:{lv:0},
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -38,6 +38,7 @@ let SLOT = null;                       // active save slot (1..3)
 const slotKey = id => 'rankless_slot_' + id;
 function normalizeSave(s){
   const out = Object.assign(defaultSave(), s);
+  if(!Array.isArray(s.mastery)) s.mastery = [0,0,0,0];
   for(const k of ['stats','eq','gates','arena','settings','record','unlocks','flags','pets','tower','talents','master']) out[k] = Object.assign(defaultSave()[k], s[k] || {});
   return out;
 }

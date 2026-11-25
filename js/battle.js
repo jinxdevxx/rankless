@@ -386,7 +386,7 @@ function useSkill(i){
     }
     return;
   }
-  const sk = skillDef(i);
+  const sk = Object.assign({}, skillDef(i)); if(sk.mult) sk.mult *= masteryMult(i);
   BT.energy -= SKILL_COST[i]; BT.gcd = .45; SFX.skill(S.aff);
   BT.ult = Math.min(100, BT.ult + SKILL_COST[i]*12);
   // chain: skills used back-to-back hit harder
@@ -398,7 +398,7 @@ function useSkill(i){
 function useUlt(){
   if(!BT || BT.over || !ultUnlocked() || BT.ult < 100 || BT.hero.dead || BT.cutin || !alive('e').length) return;
   BT.ult = 0;
-  const u = AFF[S.aff].ult;
+  const u = Object.assign({}, AFF[S.aff].ult); if(u.mult) u.mult *= masteryMult(3);
   BT.cutin = {t:0, dur:1.25, name:u.name, color:AFF[S.aff].color, color2:AFF[S.aff].color2, after:() => { SFX.ultHit(); castEffect(BT.hero, u, true); }};
   SFX.ultStart();
 }

@@ -25,6 +25,12 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.19.0 – Skill Mastery
+- Skill Mastery (S.mastery[0..3], MASTERY_MAX 10, +12 %/level, gold + stones cost) applied in useSkill/useUlt; UI rows in the Champion tab with have/need chips.
+- drawRankAura(): rank-coloured rotating rune rings + sparks on the home screen from B-Rank on.
+- Bosses: Matriarch 4.2→3.6, Abyss King 4.2→3.6, Storm Lord 3.4→2.8, Sunken Queen 4.0→3.3, Eclipse Emperor 4.4→3.6; all elites ×0.8 HP; S/SS gate mult 1.0→0.85.
+- Bots: spamskill E→B ~32 min, A ~90 min, S still slow (being tuned); pure spam E→B ~226 min.
+
 ### v0.18.6 – S+ Badge
 - rankBadge(): S+ shown as big S with raised glowing +, fixed badge font sizes.
 

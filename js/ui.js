@@ -171,6 +171,27 @@ function showNextUnlock(){
     <div class="row c"><button class="btn" data-a="unlockLater">Later</button><button class="btn primary" data-a="unlockOpen" data-id="${k}">Open ${u.name}</button></div></div>`);
 }
 
+/* from B-Rank on, a rotating rune circle in the rank colour shows how far you came (more rings + sparks per rank) */
+const RANK_AURA = {B:'#c27bff', A:'#ffb347', S:'#ff3d6a', SS:'#ffd27a', M:'#e9dcff'};
+function drawRankAura(c, hx, fy, hh, t){
+  const col = RANK_AURA[S.rank]; if(!col) return;
+  const tier = RANKS.indexOf(S.rank) - 2, cx = hx, cy = fy - hh*.02;
+  c.save(); c.translate(cx, cy); c.scale(1, .28); c.strokeStyle = col; c.shadowColor = col; c.shadowBlur = 18;
+  for(let ring = 0; ring < Math.min(3, tier); ring++){
+    const r = hh*(.42 + ring*.1), dir = ring % 2 ? -1 : 1;
+    c.globalAlpha = .55 - ring*.12; c.lineWidth = 2.5 - ring*.5;
+    c.beginPath(); c.arc(0, 0, r, 0, 7); c.stroke();
+    c.save(); c.rotate(t*.35*dir); c.lineWidth = 3;
+    for(let i = 0; i < 12; i++){ const a0 = i*Math.PI/6; c.beginPath(); c.arc(0, 0, r, a0, a0 + .18); c.stroke();
+      c.globalAlpha = .7 - ring*.15; c.fillStyle = col; c.fillRect(Math.cos(a0 + .3)*r - 2, Math.sin(a0 + .3)*r - 2, 4, 4); }
+    c.restore();
+  }
+  c.restore();
+  if(tier >= 2){ c.save(); c.fillStyle = col; c.shadowColor = col; c.shadowBlur = 10;
+    for(let i = 0; i < 6 + tier*3; i++){ const a = t*.6 + i*2.4, rr = hh*(.3 + (i%4)*.06), yy = cy - ((t*30 + i*37) % (hh*.9));
+      c.globalAlpha = .5*(1 - (cy - yy)/(hh*.9)); c.beginPath(); c.arc(cx + Math.cos(a)*rr, yy, 2 + (i%3), 0, 7); c.fill(); }
+    c.restore(); }
+}
 function drawHomeScene(t, dt){
   const c = ctx, mob = VW < VH;
   c.drawImage(getBg('city'), 0, 0, VW, VH);
@@ -178,6 +199,7 @@ function drawHomeScene(t, dt){
   const hx = mob ? VW*.5 : (UI.screen === 'create' || UI.screen === 'slots') ? VW*.3 : VW*.42;
   const hh = mob ? Math.min(VH*.42, VW*.95) : VH*.56, fy = mob ? VH*.66 : VH*.86;
   drawPortal(c, hx + hh*.08, fy - hh*.62, hh*.48, t*.7, a.color, T.accent, .95);
+  if(UI.screen === 'home' && S && S.created) drawRankAura(c, hx, fy, hh, t);
   sceneFx('city', t, dt);
   // ground glow ring
   c.save(); c.strokeStyle = a.color; c.globalAlpha = .5; c.shadowColor = a.color; c.shadowBlur = 20; c.lineWidth = 2;
@@ -331,7 +353,12 @@ function sheetHero(){
   const slots = SLOTS.map(sl => { const it = S.eq[sl];
     return `<button class="slot ${it?'has':''}" style="--r:${it?RARITY[it.rar].color:'#2a3150'}" data-a="${it?'item':'sheet'}" data-id="${it?it.id:'bag'}">
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
-  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b>, your fighting spirit (0-100). You build it by hitting, blocking and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i>${specOf() && specOf().skill.i === i ? ` <i class="up">▲ ${specOf().name}</i>` : ''}<span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
+  const mrow = (i, name, tag, desc) => { const lv = masteryLv(i), c = masteryCost(i), max = lv >= MASTERY_MAX, ok = !max && S.gold >= c.gold && S.stones >= c.stones;
+    return `<div class="skl mast ${i === 3 ? 'ult' : ''}"><div class="mh"><b>${name}</b> <i>${tag}</i><span class="mastlv">Mastery ${lv}/${MASTERY_MAX} · +${Math.round(lv*MASTERY_STEP*100)}% DMG</span></div><span>${desc}</span>
+      ${max ? '<div class="tag">MASTERED</div>' : `<div class="mrow">${haveNeed('gold','Gold',S.gold,c.gold)}${haveNeed('stone','Mana Stones',S.stones,c.stones)}<button class="btn small ${ok ? 'primary' : ''}" data-a="mastery" data-id="${i}" ${ok ? '' : 'disabled'}>Train → ${lv + 1}<small> (+12%)</small></button></div>`}</div>`; };
+  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b> (0-100), built by hitting, blocking and defeating enemies. <b>Train</b> a skill to make it hit harder: check the damage split after a fight to see which pays off.</div>`
+    + a.skills.map((sk,i) => mrow(i, sk.name, `${SKILL_COST[i]*KI_UNIT} Ki · unlocks Lv ${SKILL_LV[i]}${specOf() && specOf().skill.i === i ? ' · ▲ ' + specOf().name : ''}`, sk.desc)).join('')
+    + mrow(3, a.ult.name, 'ULT', a.ult.desc);
   return `<div class="cols">
     <div class="box sys"><div class="bt">STATS</div><div class="hint" style="margin-top:0">Stat points, all numbers and the talent tree moved to their own tab.</div><button class="btn primary" data-a="sheet" data-id="stats">Open Stats & Talents ${S.points || talentFree() ? `(${S.points + talentFree()} points free)` : ''}</button></div>
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
@@ -695,6 +722,8 @@ function act(a, el){
     case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
       if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
     case 'goTalents': { const el = document.getElementById('talentsHead'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); break; }
+    case 'mastery': { const i = +id, c = masteryCost(i); if(masteryLv(i) >= MASTERY_MAX || S.gold < c.gold || S.stones < c.stones) break;
+      S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; SFX.unlockFx(); toast('SKILL TRAINED', `${i === 3 ? AFF[S.aff].ult.name : AFF[S.aff].skills[i].name} is now Mastery ${S.mastery[i]} (+${Math.round(S.mastery[i]*MASTERY_STEP*100)}% damage)`, 'gold'); save(); renderSheet(); renderHome(); break; }
     case 'talentReset': S.talents = {}; UI.shownPower = undefined; save(); renderSheet(); renderHome(); break;
     case 'stat': if(S.points > 0){ S.stats[id]++; S.points--; save(); renderSheet(); renderHome(); } break;
     case 'stat5': if(S.points >= 5){ S.stats[id] += 5; S.points -= 5; save(); renderSheet(); renderHome(); } break;

@@ -3,6 +3,8 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] More influence on what you focus/skill: Skill Mastery + damage split (v0.19.0)
+- [ ] S-gate pacing: hero level lags behind enemy level at L60+ (bot stuck at S-F7..F9) – next rounds
 - [x] S+ badge too small (v0.18.6)
 - [ ] RECURRING (player): never stop – keep pushing improvements (gameplay, graphics, balance, all wishes) every round
 - [x] Talent points must stand out (gold badge) (v0.18.5)

@@ -1,8 +1,10 @@
 {
-  "version": "0.18.6",
+  "version": "0.19.0",
   "date": "2026-11-25",
-  "title": "S+ Badge",
+  "title": "Skill Mastery",
   "notes": [
-    "The S+ rank badge now has a big S like every other rank, with a bold glowing + next to it (top bar, gates and arena)."
+    "NEW: Skill Mastery. Train each skill and your ultimate up to Mastery 10 with Gold and Mana Stones, +12% damage per level (Champion tab). Use the damage split after fights to see which skill pays off.",
+    "From B-Rank on, your hero stands in a rotating rune circle in your rank colour on the home screen, with more rings and sparks the higher you climb.",
+    "Balance: late bosses (Frost Matriarch, Abyss King, Storm Lord, Sunken Queen, Eclipse Emperor) have less HP, all elites have 20% less HP, Sunken Sun and Eclipse Throne are a bit softer."
   ]
 }

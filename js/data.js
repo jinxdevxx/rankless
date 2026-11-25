@@ -138,40 +138,40 @@ const ENEMY_TYPES = {
   husk:     {name:'Husk',            style:'husk',     hp:1.0, atk:.9,  spd:1.5, role:'tank',   pal:{body:'#1d1628',rim:'#8a5cff',eye:'#ff2e55'}, comp:{hp:1.15,atk:.55}, desc:'Mindless rift-walker. Draws enemy attacks.'},
   hound:    {name:'Rift Hound',      style:'beast',    hp:.7,  atk:1.1, spd:1.0, role:'dps',    pal:{body:'#170f22',rim:'#ff2e88',eye:'#ffcf33'}, comp:{hp:.75,atk:.85}, desc:'Fast pack hunter.'},
   spitter:  {name:'Bile Spitter',    style:'blob',     hp:.75, atk:1.2, spd:1.7, role:'ranged', ranged:true, pal:{body:'#112018',rim:'#5dff9b',eye:'#d6ff3a'}, comp:{hp:.7,atk:.9}, desc:'Spits corrosive bile from range.'},
-  brute:    {name:'Barnacle Brute',  style:'brute',    hp:2.6, atk:1.4, spd:2.1, role:'tank',   elite:true, pal:{body:'#1b1a28',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:1.7,atk:.7}, desc:'Armored elite. Draws enemy attacks.'},
+  brute:    {name:'Barnacle Brute',  style:'brute',    hp:2.08, atk:1.4, spd:2.1, role:'tank',   elite:true, pal:{body:'#1b1a28',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:1.7,atk:.7}, desc:'Armored elite. Draws enemy attacks.'},
   warden:   {name:'Harbor Warden',   style:'warden',   hp:8.5, atk:2.0, spd:2.3, role:'tank',   boss:true, pal:{body:'#0d1a2c',rim:'#3fc6ff',eye:'#ff2e55'}, comp:{hp:2.2,atk:1.0}, desc:'Lord of the drowned gate.'},
   crawler:  {name:'Tunnel Crawler',  style:'beast',    hp:.8,  atk:1.15,spd:.95, role:'dps',    pal:{body:'#1e130c',rim:'#ff8a3c',eye:'#ffe14d'}, comp:{hp:.8,atk:.95}, desc:'Skitters through the dark at terrifying speed.'},
   wraith:   {name:'Rail Wraith',     style:'ghost',    hp:.8,  atk:.95, spd:1.6, role:'healer', ranged:true, pal:{body:'#16121f',rim:'#c3a6ff',eye:'#ffffff'}, comp:{hp:.8,atk:.6}, desc:'Heals its weakest ally.'},
-  golem:    {name:'Scrap Golem',     style:'golem',    hp:2.8, atk:1.3, spd:2.2, role:'tank',   elite:true, pal:{body:'#221a14',rim:'#ff8a3c',eye:'#ffcf33'}, comp:{hp:1.85,atk:.65}, desc:'Metal and malice. Draws enemy attacks.'},
+  golem:    {name:'Scrap Golem',     style:'golem',    hp:2.24, atk:1.3, spd:2.2, role:'tank',   elite:true, pal:{body:'#221a14',rim:'#ff8a3c',eye:'#ffcf33'}, comp:{hp:1.85,atk:.65}, desc:'Metal and malice. Draws enemy attacks.'},
   conductor:{name:'The Conductor',   style:'conductor',hp:7, atk:2.0, spd:2.0, role:'dps',    boss:true, pal:{body:'#1a0f0f',rim:'#ff5a3c',eye:'#ffe14d'}, comp:{hp:1.4,atk:1.45}, desc:'The last train never left the station.'},
   fang:     {name:'Frost Fang',      style:'beast',    hp:.85, atk:1.2, spd:.95, role:'dps',    pal:{body:'#0e1a22',rim:'#9fe8ff',eye:'#bff6ff'}, comp:{hp:.85,atk:1.0}, desc:'Its bite freezes blood.'},
   specter:  {name:'Shrine Specter',  style:'ghost',    hp:.85, atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#141824',rim:'#bfe9ff',eye:'#ffffff'}, comp:{hp:.85,atk:.65}, desc:'A restless spirit. Heals its weakest ally.'},
-  oni:      {name:'Ice Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
+  oni:      {name:'Ice Oni',         style:'oni',      hp:2.4, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101a24',rim:'#7fd8ff',eye:'#ff2e55'}, comp:{hp:1.9,atk:.8}, desc:'A horned giant of ice. Draws enemy attacks.'},
   // B-Rank: Abyssal Rift
   shade:    {name:'Abyss Shade',     style:'ghost',    hp:.85, atk:1.15,spd:1.2, role:'dps',    pal:{body:'#120a1e',rim:'#b05cff',eye:'#ff5ad1'}, comp:{hp:.8,atk:.9}, desc:'A shadow that forgot it was ever a person.'},
   reaver:   {name:'Rift Reaver',     style:'beast',    hp:.9,  atk:1.2, spd:.9,  role:'dps',    pal:{body:'#1a0a14',rim:'#ff3d8a',eye:'#ffe14d'}, comp:{hp:.85,atk:1.0}, desc:'Tears through armor and nerve.'},
   lich:     {name:'Void Lich',       style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c0a1a',rim:'#7f8cff',eye:'#d8e0ff'}, comp:{hp:.8,atk:.6}, desc:'Mends the broken with stolen life.'},
-  colossus: {name:'Abyss Colossus',  style:'golem',    hp:3.0, atk:1.4, spd:2.2, role:'tank',   elite:true, pal:{body:'#140c22',rim:'#b05cff',eye:'#ff3d6a'}, comp:{hp:1.9,atk:.7}, desc:'A walking wall of rift stone.'},
-  abyssking:{name:'The Abyss King',  style:'warden',   hp:4.2, atk:1.9, spd:2.2, role:'tank',   boss:true, pal:{body:'#0e0818',rim:'#c27bff',eye:'#ff3d6a'}, comp:{hp:2,atk:1.1}, desc:'Ruler of the rift below the city.'},
+  colossus: {name:'Abyss Colossus',  style:'golem',    hp:2.4, atk:1.4, spd:2.2, role:'tank',   elite:true, pal:{body:'#140c22',rim:'#b05cff',eye:'#ff3d6a'}, comp:{hp:1.9,atk:.7}, desc:'A walking wall of rift stone.'},
+  abyssking:{name:'The Abyss King',  style:'warden',   hp:3.6, atk:1.9, spd:2.2, role:'tank',   boss:true, pal:{body:'#0e0818',rim:'#c27bff',eye:'#ff3d6a'}, comp:{hp:2,atk:1.1}, desc:'Ruler of the rift below the city.'},
   // A-Rank: Tempest Spire
   stalker:  {name:'Storm Stalker',   style:'beast',    hp:.85, atk:1.25,spd:.85, role:'dps',    pal:{body:'#0a1420',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:.85,atk:1.0}, desc:'Moves with the lightning.'},
   harpy:    {name:'Thunder Harpy',   style:'blob',     hp:.75, atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#0f1a26',rim:'#7fe0ff',eye:'#ffffff'}, comp:{hp:.7,atk:.95}, desc:'Rains sparks from above.'},
   sage:     {name:'Storm Sage',      style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c1622',rim:'#9fe8ff',eye:'#fff06a'}, comp:{hp:.8,atk:.6}, desc:'Calls rain that heals its kin.'},
-  titan:    {name:'Iron Titan',      style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
-  stormlord:{name:'The Storm Lord',  style:'conductor',hp:3.4, atk:1.8, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
+  titan:    {name:'Iron Titan',      style:'oni',      hp:2.4, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
+  stormlord:{name:'The Storm Lord',  style:'conductor',hp:2.8, atk:1.8, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
   // S-Rank: Sunken Sun
   ember:    {name:'Sun Ember',       style:'blob',     hp:.8,  atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#26120a',rim:'#ffb347',eye:'#fff1c0'}, comp:{hp:.7,atk:.95}, desc:'A fallen piece of a dying sun.'},
   sunhound: {name:'Solar Hound',     style:'beast',    hp:.9,  atk:1.25,spd:.9,  role:'dps',    pal:{body:'#24140a',rim:'#ffd27a',eye:'#ff5a3c'}, comp:{hp:.85,atk:1.0}, desc:'Its howl melts stone.'},
   priest:   {name:'Ash Priest',      style:'husk',     hp:1.0, atk:.95, spd:1.5, role:'tank',   pal:{body:'#1e140e',rim:'#ff8a3c',eye:'#fff1c0'}, comp:{hp:1.15,atk:.55}, desc:'Prays to a sun that is gone.'},
-  sunoni:   {name:'Sun Oni',         style:'oni',      hp:3.0, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#24100a',rim:'#ffb347',eye:'#ff3d3d'}, comp:{hp:1.9,atk:.8}, desc:'Burns with borrowed light.'},
-  sunqueen: {name:'The Sunken Queen',style:'matriarch',hp:4.0, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#1e1008',rim:'#ffd27a',eye:'#ff8a3c'}, comp:{hp:1.3,atk:1.5}, desc:'She drowned the sun to keep it.'},
+  sunoni:   {name:'Sun Oni',         style:'oni',      hp:2.4, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#24100a',rim:'#ffb347',eye:'#ff3d3d'}, comp:{hp:1.9,atk:.8}, desc:'Burns with borrowed light.'},
+  sunqueen: {name:'The Sunken Queen',style:'matriarch',hp:3.3, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#1e1008',rim:'#ffd27a',eye:'#ff8a3c'}, comp:{hp:1.3,atk:1.5}, desc:'She drowned the sun to keep it.'},
   // S+ Rank: Eclipse Throne
   eclipse:  {name:'Eclipse Wraith',  style:'ghost',    hp:.85, atk:1.25,spd:1.2, role:'dps',    pal:{body:'#08060e',rim:'#ff3d6a',eye:'#ffffff'}, comp:{hp:.8,atk:1.0}, desc:'Darkness with a grudge.'},
   hunterx:  {name:'Fallen Hunter',   style:'husk',     hp:1.0, atk:1.1, spd:1.3, role:'tank',   pal:{body:'#0a0a12',rim:'#e8e8f0',eye:'#ff3d6a'}, comp:{hp:1.15,atk:.6}, desc:'Once a Breaker. Never again.'},
   oracle:   {name:'Black Oracle',    style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0a0612',rim:'#ffd27a',eye:'#ff3d6a'}, comp:{hp:.8,atk:.6}, desc:'Sees your death and smiles.'},
-  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:3.2, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
-  emperor:  {name:'The Eclipse Emperor',style:'warden',hp:4.4, atk:2.0, spd:2.1, role:'tank',   boss:true, pal:{body:'#06040a',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2.2,atk:1.2}, desc:'The one who closed the sky.'},
-  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:4.2, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
+  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:2.56, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
+  emperor:  {name:'The Eclipse Emperor',style:'warden',hp:3.6, atk:2.0, spd:2.1, role:'tank',   boss:true, pal:{body:'#06040a',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2.2,atk:1.2}, desc:'The one who closed the sky.'},
+  matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:3.6, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
 function shardNeed(type){ const t = ENEMY_TYPES[type]; return t.boss ? 40 : t.elite ? 20 : 12; }
 const STAR_COST = [0, 1, 2, 4, 8]; // x shardNeed to reach star i+1
@@ -191,9 +191,9 @@ const GATES = [
     desc:'A wound under the city where the rift breathes.'},
   {id:'A', rank:'A', name:'Tempest Spire',  baseLv:48, mult:1.15, theme:'t_storm', enemies:['stalker','harpy','sage'], elite:'titan', boss:'stormlord',
     desc:'A tower of stone and lightning above the clouds.'},
-  {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:1.0, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
+  {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:.85, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
     desc:'A drowned temple where a dead sun still glows.'},
-  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:1.0, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
+  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:.85, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
 ];
 const FLOORS = 10;
@@ -358,6 +358,11 @@ const SKILL_COST = [1, 2, 3];
 // Ki: fighting spirit, built by hitting, blocking and defeating enemies, spent on skills.
 // Counted internally in units of KI_UNIT (the old crystal); shown to players as 0-100 Ki.
 const KI_UNIT = 20;
+/* Skill Mastery: every skill (0-2) and the ultimate (3) can be trained to Lv 10 with Gold + Mana Stones, +12% damage per level */
+const MASTERY_MAX = 10, MASTERY_STEP = .12;
+function masteryLv(i){ return (S.mastery && S.mastery[i]) || 0; }
+function masteryMult(i){ return 1 + masteryLv(i)*MASTERY_STEP; }
+function masteryCost(i){ const lv = masteryLv(i); return {gold: Math.round(goldFor(Math.max(1, S.level))*(i === 3 ? 60 : 35)*(lv + 1)), stones: (i === 3 ? 12 : 8)*(lv + 1)}; }
 function kiOf(e){ return Math.floor(e*KI_UNIT + 1e-6); }
 const ENERGY = {max:5, start:2, hit:.15, kill:.4, hurt:.1, strike:.3, parry:1};
 // active combat
