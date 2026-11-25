@@ -1,10 +1,9 @@
 {
-  "version": "0.23.1",
+  "version": "0.23.2",
   "date": "2026-11-25",
-  "title": "Your Journey",
+  "title": "Relic Slots Fix",
   "notes": [
-    "NEW: total play time on every save slot, in the Esc menu and in the Champion tab.",
-    "NEW: Your Journey (Champion tab) records when you reached every rank, the Master League, Master 10/50/99, Paragon and Rift milestones.",
-    "Play time counts while the game runs, background farming included. Older saves start counting now."
+    "Relics: the 'slots full' message no longer tells Master 99 players to reach Master 30/60/90. It shows the next slot level, or that 4 slots is the maximum.",
+    "Relic list shows how many slots you have and when the next one opens."
   ]
 }

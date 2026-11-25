@@ -7,10 +7,12 @@ const { chromium } = require('playwright');
   await p.goto('http://localhost:8782/');
   await p.waitForFunction(() => typeof menuAct === 'function' && typeof startGate === 'function', null, {timeout:20000});
   const aff = process.argv[2]||'storm'; const policy = process.argv[3]||'good'; const maxMin = +(process.argv[4]||180);
-  const res = await p.evaluate(([aff, policy, maxMin]) => {
+  const snapIn = process.env.START_SNAP ? require('fs').readFileSync(process.env.START_SNAP, 'utf8') : null;
+  const res = await p.evaluate(([aff, policy, maxMin, snapIn]) => {
     S = defaultSave(); SLOT = null; S.created=true; S.intro=true; S.name='BOT'; S.aff='steel'; S.flags.enchantV1=true; const ENCH=aff;
     S.eq.weapon = makeItem('weapon',1,0); S.eq.armor = makeItem('armor',1,0);
     S.settings.autoSkill = policy !== 'spam'; S.settings.autoAttack = policy === 'auto'; S.settings.autoSalvage = 0; S.settings.autoEquip = true; S.settings.autoStats = false; S.settings.farm = 'off';
+    if(snapIn){ S = normalizeSave(JSON.parse(snapIn)); S.settings.autoSkill = policy !== 'spam'; S.settings.autoAttack = policy === 'auto'; }   // START_SNAP: continue from a saved character
     const log=[]; let simTime=0, battles=0, losses=0;
     function run(){ let t=0, st=0; while(!BT.over && t<240){ st-=0.05; if(policy==='auto'){ /* full auto: no manual presses at all */ } else if(policy==='spam' || policy==='spamskill'){ if(st<=0){ heroAction(); st=0.15; } } else { if(st<=0){ heroAction(); st=0.7; } else if(threatsOnHero().length && Math.random()<0.06) heroAction(); } stepBattle(0.05); t+=0.05; window.__mh = Math.min(window.__mh ?? 1, BT.hero.hp/BT.hero.maxHp); } simTime += t + 4; battles++; const r = BT.result; window.ST = window.ST || {wins:0, deaths:0, timeouts:0, close:0}; if(r && r.win){ window.ST.wins++; if(window.__mh < .3) window.ST.close++; } else if(BT.hero.dead) window.ST.deaths++; else window.ST.timeouts++; window.__mh = 1; { window.LR=window.LR||{}; const key=(r&&r.win?'win':BT.hero.dead?'dead':'timeout')+' '+(BT.gate?BT.gate.id+(BT.floor||'T'):'A'); const e=window.LR[key]=window.LR[key]||{n:0,t:0}; e.n++; e.t+=t; } BT=null; return r && r.win; }
     function manage(){
@@ -55,7 +57,7 @@ const { chromium } = require('playwright');
     }
     log.push(`END ${(simTime/60).toFixed(0)}m battles=${battles} lv${S.level} rank ${S.rank} gates ${JSON.stringify(S.gates)} pets ${JSON.stringify(S.pets.owned)} gold ${Math.round(S.gold)} stones ${S.stones} inv ${S.inv.length} eq ${SLOTS.map(s=>S.eq[s]?RARITY[S.eq[s].rar].name[0]+S.eq[s].ilvl+'+'+S.eq[s].plus:'-').join(',')}`);
     return log.join('\n');
-  }, [aff, policy, maxMin]);
+  }, [aff, policy, maxMin, snapIn]);
   console.log(res);
   console.log('ST', JSON.stringify(await p.evaluate(()=>window.ST))); console.log('LR', JSON.stringify(await p.evaluate(()=>{ const o={}; for(const k in window.LR) o[k]=window.LR[k].n+'x '+Math.round(window.LR[k].t/window.LR[k].n)+'s'; return o; }))); console.log('ERRORS', errs.slice(0,5));
   const snaps = await p.evaluate(() => window.__snaps || {}); if(process.env.SNAPDIR){ for(const k in snaps) require('fs').writeFileSync(`${process.env.SNAPDIR}/snap_${aff}_${policy}_${k}.json`, snaps[k]); }

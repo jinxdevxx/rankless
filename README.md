@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.23.2 – Relic Slots Fix
+- Checked: slot count was correct (1 + Master 30/60/90 = 4 at Master 99, designed max). Bug was the toast text, which always said "More slots at Master 30 / 60 / 90". Now dynamic (next slot level or "4 is the maximum"); relic header shows it too.
+- Bot: `START_SNAP=<file>` continues from a saved character (fast master-phase measurements).
+
 ### v0.23.1 – Your Journey
 - `S.playtime` (real seconds, foreground frames + hidden-tab battle ticks, max 5 s per tick) shown on slot cards, Esc menu and Champion tab.
 - `S.journey`: play time at each rank-up, Master League, Master 10/50/99, Paragon 1/10/25, Rift milestones. Real player data for balancing.

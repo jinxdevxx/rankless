@@ -298,7 +298,7 @@ function riftCard(){
     ${run ? `<div class="rfrun"><span>Current run: <b>Depth ${run.depth}</b> · HP <b>${Math.round(run.hp*100)}%</b>${run.curse ? ` · 🩸 Pact ×${run.curse}` : ''}</span><div class="bchips">${boons || '<small class="muted">no boons yet</small>'}</div>
         <div class="row"><button class="btn primary big-next" data-a="riftContinue">▶ CONTINUE · DEPTH ${run.depth + 1}</button><button class="btn" data-a="riftEnd">End run</button></div></div>`
       : `<div class="row"><button class="btn primary big-next" data-a="riftStart">▶ START RUN · DEPTH 1</button>${masterHas(80) ? '<button class="btn" data-a="riftStart" data-id="deep">Deep Dive · Depth 10</button>' : ''}</div>`}
-    <div class="bt" style="margin-top:12px">RELICS · ${S.relics.active.length}/${slots} worn <small class="muted">(tap to wear / remove)</small></div>
+    <div class="bt" style="margin-top:12px">RELICS · ${S.relics.active.length}/${slots} worn <small class="muted">(tap to wear / remove${slots >= 4 ? ' · 4 slots is the maximum' : ` · next slot at Master ${[30, 60, 90].find(l => !masterHas(l))}`})</small></div>
     <div class="relics">${relics}</div>
     <div class="bt" style="margin-top:12px">MASTER UNLOCKS <small class="muted">(your Master Lv ${ml})</small></div>
     <div class="mroad">${road}</div></div>`;
@@ -880,7 +880,7 @@ function act(a, el){
     case 'riftReroll': { cancelAuto(); const run = S.rift.run; if(run && !run.rr && masterHas(20)){ run.rr = true; run.choices = rollBoons(); BT.result.riftChoices = run.choices; showResult(BT.result); } break; }
     case 'riftLeave': { if(S.rift.run && S.rift.run.choices) S.rift.run.choices = null; save(); leaveBattle(); toast('RUN PAUSED', 'Continue it any time in the Abyss Rift (Arena / Gates tab).'); break; }
     case 'riftEnd': { S.rift.run = null; S.rift.runs = (S.rift.runs||0) + 1; save(); renderSheet(); break; }
-    case 'relicToggle': { const a = S.relics.active, i = a.indexOf(id); if(i >= 0) a.splice(i, 1); else if(a.length < relicSlots()) a.push(id); else { toast('ALL RELIC SLOTS USED', 'Remove a relic first. More slots at Master 30 / 60 / 90.'); break; } save(); renderSheet(); renderHome(); break; }
+    case 'relicToggle': { const a = S.relics.active, i = a.indexOf(id); if(i >= 0) a.splice(i, 1); else if(a.length < relicSlots()) a.push(id); else { { const nx = [30, 60, 90].find(l => !masterHas(l)); toast(`ALL ${relicSlots()} RELIC SLOTS USED`, nx ? `Tap a worn relic to remove it first. Next slot at Master ${nx}.` : `${relicSlots()} is the maximum. Tap a worn relic to remove it, then wear another.`); } break; } save(); renderSheet(); renderHome(); break; }
     case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else if(BT.master) startMaster(); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
