@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [ ] Focus on gameplay instead of graphics: more interesting and exciting, but keep everything simple (upgrades and fights). Simplifications must be switchable back. (v0.13.0: Simple Mode toggle; next: exciting but simple gameplay, see Next up 1)
 - [x] One hero instead of 4 classes; weapon enchantments with a new currency (v0.11.0)
 - [x] Currencies and upgrade costs easy to see (v0.11.0)
 - [x] Full run about 3-4 hours, balanced, rewarding (v0.11.0, keep checking)
@@ -34,6 +35,7 @@ Open requests from the player come first. Every development round starts here.
 - Item sets (v0.8.0)
 
 ## Next up (open player wishes, work through in this order)
+0. GAMEPLAY FIRST (player wish 2026-11-25): no more pure graphics rounds. Make runs exciting with simple ideas: boss mechanics you can read (dodge / break phases), Red Gates (rare timed high-reward gates), Abyss Tower (endless floors, best floor record). Fewer menus, not more.
 1. Combat feel: rounder and more skill-based without being stressful; frequent dopamine moments. (v0.12.0: Flow + Execute added; keep refining)
 2. Visuals: simple but appealing and "gripping"; polish characters, monsters, effects, home screen; keep the warm illustrated style, nothing cyber. (v0.12.1: reward moments done; v0.12.2: monster wind-up + blinking; v0.12.3: home ready chips + compact phone top bar; v0.12.4: element hit effects; v0.12.5: death animations. Visual pass done for now)
 3. Clarity: every screen must be instantly understandable (big readable numbers, clear costs, obvious next step).

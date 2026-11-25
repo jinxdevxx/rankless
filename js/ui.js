@@ -325,12 +325,13 @@ function sheetBag(){
 }
 
 function sheetLegion(){
+  autoLegion();
   const slots = partySlots();
   let party = '';
   for(let i=0;i<3;i++){
     const type = S.party[i], open = i < slots;
     party += `<div class="pslot ${open?'':'locked'}">${!open ? `${ICON.lock}<small>${['','D','C'][i]}-Rank</small>` :
-      type ? `<img src="${monsterPortrait(type,true)}" alt=""><b>${ENEMY_TYPES[type].name}</b><small>${'★'.repeat(S.comps[type])}</small><button class="btn small" data-a="unparty" data-id="${type}">Remove</button>` : '<small>Empty slot</small>'}</div>`;
+      type ? `<img src="${monsterPortrait(type,true)}" alt=""><b>${ENEMY_TYPES[type].name}</b><small>${'★'.repeat(S.comps[type])}</small>${S.settings.simple ? '' : `<button class="btn small" data-a="unparty" data-id="${type}">Remove</button>`}` : '<small>Empty slot</small>'}</div>`;
   }
   const hs = heroStats();
   const types = Object.keys(ENEMY_TYPES).filter(k => S.comps[k] || S.shards[k] !== undefined);
@@ -346,12 +347,13 @@ function sheetLegion(){
         ${need ? `<div class="bar"><i style="width:${Math.min(100, sh/need*100)}%"></i></div><small class="muted">${sh} / ${need} shards ${st ? 'to next ★' : 'to bind'}</small>` : '<small class="muted">Max stars</small>'}
       </div>
       <div class="mside">
-        ${st && need && sh >= need ? `<button class="btn small primary" data-a="starUp" data-id="${k}">Star up</button>` : ''}
-        ${st && !inParty ? `<button class="btn small" data-a="party" data-id="${k}" ${S.party.length < slots ? '' : 'disabled'}>Add to party</button>` : ''}
+        ${!S.settings.simple && st && need && sh >= need ? `<button class="btn small primary" data-a="starUp" data-id="${k}">Star up</button>` : ''}
+        ${!S.settings.simple && st && !inParty ? `<button class="btn small" data-a="party" data-id="${k}" ${S.party.length < slots ? '' : 'disabled'}>Add to party</button>` : ''}
         ${inParty ? '<span class="tag">IN PARTY</span>' : ''}
       </div></div>`;
   }).join('');
   return `<div class="box sys"><div class="bt">PARTY <span class="pts on">${S.party.length} / ${slots}</span></div><div class="pslots">${party}</div>
+    ${S.settings.simple ? '<div class="hint"><b>Simple Mode:</b> your strongest monsters join the party and star up on their own.</div>' : ''}
     <div class="hint">Monsters drop <b>Soul Shards</b>. Collect enough to bind them. More shards raise their stars. Rank up to unlock more party slots.</div></div>
     <div class="mlist">${cards || '<div class="empty">Defeat monsters in gates to collect Soul Shards.</div>'}</div>`;
 }
@@ -437,7 +439,7 @@ function updateBattleHud(){
     hint.textContent = th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? ((BT.flow||0) ? 'Keep the rhythm: steady strikes build FLOW' : 'Strike (Space / tap) in a steady rhythm to build FLOW')
       : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : need >= 0 ? `Skills light up when you have enough ◆` : 'Use a skill! Back-to-back skills = CHAIN bonus'; hint.classList.toggle('warn', th); }
   const fl = $('#bFlow'); if(fl){ const n = BT.flow || 0; fl.innerHTML = n ? `FLOW ${'<i></i>'.repeat(n)}${'<s></s>'.repeat(FLOW.max - n)}` : ''; fl.classList.toggle('max', n >= FLOW.max); }
-  const ch = $('#bChain'); ch.textContent = BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
+  const ch = $('#bChain'); ch.textContent = S.settings.simple ? '' : BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
   $$('#bSkills .skb').forEach(b => {
     if(b.classList.contains('locked') || b.classList.contains('strike')) return;
     const i = +b.dataset.id;

@@ -1,9 +1,10 @@
 {
-  "version": "0.12.5",
+  "version": "0.13.0",
   "date": "2026-11-25",
-  "title": "Final Blow",
+  "title": "Simple Mode",
   "notes": [
-    "Defeated monsters get knocked back, flash white and dissolve into rising rift motes.",
-    "Balance: the D-Rank and C-Rank gate bosses (floor 10) were walls. The Conductor and the Frost Matriarch now have less HP and hit a bit softer."
+    "New: Simple Mode (on by default). Enhancing never fails, Common junk is salvaged automatically and your Legion picks its strongest party and stars up on its own.",
+    "Simple Mode also hides the CHAIN counter in fights (the bonus still works), so you can focus on STRIKE, PARRY and skills.",
+    "Want full control? Turn Simple Mode off in the menu (Esc) at any time. Everything switches back."
   ]
 }

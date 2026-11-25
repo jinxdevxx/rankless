@@ -71,6 +71,8 @@ function openMenu(){
     </div>
     <div class="bt" style="margin-top:16px">SETTINGS</div>
     <div class="msets">
+      ${tg('simple','Simple Mode')}
+      <small class="muted" style="display:block;margin:-4px 0 6px">Enhancing never fails, junk gear is salvaged, your Legion manages itself. Turn off for full control.</small>
       ${tg('sfx','Sound effects')}
       ${tg('music','Music')}
       ${tg('autoEquip','Auto-equip better gear')}
@@ -138,7 +140,7 @@ function menuAct(a, el){
     case 'menuImport': showImport('current'); return true;
     case 'doImport': doImport(); return true;
     case 'menuMain': UI.menuOpen = false; showMainMenu(); return true;
-    case 'menuToggle': S.settings[id] = !S.settings[id]; if(id === 'music'){ if(S.settings.music) SFX.music(UI.screen === 'battle' ? 'battle' : 'home'); else SFX.stopMusic(); } if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); save(); if(UI.screen === 'battle') syncFarmUI(); else { renderSheet(); renderHome(); } return true;
+    case 'menuToggle': S.settings[id] = !S.settings[id]; if(id === 'music'){ if(S.settings.music) SFX.music(UI.screen === 'battle' ? 'battle' : 'home'); else SFX.stopMusic(); } if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); if(id === 'simple' && S.settings.simple){ S.settings.autoStats = S.settings.autoEquip = true; autoAssignStats(); autoLegion(); } save(); if(UI.screen === 'battle') syncFarmUI(); else { renderSheet(); renderHome(); } return true;
   }
   return false;
 }

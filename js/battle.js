@@ -104,6 +104,7 @@ function newBattle(o){
     gold:0, xp:0, kills:0, shards:{}, drops:[], result:null, boss:null, autoT:0}, o);
   const hero = prep(heroUnit()); b.hero = hero; b.units.push(hero);
   const hs = heroStats();
+  autoLegion();
   S.party.slice(0, partySlots()).forEach((type,i) => { if(S.comps[type]) b.units.push(prep(compUnit(type, i+1, S.level, S.comps[type], hs.compMult))); });
   return b;
 }

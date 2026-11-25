@@ -23,7 +23,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
@@ -117,7 +117,7 @@ function itemBase(it){
 }
 function statLine(k, v){ return PCT.has(k) ? `+${(Math.round(v*10)/10)}% ${STAT_LABEL[k]}` : `+${fmt(v)} ${STAT_LABEL[k]}`; }
 function enhanceCost(it){ return {gold: Math.ceil(30 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: (it.plus+1) * (1 + it.rar)}; }
-function enhanceRate(it){ return ENHANCE_RATE[it.plus] ?? 0; }
+function enhanceRate(it){ if(S.settings && S.settings.simple) return it.plus < MAX_PLUS ? 1 : 0; return ENHANCE_RATE[it.plus] ?? 0; }
 function salvageValue(it){ return {stones: [1,3,8,20,50][it.rar] + it.plus*2, gold: Math.ceil(goldFor(it.ilvl) * 2 * (1+it.rar))}; }
 
 /* ---------- champion stats ---------- */
@@ -174,7 +174,7 @@ function addItem(it){
   return storeItem(it);
 }
 function storeItem(it){
-  if(S.settings.autoSalvage >= it.rar){ const v = salvageValue(it); S.stones += v.stones; S.gold += v.gold; return 'salvaged'; }
+  if(Math.max(S.settings.autoSalvage, S.settings.simple ? 0 : -1) >= it.rar){ const v = salvageValue(it); S.stones += v.stones; S.gold += v.gold; return 'salvaged'; }
   if(S.inv.length >= MAX_INV){
     // bag full: salvage the weakest unlocked item to make room
     let worst = -1, ws = 1e18;
@@ -209,6 +209,14 @@ function autoAssignStats(){
   const order = []; for(const k in STAT_WEIGHTS) for(let i=0;i<STAT_WEIGHTS[k];i++) order.push(k);
   let i = (S.stats.str + S.stats.vit + S.stats.agi + S.stats.sen + S.stats.wil) % order.length;
   while(S.points > 0){ S.stats[order[i % order.length]]++; S.points--; i++; }
+}
+
+/* ---------- simple mode: the legion manages itself ---------- */
+function compValue(k){ const t = ENEMY_TYPES[k]; return (t.comp.hp + t.comp.atk) * (S.comps[k]||0); }
+function autoLegion(){
+  if(!S.settings.simple) return;
+  for(const k in S.comps){ while(S.comps[k] < MAX_STARS && (S.shards[k]||0) >= shardNeed(k)*STAR_COST[S.comps[k]]){ S.shards[k] -= shardNeed(k)*STAR_COST[S.comps[k]]; S.comps[k]++; } }
+  S.party = Object.keys(S.comps).filter(k => S.comps[k]).sort((a,b) => compValue(b) - compValue(a)).slice(0, partySlots());
 }
 
 /* ---------- unlocks ---------- */
