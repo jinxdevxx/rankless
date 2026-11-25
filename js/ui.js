@@ -599,14 +599,14 @@ function showResult(r){
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
   if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; if(S.settings.farm !== 'repeat'){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
     autoCountdown(win ? `Floor ${tf} starts in` : `Back to floor ${tf} in`, 3);
-    UI.autoNext = setTimeout(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
-  else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
+    UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
+  else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = later(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
   else if(autoOn){
     let floor = BT.floor;
     if(S.settings.farm === 'push'){ if(win) floor++; else if(floor > 1) floor--; }
     else if(!win && floor > 1) floor--;
     const gid = BT.gate.id;
-    UI.autoNext = setTimeout(() => { UI.autoNext = null; if(UI.screen === 'battle') startGate(gid, floor); }, 2600);
+    UI.autoNext = later(() => { UI.autoNext = null; if(UI.screen === 'battle') startGate(gid, floor); }, 2600);
   }
 }
 /* result screen: numbers count up, the XP bar fills, level ups burst */
@@ -639,7 +639,10 @@ function autoCountdown(label, secs){
   const put = () => { const el = document.getElementById('autoTxt'); if(el) el.textContent = `${label} ${n}…`; const nb = document.querySelector('#bResult .big-next'); if(nb && !nb.dataset.base) nb.dataset.base = nb.innerHTML; if(nb) nb.innerHTML = `${nb.dataset.base} <small class="cd">${n}</small>`; };
   put(); UI.autoCd = setInterval(() => { n = Math.max(0, n - 1); put(); if(n <= 0) clearInterval(UI.autoCd); }, 1000);
 }
-function cancelAuto(){ clearInterval(UI.autoCd); if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
+/* timers that also fire while the tab is in the background (driven by the frame loop and the background ticker) */
+function later(fn, ms){ const tm = {at: performance.now() + ms, fn}; (UI.timers = UI.timers || []).push(tm); return tm; }
+function runTimers(now){ if(!UI.timers || !UI.timers.length) return; const due = UI.timers.filter(tm => now >= tm.at); UI.timers = UI.timers.filter(tm => now < tm.at); for(const tm of due) tm.fn(); }
+function cancelAuto(){ clearInterval(UI.autoCd); if(UI.autoNext){ UI.timers = (UI.timers||[]).filter(tm => tm !== UI.autoNext); UI.autoNext = null; } $('.autobar')?.classList.remove('on'); }
 
 function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
   if(timingMode()){ if(!S.flags.tipRing){ S.flags.tipRing = true; S.flags.tipStrike2 = true; setTimeout(() => toast('NEW: TIMING COMBAT', 'A white ring closes in on the enemy. Press SPACE (or tap) while it is inside the gold zone: PERFECT hits deal huge damage. Mashing makes you stumble! Just want to farm? Use AUTO FIGHT (top right).', 'gold'), 700); } }

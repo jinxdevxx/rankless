@@ -1,9 +1,9 @@
 {
-  "version": "0.18.2",
+  "version": "0.18.3",
   "date": "2026-11-25",
-  "title": "Living Monsters",
+  "title": "Keeps Running",
   "notes": [
-    "Monster makeover: glowing energy veins that pulse in each monster's colour, plus details per type: crystal spikes and burning tails on beasts, orbiting bubbles on blobs, glowing shoulder spikes and chest sigils on brutes and oni, smoke trails and spectral chains on ghosts, pulsing cores and glowing cracks on golems, chest cores and torn cloth on husks.",
-    "Every monster now stands in a soft coloured glow, and the glow flares up when it winds up an attack."
+    "The game keeps playing when you switch to another browser tab: fights, AUTO FARM, AUTO ATTACK and Training Tower auto-climbing continue in the background.",
+    "When you come back, everything you earned in the meantime is already there."
   ]
 }

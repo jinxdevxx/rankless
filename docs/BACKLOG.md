@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Game must keep running (auto farm) when the browser tab is in the background (v0.18.3)
 - [x] Game must go on after B: ranks A, S, S+ with gates and arenas (v0.18.0)
 - [x] Master League Lv 1–99 after S+ (v0.18.0)
 - [ ] Playtime: ~3 h to Rank B for a human, long game to S+ / Master (v0.18.0 first pass: bot E→B still ~30 min with skills; S gate too hard) – RECURRING

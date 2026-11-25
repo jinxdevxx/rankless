@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.3 – Keeps Running
+- Background play: a tiny Web Worker ticks every 250 ms; while document.hidden the missed time is simulated in 50 ms battle steps (max 2 min per tick). Auto-continue timers use later()/runTimers() so they also fire in the background.
+
 ### v0.18.2 – Living Monsters
 - monsterDetails(): per-style glowing veins, spikes, cores, bubbles, chains, cracks; flare on windup/cast; coloured ground glow under monsters.
 

@@ -3,7 +3,26 @@
    RANKLESS - boot & main loop
    ========================================================= */
 let lastT = performance.now(), hudT = 0;
+/* Background play: browsers pause drawing in hidden tabs. A small worker keeps ticking, and while the tab is
+   hidden we simulate the missed time in small steps (no drawing), so fights, AUTO FARM and the tower keep going. */
+function backgroundTick(){
+  const now = performance.now();
+  runTimers(now);
+  if(!document.hidden){ return; }
+  let ms = Math.min(120000, now - lastT); lastT = now;
+  if(UI.screen !== 'battle' || !BT || UI.menuOpen) return;
+  const n = S.settings.speed || 1;
+  while(ms > 0){ const step = Math.min(50, ms); for(let i = 0; i < n; i++) stepBattle(step/1000); ms -= step; runTimers(performance.now()); if(!BT || UI.screen !== 'battle') break; }
+}
+function startBackgroundTicker(){
+  try{
+    const src = 'let id=setInterval(()=>postMessage(1),250);onmessage=()=>{};';
+    const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
+    w.onmessage = backgroundTick;
+  }catch(e){ setInterval(backgroundTick, 250); }   // fallback: normal timer (may be throttled)
+}
 function frame(now){
+  runTimers(now);
   const dt = Math.min(.05, (now - lastT)/1000); lastT = now;
   const t = now/1000;
   ctx.setTransform(DPR,0,0,DPR,0,0);
@@ -148,5 +167,6 @@ function boot(){
   // tap the battlefield to strike
   cv.addEventListener('pointerdown', e => { if(UI.screen === 'battle' && BT && !BT.over && !UI.menuOpen && !$('#modal').classList.contains('on')){ heroAction(); } });
   requestAnimationFrame(frame);
+  startBackgroundTicker();
 }
 boot();
