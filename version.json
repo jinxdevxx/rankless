@@ -1,9 +1,9 @@
 {
-  "version": "0.12.4",
+  "version": "0.12.5",
   "date": "2026-11-25",
-  "title": "Elemental Hits",
+  "title": "Final Blow",
   "notes": [
-    "Every blade element now hits differently: Steel throws sparks, Flame sprays embers, Storm crackles with arcs, Void implodes and Blood splashes.",
-    "Your own STRIKEs make a bigger burst than auto attacks."
+    "Defeated monsters get knocked back, flash white and dissolve into rising rift motes.",
+    "Balance: the D-Rank and C-Rank gate bosses (floor 10) were walls. The Conductor and the Frost Matriarch now have less HP and hit a bit softer."
   ]
 }

@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.12.5 – Final Blow
+- Death animation: knockback, white flash, dissolve into rising rift motes.
+- Balance: D boss (Conductor) HP 12→10, ATK 2.2→2.0; C boss (Frost Matriarch) HP 12.5→8.5, ATK 2.3→1.9. Bot runs to Rank B: 79–98 min (was 118–162 min).
+
 ### v0.12.4 – Elemental Hits
 - Hero hits have element-specific effects: steel sparks, flame embers, storm arcs, void implosion, blood splash.
 - Manual STRIKEs burst bigger than auto attacks.

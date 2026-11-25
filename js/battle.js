@@ -335,7 +335,12 @@ function stepUnit(u, dt){
   const k = bk(), [hx,hy] = homeOf(u);
   if(u.flash > 0) u.flash -= dt;
   for(const b in u.buffs){ u.buffs[b].t -= dt; if(u.buffs[b].t <= 0) delete u.buffs[b]; }
-  if(u.dead){ u.deathT += dt; return; }
+  if(u.dead){ u.deathT += dt;
+    // death: knocked back, then dissolves into rising rift motes
+    if(u.deathT < .3) u.x += (u.side === 'e' ? 1 : -1) * (1 - u.deathT/.3) * (u.boss ? 120 : 320) * bk() * dt;
+    if(u.deathT > .15 && u.deathT < .8 && Math.random() < dt*(u.boss ? 80 : 50)){ const k = bk();
+      BT.fx.push({k:'p', x:u.x + rand(-.3,.3)*u.size*k, y:u.y - rand(0,.9)*u.size*k, vx:rand(-15,15), vy:rand(-120,-60), c: Math.random() < .4 ? '#fff4d6' : mixHex(u.art.rim, '#ffffff', .35), life:rand(.4,.7), max:.7, sz:rand(3,5)}); }
+    return; }
   if(u.boss && u.kind === 'enemy' && BT.mode === 'gate'){
     const r = u.hp/u.maxHp;
     if(!u.enraged && r < .5){ u.enraged = true; u.interval *= .72; u.atk *= 1.15; BT.banner = {txt:'ENRAGED!', t:1.4, c:'#ff7a59'}; BT.shake = .5; addText(u, 'ENRAGED', '#ff7a59', 30); }
@@ -583,7 +588,7 @@ function renderBattle(t, dt){
     if(u.enraged && !u.dead){ const rg = c.createRadialGradient(u.x, u.y - u.size*k*.5, 10, u.x, u.y - u.size*k*.5, u.size*k*.8);
       rg.addColorStop(0, 'rgba(255,90,60,.35)'); rg.addColorStop(1, 'rgba(255,90,60,0)'); c.fillStyle = rg; c.fillRect(u.x - u.size*k, u.y - u.size*k*1.4, u.size*k*2, u.size*k*1.6); }
     const h = u.size*k*(u.boss && u.kind === 'enemy' ? 1 : 1);
-    drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0, alpha);
+    drawUnitArt(c, u, u.x, u.y + (u.dead ? u.deathT*20 : 0), h, t, pose, u.flash > 0 || (u.dead && u.deathT < .09), alpha);
     if(!u.dead && !(u.boss || u.kind === 'hunter')) drawHpBar(c, u, k);
     if(!u.dead && u.tele === BT.hero && u.state === 'idle'){
       const rem = clamp((u.interval - u.timer)/TELE, 0, 1), cx = u.x, cy = u.y - u.size*k - 40*k;
