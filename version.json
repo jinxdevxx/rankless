@@ -1,11 +1,8 @@
 {
-  "version": "0.18.5",
+  "version": "0.18.6",
   "date": "2026-11-25",
-  "title": "Clear Numbers",
+  "title": "S+ Badge",
   "notes": [
-    "Much less number spam: hits from the same source on the same enemy merge into one growing number (e.g. 565 x2).",
-    "You can see where damage comes from: white = sword strikes, ✦ in your element colour = skills, ⟲ gold = parries, ❖ = spirits, gold with ! = critical hit.",
-    "After every fight a damage bar shows your split (e.g. Skills 68%, Parries 21%, Strikes 10%) with a tip on what to invest in.",
-    "Talent points now shine as a gold badge. On phones the battle buttons have short labels so everything fits."
+    "The S+ rank badge now has a big S like every other rank, with a bold glowing + next to it (top bar, gates and arena)."
   ]
 }

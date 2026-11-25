@@ -94,7 +94,7 @@ function renderHome(){
   const a = AFF[S.aff], hs = heroStats();
   $('#topbar').innerHTML = `
     <div class="prof">
-      <div class="rank r-${S.rank}">${rankLabel(S.rank)}</div>
+      <div class="rank r-${S.rank}">${rankBadge(S.rank)}</div>
       <div>
         <div class="pname" style="color:${a.color}">${esc(S.name)}</div>
         <div class="psub">Lv ${S.level} · ${specOf() ? specOf().name : a.title}</div>
@@ -233,7 +233,7 @@ function sheetGates(){
         <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmt(rp)}</small></button>`;
     }
     return `<div class="gatecard ${unlocked?'':'locked'}" style="--a:${T.accent};--b:${T.sky[2]}">
-      <div class="gh"><span class="grank r-${g.rank}">${rankLabel(g.rank)}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
+      <div class="gh"><span class="grank r-${g.rank}">${rankBadge(g.rank)}</span><div><h3>${g.name}</h3><p>${g.desc}</p></div>
       <span class="gprog">${unlocked ? (cl > FLOORS ? `Deep ${cl}` : `${Math.min(cl, FLOORS)} / ${FLOORS}`) : `${ICON.lock} Rank ${g.rank}`}</span></div>
       ${unlocked ? `<div class="floors">${floors}</div>${cl >= FLOORS ? (() => { const nd = cl + 1, rp = recPower(g.id, nd);
           return `<div class="deeprow"><div><b>Deep Floors</b><small>Endless floors with stronger enemies and better loot. Boss every 5 floors. Best: ${cl > FLOORS ? cl : '–'}</small></div>
@@ -274,7 +274,7 @@ function sheetArena(){
         <button class="btn ${open?'primary':''}" data-a="startArena" data-i="${isExam?-1:i}" ${open?'':'disabled'}>${beaten ? 'Rematch' : isExam ? 'Take Exam' : 'Fight'}</button></div>
     </div>`;
   };
-  return `<div class="arena-head"><div class="rank big r-${rank}">${rankLabel(rank)}</div><div><h3>${rankLabel(rank)}-Rank League</h3>
+  return `<div class="arena-head"><div class="rank big r-${rank}">${rankBadge(rank)}</div><div><h3>${rankLabel(rank)}-Rank League</h3>
     <p>Defeat every hunter to unlock the ${exam.next === 'M' ? '<b>Master Trial</b>. Win it to enter the <b>Master League</b> (Lv 1–99).' : `Rank Exam. Passing it promotes you to <b>${rankLabel(exam.next)}-Rank</b> and opens a new gate.`}</p></div></div>
     ${list.map((h,i) => card(h,i,false)).join('')}${card(exam,0,true)}`;
 }

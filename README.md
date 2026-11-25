@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.6 – S+ Badge
+- rankBadge(): S+ shown as big S with raised glowing +, fixed badge font sizes.
+
 ### v0.18.5 – Clear Numbers
 - dmgNumber(): merges hits per target + source within 0.45 s into one growing number with source icon/colour; BT.dmgBy tracks damage by source (hit/skill/parry/spirit); result screen shows dmgBreakdown() with a tip.
 - Gold .tpbadge for talent points; short battle toggle labels on phones.

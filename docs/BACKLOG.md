@@ -3,6 +3,8 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] S+ badge too small (v0.18.6)
+- [ ] RECURRING (player): never stop – keep pushing improvements (gameplay, graphics, balance, all wishes) every round
 - [x] Talent points must stand out (gold badge) (v0.18.5)
 - [x] Damage numbers: less spam, show source (sword/skill/parry/spirit), help decide what to invest in (v0.18.5) – keep improving
 - [x] Free talent points must be clearly visible; rename to 'Talents', compact (v0.18.4)

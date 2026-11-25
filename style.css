@@ -899,3 +899,10 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .dmgbd .dleg b{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 .dmgbd small{display:block;margin-top:3px;color:var(--muted);font-size:12px}
 @media (max-width:640px){ .b-top .tbtn{font-size:11px;padding:6px 8px} .b-top{flex-wrap:nowrap} }
+
+/* S+ badge: same big S as other ranks, raised bold plus (v0.18.6) */
+.r-SS{font-size:inherit}
+.rank.r-SS,.grank.r-SS{letter-spacing:0}
+.rplus{display:inline-block;font-size:.62em;line-height:1;vertical-align:.55em;margin-left:-.04em;color:#fff6dc;text-shadow:0 0 8px #ffd27a,0 0 2px #ff3d6a}
+.rank.r-SS{font-size:40px} .rank.big.r-SS{font-size:60px} .grank.r-SS{font-size:34px}
+@media (max-width:640px){ .rank.r-SS{font-size:32px} }

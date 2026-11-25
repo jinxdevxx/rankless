@@ -6,6 +6,8 @@ const SAVE_KEY = 'rankless_v2';
 const RANKS = ['E','D','C','B','A','S','SS','M'];   // SS is shown as S+, M = Master League
 const RANK_LABEL = {SS:'S+', M:'M'};
 function rankLabel(r){ return RANK_LABEL[r] || r; }
+/* badge version: big letter, the + of S+ as a bold raised mark */
+function rankBadge(r){ return r === 'SS' ? '<span class="rb">S<span class="rplus">+</span></span>' : rankLabel(r); }
 const MAX_INV = 80;
 const OFFLINE_CAP_H = 8;
 
