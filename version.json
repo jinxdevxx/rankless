@@ -1,13 +1,9 @@
 {
-  "version": "0.21.0",
+  "version": "0.21.1",
   "date": "2026-11-25",
-  "title": "Bloodlines",
+  "title": "Throne Within Reach",
   "notes": [
-    "Smoother combat: no more slow motion or zoom on normal attacks and crits. Only perfect parries and the final K.O. keep a short effect at x1 speed.",
-    "More brutal hits: bigger blood sprays and blood stains on the ground that slowly fade. Ghosts and blobs bleed in their own colour.",
-    "The big Ultimate screen only shows at x1 speed. At x2 and x3 the ultimate fires instantly.",
-    "Each gate marks its monsters: dripping water, sparks, floating ice, orbiting rift shards, lightning, a sun halo or black flames.",
-    "BALANCE: armor made you nearly immune at high levels (97% less damage at Lv 80). DEF now scales with the attacker's level, so it always helps but never makes you immortal. Later gates, exams and the Master League were re-tuned with test runs.",
-    "Master League: titles (Grandmaster, Rift Champion, Legend, Mythic, Sovereign, RANKLESS), +2 talent points every 10 levels, master fights are shorter and more dangerous instead of endless."
+    "Eclipse Throne (S+ gate) and its Eclipse Behemoth elite are a bit softer: floor 8 is no longer a wall.",
+    "Test runs now reach the Master League after the full climb, losing about 7% of fights with many close wins along the way."
   ]
 }

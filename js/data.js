@@ -169,7 +169,7 @@ const ENEMY_TYPES = {
   eclipse:  {name:'Eclipse Wraith',  style:'ghost',    hp:.85, atk:1.25,spd:1.2, role:'dps',    pal:{body:'#08060e',rim:'#ff3d6a',eye:'#ffffff'}, comp:{hp:.8,atk:1.0}, desc:'Darkness with a grudge.'},
   hunterx:  {name:'Fallen Hunter',   style:'husk',     hp:1.0, atk:1.1, spd:1.3, role:'tank',   pal:{body:'#0a0a12',rim:'#e8e8f0',eye:'#ff3d6a'}, comp:{hp:1.15,atk:.6}, desc:'Once a Breaker. Never again.'},
   oracle:   {name:'Black Oracle',    style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0a0612',rim:'#ffd27a',eye:'#ff3d6a'}, comp:{hp:.8,atk:.6}, desc:'Sees your death and smiles.'},
-  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:2.18, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
+  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:1.8, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
   emperor:  {name:'The Eclipse Emperor',style:'warden',hp:3.6, atk:2.0, spd:2.1, role:'tank',   boss:true, pal:{body:'#06040a',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2.2,atk:1.2}, desc:'The one who closed the sky.'},
   matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:3.6, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
@@ -193,7 +193,7 @@ const GATES = [
     desc:'A tower of stone and lightning above the clouds.'},
   {id:'S', rank:'S', name:'Sunken Sun',     baseLv:60, mult:1.35, theme:'t_gold',  enemies:['ember','sunhound','priest'], elite:'sunoni', boss:'sunqueen',
     desc:'A drowned temple where a dead sun still glows.'},
-  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:1.1, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
+  {id:'SS', rank:'SS', name:'Eclipse Throne', baseLv:72, mult:.95, theme:'t_void', enemies:['eclipse','hunterx','oracle'], elite:'behemoth', boss:'emperor',
     desc:'The seat of the one who closed the sky. Only S+ Breakers return.'},
 ];
 const FLOORS = 10;

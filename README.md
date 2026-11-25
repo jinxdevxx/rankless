@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.21.1 – Throne Within Reach
+- Behemoth HP 2.18 → 1.8, S+ gate mult 1.1 → 0.95. Bots (spamskill): Master League reached at ~330–340 min, ~7 % deaths, ~32 close wins per run.
+
 ### v0.21.0 – Bloodlines
 - Feel: hit-stop only for skill crits at x1, no zoom on crits, no slow motion on execute, parry slow-mo .15 (x1 only), K.O. slow-mo .3 (x1 only). Ultimate cut-in skipped at x2/x3.
 - bloodSpray(): bigger sprays + fading ground stains (BT.stains), custom blood colour for ghosts/blobs/golems.
