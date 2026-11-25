@@ -1,15 +1,11 @@
 {
-  "version": "0.11.0",
+  "version": "0.12.0",
   "date": "2026-11-25",
-  "title": "One Hero, Enchanted Blade",
+  "title": "Flow & Execute",
   "notes": [
-    "No more class choice at the start: you begin as a Breaker with a plain steel blade and your own skills (Quick Cut, Whirlwind, Second Wind, Blade Storm).",
-    "Weapon Enchant (unlocks at Floor 5): give your blade Flame, Storm, Void or Blood. Each element brings its own skills and colors and stays on every weapon you equip.",
-    "Enchant levels 1 to 5: each level adds +12% Skill DMG. Switching the element later is possible.",
-    "New currency: Rift Diamonds. Earned from first clears of boss and elite floors, Deep Floor bosses, Arena wins, Rank Exams, the Crystal Mine and rare drops.",
-    "Clearer currencies: Gold, Mana Stones and Diamonds are bigger and labelled at the top.",
-    "Upgrades show big cost lines with what you have and what you need. Item details are larger and easier to read.",
-    "Balanced for a longer journey: about 3 to 4 hours to reach Rank B (measured with test playthroughs).",
-    "Older saves keep their chosen power as a level 1 enchantment."
+    "FLOW: strike in a steady rhythm to build up to 5 Flow stacks. Each stack adds damage and charges crystals faster. Mashing or getting hit breaks it.",
+    "EXECUTE: enemies below 15% HP get a gold health bar. One strike finishes them instantly with a bonus crystal.",
+    "Live hints teach Flow and Execute during battles.",
+    "Rebalanced around the new mechanics: tougher enemies, slower early levels, bosses less of a wall, Gate D a bit harder and Gate C a bit easier."
   ]
 }

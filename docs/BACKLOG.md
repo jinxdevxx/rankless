@@ -34,7 +34,7 @@ Open requests from the player come first. Every development round starts here.
 - Item sets (v0.8.0)
 
 ## Next up (open player wishes, work through in this order)
-1. Combat feel: rounder and more skill-based without being stressful; frequent dopamine moments (watch skill frequency vs. balance).
+1. Combat feel: rounder and more skill-based without being stressful; frequent dopamine moments. (v0.12.0: Flow + Execute added; keep refining)
 2. Visuals: simple but appealing and "gripping"; polish characters, monsters, effects, home screen; keep the warm illustrated style, nothing cyber.
 3. Clarity: every screen must be instantly understandable (big readable numbers, clear costs, obvious next step).
 4. Progression and decisions: meaningful choices in stats, gear, enchantments and jobs; farming must always feel useful.

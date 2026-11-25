@@ -5,7 +5,7 @@
 **Play:** https://jinxdevxx.github.io/rankless/ (the `/rankless/` at the end is required)
 
 ## How to play
-- **SPACE / tap / STRIKE**: attack. Your own strikes charge Breaker Crystals.
+- **SPACE / tap / STRIKE**: attack. Your own strikes charge Breaker Crystals. Strike in a steady rhythm to build **FLOW**; enemies with a gold HP bar die to one strike (**EXECUTE**).
 - **Parry**: when a red **!** appears above an enemy, press SPACE in that moment to block, counter and earn a crystal. Mashing does not parry.
 - **1 / 2 / 3** or **Q / W / E**: skills (cost 1, 2 or 3 crystals). Back-to-back skills build a CHAIN bonus.
 - **R**: Ultimate. **Esc**: menu (save, save codes, settings, updates, main menu).
@@ -24,6 +24,11 @@
 
 ## Changelog
 Every change to the game is listed here. Newest first.
+
+### v0.12.0 – Flow & Execute
+- Flow (`FLOW` in `js/data.js`): rhythmic strikes stack up to 5 (+6% DMG and +10% crystal gain per stack); mashing or taking damage resets it. Timing uses a battle clock (`BT.clock`) unaffected by hit-stop/slow motion.
+- Execute (`EXECUTE_AT` = 15%): one strike kills a weakened non-boss enemy, gold HP bar and ground ring, bonus crystal.
+- Balance: `enemyHp` 330 -> 430, `enemyAtk` 40 -> 44, `xpNeed` base 130 -> 165; Gate D x2.35, Gate C x2.0; boss HP 14/15/16 -> 11.5/12/12.5. Bot runs (perfect rhythm) reach Rank B in ~50-100 min, about 2.5-3.5 h for a human.
 
 ### Tooling
 - `tools/colleague_changes.sh`: reports collaborators' commits (author, time, message, changed files) once per development round; posted to the live-update chat only when there is something new.
