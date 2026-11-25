@@ -11,6 +11,7 @@ function backgroundTick(){
   if(!document.hidden){ return; }
   let ms = Math.min(120000, now - lastT); lastT = now;
   if(UI.screen !== 'battle' || !BT || UI.menuOpen) return;
+  trackPlay(ms/1000);   // background farming counts as play time
   const n = S.settings.speed || 1;
   while(ms > 0){ const step = Math.min(50, ms); for(let i = 0; i < n; i++) stepBattle(step/1000); ms -= step; runTimers(performance.now()); if(!BT || UI.screen !== 'battle') break; }
 }
@@ -23,7 +24,8 @@ function startBackgroundTicker(){
 }
 function frame(now){
   runTimers(now);
-  const dt = Math.min(.05, (now - lastT)/1000); lastT = now;
+  const rawDt = (now - lastT)/1000, dt = Math.min(.05, rawDt); lastT = now;
+  if(UI.screen !== 'slots' && UI.screen !== 'create') trackPlay(rawDt);
   const t = now/1000;
   ctx.setTransform(DPR,0,0,DPR,0,0);
   if(UI.screen === 'battle' && BT){

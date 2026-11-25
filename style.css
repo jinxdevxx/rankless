@@ -996,3 +996,8 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .aura i{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,var(--c) 0,transparent 70%);box-shadow:0 0 14px var(--c)}
 .aura b{font:900 13px Nunito,sans-serif} .aura small{font:700 11px Nunito,sans-serif;color:#b9b0c9}
 .aura.sel{border:2px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 50%,transparent)} .aura.locked{opacity:.45;cursor:default}
+
+/* play time (v0.23.1) */
+.ptime{display:block;color:#ffd27a;font:800 12px Nunito,sans-serif;margin-top:2px} .ptime.big{font-size:15px;margin:4px 0 10px;color:#e8e2f0} .ptime b{color:#ffd27a}
+.jrny{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.jrny div{padding:8px 10px;border-radius:10px;background:#0004;border:1px solid #ffd27a44} .jrny b{display:block;font:900 13px Nunito,sans-serif;color:#fff} .jrny span{font:700 12px Nunito,sans-serif;color:#ffd27a}

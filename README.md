@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.23.1 – Your Journey
+- `S.playtime` (real seconds, foreground frames + hidden-tab battle ticks, max 5 s per tick) shown on slot cards, Esc menu and Champion tab.
+- `S.journey`: play time at each rank-up, Master League, Master 10/50/99, Paragon 1/10/25, Rift milestones. Real player data for balancing.
+
 ### v0.23.0 – Paragon
 - Paragon ladder: after Master 99 `startMaster` fights `paragonFoe(p)` (= masterFoe(99 + p)); each new level +1 % ATK and +1 % HP (calcStats `paragon`), Diamonds like master levels.
 - Auras (cosmetic, `S.cosmetic.aura`, `drawAura` back/front layers in battle and on the home screen): 8 auras unlocked by Rift depth 25/50/100, Master 99, Awakening ★10, Paragon 10/25, all relics.

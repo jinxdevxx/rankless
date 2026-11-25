@@ -20,7 +20,7 @@ function defaultSave(){
     v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
-    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
+    pets:{owned:{}, active:[], slots:1}, tower:{best:0}, rift:{best:0, run:null, runs:0}, relics:{owned:{}, active:[]}, paragon:0, cosmetic:{aura:'none'}, playtime:0, journey:{}, talents:{}, master:{lv:0}, mastery:[0,0,0,0],
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
@@ -349,3 +349,8 @@ function nextGoal(){
   for(const k of UNLOCK_ORDER) if(!S.unlocks[k]) return {kind:'unlock', key:k, name:UNLOCKS[k].name, hint:UNLOCKS[k].hint, p:clamp(UNLOCKS[k].prog(),0,1)};
   return null;
 }
+
+/* ---------- play time (real seconds while the game runs, background farming included) ---------- */
+function trackPlay(sec){ if(!SLOT || !S || !S.created || !(sec > 0)) return; S.playtime = (S.playtime||0) + Math.min(sec, 5); }
+function fmtTime(sec){ sec = Math.floor(sec||0); const h = Math.floor(sec/3600), m = Math.floor(sec%3600/60); return h ? `${h}h ${m}m` : m ? `${m}m` : `${sec % 60}s`; }
+function journeyMark(key){ S.journey = S.journey || {}; if(S.journey[key] === undefined) S.journey[key] = Math.round(S.playtime||0); }

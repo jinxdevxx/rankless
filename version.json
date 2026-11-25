@@ -1,11 +1,10 @@
 {
-  "version": "0.23.0",
+  "version": "0.23.1",
   "date": "2026-11-25",
-  "title": "Paragon",
+  "title": "Your Journey",
   "notes": [
-    "NEW: Paragon ladder after Master 99. It never ends: every Paragon level gives +1% ATK and +1% HP forever.",
-    "NEW: Auras for your hero (Champion tab): Rankless Runes, Abyss Flame, Inferno, Spirit Wings, Tempest, Relic Prism, Void Orbs, Shadow Monarch. Earned through endgame milestones.",
-    "NEW: Abyss Rift milestones at depth 25 / 50 / 75 / 100 with Rift Diamonds and auras.",
-    "Master 99 no longer says the game is over: Paragon, Rift and auras are next."
+    "NEW: total play time on every save slot, in the Esc menu and in the Champion tab.",
+    "NEW: Your Journey (Champion tab) records when you reached every rank, the Master League, Master 10/50/99, Paragon and Rift milestones.",
+    "Play time counts while the game runs, background farming included. Older saves start counting now."
   ]
 }

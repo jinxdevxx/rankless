@@ -399,6 +399,12 @@ function sheetSkills(){
     + mrow(3, a.ult.name, 'ULT', a.ult.desc);
   return `<div class="box sys"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
+function journeyBox(){
+  const j = S.journey || {}, rows = Object.entries(j).sort((a, b) => a[1] - b[1]);
+  return `<div class="box"><div class="bt">YOUR JOURNEY <span class="pts on">⏱ ${fmtTime(S.playtime)}</span></div>
+    ${rows.length ? `<div class="jrny">${rows.map(([k, v]) => `<div><b>${k}</b><span>after ${fmtTime(v)}</span></div>`).join('')}</div>` : '<small class="muted">Rank-ups and big milestones are recorded here with your play time.</small>'}
+    <small class="muted" style="display:block;margin-top:6px">Play time counts while the game runs (also background farming). Older saves start counting from v0.23.1.</small></div>`;
+}
 function auraBox(){
   const cur = (S.cosmetic && S.cosmetic.aura) || 'none';
   return `<div class="box"><div class="bt">AURAS <small class="muted">(cosmetic · earned in the endgame)</small></div><div class="auras">${Object.entries(AURAS).map(([id, au]) => { const ok = au.ok();
@@ -424,7 +430,7 @@ function sheetHero(){
       return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
   ${enchantBox()}
   ${jobBox()}
-  <div class="box"><div class="bt">SKILLS</div><div class="hint" style="margin:0">Your skills, Ki costs and Skill Mastery have their own tab now.</div><button class="btn primary" data-a="sheet" data-id="skills">Open Skills</button></div>` + auraBox();
+  <div class="box"><div class="bt">SKILLS</div><div class="hint" style="margin:0">Your skills, Ki costs and Skill Mastery have their own tab now.</div><button class="btn primary" data-a="sheet" data-id="skills">Open Skills</button></div>` + journeyBox() + auraBox();
 }
 
 /* a big, readable cost line: what you have vs. what you need */

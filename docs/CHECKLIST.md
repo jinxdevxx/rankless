@@ -31,6 +31,8 @@ Add new player feedback here as a new point, so it is never forgotten.
 11. **Economy**: Gold and Mana Stones both matter. A +15 Epic costs a similar number of fights in Gold AND Stones at every level; nobody sits on thousands of useless Stones while Gold blocks everything.
 12. **Endgame variety**: from Master Lv 1 the Abyss Rift (run mode, boons, relics) and the Master Gate (loot level follows Master Lv) work; unlocks at Master 1/10/20/…/99 visible in the Rift card.
 
+13. **Play time visible**: slot card, Esc menu and Champion tab show total play time; Journey records milestone times. Play time numbers for the player are REAL time at x3 (bot-min ÷ 3).
+
 ## Improve continuously (pick the weakest point each round)
 - RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.
 - Combat must be more fun and creative WITHOUT being harder to play: e.g. easy skill combos, weak points that open up, boss moves you answer with a skill. Small steps, one idea per round, ask for feedback.

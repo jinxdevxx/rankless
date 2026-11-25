@@ -27,7 +27,7 @@ function renderSlots(){
     html += `<div class="slotcard ${last?'last':''}" style="--c:${a.color}">
       <span class="sn">SLOT ${id}${last ? ' · LAST PLAYED' : ''}</span>
       <div class="sh"><div class="rank r-${s.rank}">${s.rank}</div><div><b style="color:${a.color}">${esc(s.name)}</b>
-        <small>Lv ${s.level} · ${a.name} · ${timeAgo(s.lastSeen)}</small></div></div>
+        <small>Lv ${s.level} · ${a.name} · ${timeAgo(s.lastSeen)}</small><small class="ptime">⏱ Played ${fmtTime(s.playtime)}</small></div></div>
       <div class="row"><button class="btn primary" data-a="slotPlay" data-id="${id}">${last ? 'Continue' : 'Play'}</button>
         <button class="btn danger small" data-a="slotDelete" data-id="${id}">Delete</button></div></div>`;
   }
@@ -61,6 +61,7 @@ function openMenu(){
   const tg = (k, label) => `<label class="tgl"><input type="checkbox" data-a="menuToggle" data-id="${k}" ${S.settings[k]?'checked':''}><span></span>${label}</label>`;
   showModal(`<div class="menu">
     <div class="bt">${inBattle ? 'PAUSED' : 'MENU'}</div>
+    <div class="ptime big">⏱ Total play time: <b>${fmtTime(S.playtime)}</b></div>
     <div class="mgrid">
       <button class="btn primary" data-a="menuClose">Resume</button>
       <button class="btn" data-a="menuSave">Save game</button>

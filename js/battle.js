@@ -839,6 +839,10 @@ function finishBattle(win){
       }
     } else { r.gold = Math.round(goldFor(BT.hunter.lv)*6); r.xp = Math.round(r.xp*.5 + xpFor(BT.hunter.lv)*3); }
   }
+  if(r.rankUp) journeyMark(r.rankUp === 'M' ? 'Master League' : rankLabel(r.rankUp) + '-Rank');
+  if(r.masterUp && [10, 50, 99].includes(r.masterUp)) journeyMark('Master ' + r.masterUp);
+  if(r.paragonUp && [1, 10, 25].includes(r.paragonUp)) journeyMark('Paragon ' + r.paragonUp);
+  if(r.riftMilestone) journeyMark('Rift depth ' + r.riftMilestone);
   // apply
   S.gold += r.gold; S.stones += r.stones; S.diamonds = (S.diamonds||0) + r.diamonds;
   r.levels = addXP(r.xp);
