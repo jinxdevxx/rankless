@@ -1,10 +1,9 @@
 {
-  "version": "0.12.1",
+  "version": "0.12.2",
   "date": "2026-11-25",
-  "title": "Reward Moments",
+  "title": "Read the Strike",
   "notes": [
-    "Victory screen: rewards count up, an XP bar fills toward your next level, and LEVEL UP pops in with a flash.",
-    "Legendary and Mythic drops get a glowing halo in the loot row.",
-    "Fixed reward chips stacking awkwardly on wide screens."
+    "Enemies now wind up before they hit you: they lean back and glow red, so you can see when to PARRY.",
+    "Monster eyes flare up during the wind-up and they blink now and then, so they feel more alive."
   ]
 }

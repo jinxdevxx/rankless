@@ -564,7 +564,8 @@ function renderBattle(t, dt){
   const us = BT.units.slice().sort((a,b) => a.y - b.y);
   for(const u of us){
     if(u.dead && u.deathT > .8) continue;
-    const pose = u.dead ? 'hurt' : (u.state === 'dash' || u.state === 'strike' || u.state === 'skill') ? 'lunge' : u.state === 'cast' ? 'cast' : u.flash > 0 ? 'hurt' : 'idle';
+    const windup = !u.dead && u.side === 'e' && u.state === 'idle' && u.tele && (u.interval - u.timer) <= TELE;
+    const pose = u.dead ? 'hurt' : (u.state === 'dash' || u.state === 'strike' || u.state === 'skill') ? 'lunge' : u.state === 'cast' ? 'cast' : u.flash > 0 ? 'hurt' : windup ? 'windup' : 'idle';
     const alpha = u.dead ? clamp(1 - u.deathT/.8, 0, 1) : 1;
     if(u.enraged && !u.dead){ const rg = c.createRadialGradient(u.x, u.y - u.size*k*.5, 10, u.x, u.y - u.size*k*.5, u.size*k*.8);
       rg.addColorStop(0, 'rgba(255,90,60,.35)'); rg.addColorStop(1, 'rgba(255,90,60,0)'); c.fillStyle = rg; c.fillRect(u.x - u.size*k, u.y - u.size*k*1.4, u.size*k*2, u.size*k*1.6); }

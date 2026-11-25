@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.12.2 – Read the Strike
+- Enemies wind up before attacking you: they lean back and glow red (clear parry cue).
+- Monster eyes flare during the wind-up and blink now and then.
+
 ### v0.12.1 – Reward Moments
 - Result screen: count-up rewards, animated XP bar with level-up flash (`rewardAnim()` in `js/ui.js`).
 - Legendary/Mythic loot halo (`.icard.epicglow`).

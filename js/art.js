@@ -316,9 +316,10 @@ function drawHumanoid(c, x, y, h, o){
     c.fillStyle = ag; c.fillRect(-80*k,-130*k,160*k,140*k);
   }
   c.scale(f*k, k); c.translate(0, fy);
-  const lean = pose === 'lunge' ? .2 : pose === 'hurt' ? -.14 : pose === 'cast' ? -.05 : 0;
+  const lean = pose === 'lunge' ? .2 : pose === 'hurt' ? -.14 : pose === 'cast' ? -.05 : pose === 'windup' ? -.12 : 0;
   c.rotate(lean);
   c.strokeStyle = INK; c.lineWidth = 1.25; c.lineJoin = 'round'; c.lineCap = 'round';
+  if(pose === 'windup'){ c.shadowColor = '#ff3d5e'; c.shadowBlur = 14; }
   c.shadowBlur = 0;
 
   // scarf
@@ -422,10 +423,14 @@ function drawMonster(c, style, x, y, h, o){
   c.scale(f*k, k);
   if(pose === 'lunge') c.translate(8, 0);
   if(pose === 'hurt') c.rotate(-.08);
+  if(pose === 'windup'){ c.translate(-7 - Math.sin(t*30)*1.2, 0); c.rotate(-.1); }
   const B = o.flash ? '#ffffff' : mixHex(o.body, o.rim, .3), R = o.rim, E = o.eye;
   c.shadowBlur = 0; c.strokeStyle = INK; c.lineWidth = 1.3; c.lineJoin = 'round'; c._ol = true;
+  if(pose === 'windup'){ c.shadowColor = '#ff3d5e'; c.shadowBlur = 16*Math.min(2,k*1.4); }
   c.fillStyle = bodyGrad(c, B, R, -40, -10, 40, -120, o.flash ? 0 : .32);
-  const eyes = (pts, s=3) => { c.save(); c.shadowColor = E; c.shadowBlur = 12; c.fillStyle = E; for(const [ex,ey] of pts) c.fillRect(ex, ey, s, s*.6); c.restore(); };
+  // eyes blink now and then and flare up while winding up an attack
+  const blink = pose !== 'windup' && Math.sin(t*1.7 + (o.seed||0)*3) > .985;
+  const eyes = (pts, s=3) => { if(blink) return; c.save(); c.shadowColor = pose === 'windup' ? '#ff3d5e' : E; c.shadowBlur = pose === 'windup' ? 22 : 12; c.fillStyle = pose === 'windup' ? '#ffe0e6' : E; for(const [ex,ey] of pts) c.fillRect(ex, ey, s*(pose === 'windup' ? 1.3 : 1), s*.6); c.restore(); };
 
   if(style === 'husk'){
     limb(c,-4,-40,-10+wk*2,0,5,3); limb(c,6,-40,10-wk*2,0,5,3);
