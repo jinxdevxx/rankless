@@ -10,9 +10,9 @@ const { chromium } = require('playwright');
   const res = await p.evaluate(([aff, policy, maxMin]) => {
     S = defaultSave(); SLOT = null; S.created=true; S.intro=true; S.name='BOT'; S.aff='steel'; S.flags.enchantV1=true; const ENCH=aff;
     S.eq.weapon = makeItem('weapon',1,0); S.eq.armor = makeItem('armor',1,0);
-    S.settings.autoSkill = policy !== 'spam'; S.settings.autoSalvage = 0; S.settings.autoEquip = true; S.settings.autoStats = false; S.settings.farm = 'off';
+    S.settings.autoSkill = policy !== 'spam'; S.settings.autoAttack = policy === 'auto'; S.settings.autoSalvage = 0; S.settings.autoEquip = true; S.settings.autoStats = false; S.settings.farm = 'off';
     const log=[]; let simTime=0, battles=0, losses=0;
-    function run(){ let t=0, st=0; while(!BT.over && t<240){ st-=0.05; if(policy==='spam' || policy==='spamskill'){ if(st<=0){ heroAction(); st=0.15; } } else { if(st<=0){ heroAction(); st=0.7; } else if(threatsOnHero().length && Math.random()<0.06) heroAction(); } stepBattle(0.05); t+=0.05; } simTime += t + 4; battles++; const r = BT.result; { window.LR=window.LR||{}; const key=(r&&r.win?'win':BT.hero.dead?'dead':'timeout')+' '+(BT.gate?BT.gate.id+(BT.floor||'T'):'A'); const e=window.LR[key]=window.LR[key]||{n:0,t:0}; e.n++; e.t+=t; } BT=null; return r && r.win; }
+    function run(){ let t=0, st=0; while(!BT.over && t<240){ st-=0.05; if(policy==='auto'){ /* full auto: no manual presses at all */ } else if(policy==='spam' || policy==='spamskill'){ if(st<=0){ heroAction(); st=0.15; } } else { if(st<=0){ heroAction(); st=0.7; } else if(threatsOnHero().length && Math.random()<0.06) heroAction(); } stepBattle(0.05); t+=0.05; window.__mh = Math.min(window.__mh ?? 1, BT.hero.hp/BT.hero.maxHp); } simTime += t + 4; battles++; const r = BT.result; window.ST = window.ST || {wins:0, deaths:0, timeouts:0, close:0}; if(r && r.win){ window.ST.wins++; if(window.__mh < .3) window.ST.close++; } else if(BT.hero.dead) window.ST.deaths++; else window.ST.timeouts++; window.__mh = 1; { window.LR=window.LR||{}; const key=(r&&r.win?'win':BT.hero.dead?'dead':'timeout')+' '+(BT.gate?BT.gate.id+(BT.floor||'T'):'A'); const e=window.LR[key]=window.LR[key]||{n:0,t:0}; e.n++; e.t+=t; } BT=null; return r && r.win; }
     function manage(){
       const ks=['str','vit','str','vit','agi','sen','str','wil'];
       let i=0; while(S.points>0){ S.stats[ks[i%ks.length]]++; S.points--; i++; }
@@ -52,6 +52,6 @@ const { chromium } = require('playwright');
     return log.join('\n');
   }, [aff, policy, maxMin]);
   console.log(res);
-  console.log('LR', JSON.stringify(await p.evaluate(()=>{ const o={}; for(const k in window.LR) o[k]=window.LR[k].n+'x '+Math.round(window.LR[k].t/window.LR[k].n)+'s'; return o; }))); console.log('ERRORS', errs.slice(0,5));
+  console.log('ST', JSON.stringify(await p.evaluate(()=>window.ST))); console.log('LR', JSON.stringify(await p.evaluate(()=>{ const o={}; for(const k in window.LR) o[k]=window.LR[k].n+'x '+Math.round(window.LR[k].t/window.LR[k].n)+'s'; return o; }))); console.log('ERRORS', errs.slice(0,5));
   await b.close();
 })();

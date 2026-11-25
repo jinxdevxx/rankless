@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.20.1 – Fair Auto
+- Bug: a trailing comment swallowed `BT.lastPress = nowC` in heroAction, so every mashed press counted as a calm PERFECT PARRY (0 damage taken while spamming). Fixed; repo scanned for similar comment bugs.
+- Block multiplier .5 → .65; LIFESTEAL_CAP 20 → 12; enemyHp base 1050 → 850, enemyAtk base 30 → 40; B–S+ elites ×0.85 HP.
+- New bot policy `auto` (AUTO ATTACK + AUTO FARM, no presses) with death/timeout/close-win stats. Results: auto 10 % deaths, spamskill ~2 %, pure spam ~22 %.
+
 ### v0.20.0 – Real Fights
 - Analysis (tools/survival_test.js): with AUTO ATTACK / mashing the hero took 0 damage (572 auto-parries in 6 A-Rank fights); without presses died in 4 s.
 - doParry(mash): mashing only blocks (u.blocked → half damage) + 0.75x counter, no stun; AUTO ATTACK always counts as mashing (heroAction(true)). Timed press = PERFECT PARRY as before.

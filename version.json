@@ -1,12 +1,11 @@
 {
-  "version": "0.20.0",
+  "version": "0.20.1",
   "date": "2026-11-25",
-  "title": "Real Fights",
+  "title": "Fair Auto",
   "notes": [
-    "BALANCE FIX: mashing SPACE or AUTO ATTACK made you practically immortal (every enemy hit was auto-parried). Now mashing BLOCKS (half damage + small counter), and only your own calm, timed press is a PERFECT PARRY (no damage, stun, big counter).",
-    "Enemies hit softer overall to make up for it, so fights are a real challenge again without instant deaths.",
-    "Lifesteal from all sources together is capped at 20%.",
-    "NEW: separate Skills tab in the menu bar with your skills, Ki costs and Skill Mastery.",
-    "NEW: Screen shake can be turned off in the menu (Esc)."
+    "Bug fix: in 0.20.0 a mistake still turned every mashed press into a PERFECT PARRY, so spamming made you immortal. Fixed: mashing really only blocks now.",
+    "A block softens a hit (-35%) instead of halving it. Lifesteal is capped at 12%.",
+    "Enemies have a bit less HP and hit a bit harder, so fights are shorter and you can actually lose one.",
+    "Tested for all play styles: full AUTO (AUTO ATTACK + AUTO FARM) loses about 1 in 10 fights, active players with skills rarely, nobody is immortal and nobody dies instantly. Late elites are a bit softer."
   ]
 }

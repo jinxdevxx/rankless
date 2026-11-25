@@ -206,7 +206,7 @@ function heroAction(auto){
   const h = BT.hero, k = bk();
   const threats = threatsOnHero();
   // time between presses on the battle clock (unaffected by hit-stop and slow motion)
-  const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = auto || gap < .35;   // AUTO ATTACK always counts as mashing: it blocks, only your own timing parries BT.lastPress = nowC; BT.sincePress = 0;   // mashing never parries
+  const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = auto || gap < .35; BT.lastPress = nowC; BT.sincePress = 0;   /* AUTO ATTACK always counts as mashing: it blocks, only your own calm timing parries */
   // flow: rhythm builds it, mashing breaks it, long pauses let it fade
   BT.flow = BT.flow || 0;
   if(gap < FLOW.min){ /* mashing: flow is kept but doesn't grow */ }
@@ -298,7 +298,7 @@ function dealDamage(att, tgt, mult, opt={}){
   if(att.kind === 'hero' && BT.flow) dmg *= 1 + BT.flow*FLOW.dmg;
   if(att.kind === 'hero' && timingMode()) dmg *= RING.heroDmg;
   if(tgt.kind === 'hero' && timingMode()) dmg *= RING.hurt;
-  if(tgt.kind === 'hero' && att.blocked){ dmg *= .5; att.blocked = false; }   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
+  if(tgt.kind === 'hero' && att.blocked){ dmg *= .65; att.blocked = false; }   // a block softens the hit, it doesn't erase it   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
   if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; }

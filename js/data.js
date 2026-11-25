@@ -151,25 +151,25 @@ const ENEMY_TYPES = {
   shade:    {name:'Abyss Shade',     style:'ghost',    hp:.85, atk:1.15,spd:1.2, role:'dps',    pal:{body:'#120a1e',rim:'#b05cff',eye:'#ff5ad1'}, comp:{hp:.8,atk:.9}, desc:'A shadow that forgot it was ever a person.'},
   reaver:   {name:'Rift Reaver',     style:'beast',    hp:.9,  atk:1.2, spd:.9,  role:'dps',    pal:{body:'#1a0a14',rim:'#ff3d8a',eye:'#ffe14d'}, comp:{hp:.85,atk:1.0}, desc:'Tears through armor and nerve.'},
   lich:     {name:'Void Lich',       style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c0a1a',rim:'#7f8cff',eye:'#d8e0ff'}, comp:{hp:.8,atk:.6}, desc:'Mends the broken with stolen life.'},
-  colossus: {name:'Abyss Colossus',  style:'golem',    hp:2.4, atk:1.4, spd:2.2, role:'tank',   elite:true, pal:{body:'#140c22',rim:'#b05cff',eye:'#ff3d6a'}, comp:{hp:1.9,atk:.7}, desc:'A walking wall of rift stone.'},
+  colossus: {name:'Abyss Colossus',  style:'golem',    hp:2.04, atk:1.4, spd:2.2, role:'tank',   elite:true, pal:{body:'#140c22',rim:'#b05cff',eye:'#ff3d6a'}, comp:{hp:1.9,atk:.7}, desc:'A walking wall of rift stone.'},
   abyssking:{name:'The Abyss King',  style:'warden',   hp:3.6, atk:1.9, spd:2.2, role:'tank',   boss:true, pal:{body:'#0e0818',rim:'#c27bff',eye:'#ff3d6a'}, comp:{hp:2,atk:1.1}, desc:'Ruler of the rift below the city.'},
   // A-Rank: Tempest Spire
   stalker:  {name:'Storm Stalker',   style:'beast',    hp:.85, atk:1.25,spd:.85, role:'dps',    pal:{body:'#0a1420',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:.85,atk:1.0}, desc:'Moves with the lightning.'},
   harpy:    {name:'Thunder Harpy',   style:'blob',     hp:.75, atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#0f1a26',rim:'#7fe0ff',eye:'#ffffff'}, comp:{hp:.7,atk:.95}, desc:'Rains sparks from above.'},
   sage:     {name:'Storm Sage',      style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0c1622',rim:'#9fe8ff',eye:'#fff06a'}, comp:{hp:.8,atk:.6}, desc:'Calls rain that heals its kin.'},
-  titan:    {name:'Iron Titan',      style:'oni',      hp:2.4, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
+  titan:    {name:'Iron Titan',      style:'oni',      hp:2.04, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#101820',rim:'#4cc9ff',eye:'#ffcf33'}, comp:{hp:1.9,atk:.8}, desc:'Thunder sleeps in its chest.'},
   stormlord:{name:'The Storm Lord',  style:'conductor',hp:2.8, atk:1.8, spd:2.0, role:'dps',    boss:true, pal:{body:'#0a121c',rim:'#4cc9ff',eye:'#fff06a'}, comp:{hp:1.4,atk:1.45}, desc:'The sky answers to him.'},
   // S-Rank: Sunken Sun
   ember:    {name:'Sun Ember',       style:'blob',     hp:.8,  atk:1.3, spd:1.5, role:'ranged', ranged:true, pal:{body:'#26120a',rim:'#ffb347',eye:'#fff1c0'}, comp:{hp:.7,atk:.95}, desc:'A fallen piece of a dying sun.'},
   sunhound: {name:'Solar Hound',     style:'beast',    hp:.9,  atk:1.25,spd:.9,  role:'dps',    pal:{body:'#24140a',rim:'#ffd27a',eye:'#ff5a3c'}, comp:{hp:.85,atk:1.0}, desc:'Its howl melts stone.'},
   priest:   {name:'Ash Priest',      style:'husk',     hp:1.0, atk:.95, spd:1.5, role:'tank',   pal:{body:'#1e140e',rim:'#ff8a3c',eye:'#fff1c0'}, comp:{hp:1.15,atk:.55}, desc:'Prays to a sun that is gone.'},
-  sunoni:   {name:'Sun Oni',         style:'oni',      hp:2.4, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#24100a',rim:'#ffb347',eye:'#ff3d3d'}, comp:{hp:1.9,atk:.8}, desc:'Burns with borrowed light.'},
+  sunoni:   {name:'Sun Oni',         style:'oni',      hp:2.04, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#24100a',rim:'#ffb347',eye:'#ff3d3d'}, comp:{hp:1.9,atk:.8}, desc:'Burns with borrowed light.'},
   sunqueen: {name:'The Sunken Queen',style:'matriarch',hp:3.3, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#1e1008',rim:'#ffd27a',eye:'#ff8a3c'}, comp:{hp:1.3,atk:1.5}, desc:'She drowned the sun to keep it.'},
   // S+ Rank: Eclipse Throne
   eclipse:  {name:'Eclipse Wraith',  style:'ghost',    hp:.85, atk:1.25,spd:1.2, role:'dps',    pal:{body:'#08060e',rim:'#ff3d6a',eye:'#ffffff'}, comp:{hp:.8,atk:1.0}, desc:'Darkness with a grudge.'},
   hunterx:  {name:'Fallen Hunter',   style:'husk',     hp:1.0, atk:1.1, spd:1.3, role:'tank',   pal:{body:'#0a0a12',rim:'#e8e8f0',eye:'#ff3d6a'}, comp:{hp:1.15,atk:.6}, desc:'Once a Breaker. Never again.'},
   oracle:   {name:'Black Oracle',    style:'ghost',    hp:.8,  atk:1.0, spd:1.6, role:'healer', ranged:true, pal:{body:'#0a0612',rim:'#ffd27a',eye:'#ff3d6a'}, comp:{hp:.8,atk:.6}, desc:'Sees your death and smiles.'},
-  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:2.56, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
+  behemoth: {name:'Eclipse Behemoth',style:'brute',    hp:2.18, atk:1.5, spd:2.1, role:'tank',   elite:true, pal:{body:'#0a0810',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2,atk:.8}, desc:'The last wall before the throne.'},
   emperor:  {name:'The Eclipse Emperor',style:'warden',hp:3.6, atk:2.0, spd:2.1, role:'tank',   boss:true, pal:{body:'#06040a',rim:'#ff3d6a',eye:'#ffd27a'}, comp:{hp:2.2,atk:1.2}, desc:'The one who closed the sky.'},
   matriarch:{name:'The Frost Matriarch', style:'matriarch', hp:3.6, atk:1.8, spd:1.9, role:'ranged', ranged:true, boss:true, pal:{body:'#0e1622',rim:'#bff6ff',eye:'#7fd8ff'}, comp:{hp:1.3,atk:1.5}, desc:'Queen of the frozen shrine.'},
 };
@@ -358,7 +358,7 @@ const SKILL_COST = [1, 2, 3];
 // Ki: fighting spirit, built by hitting, blocking and defeating enemies, spent on skills.
 // Counted internally in units of KI_UNIT (the old crystal); shown to players as 0-100 Ki.
 const KI_UNIT = 20;
-const LIFESTEAL_CAP = 20;   // % - lifesteal from gear, sets, spirits and talents is capped here
+const LIFESTEAL_CAP = 12;   // % - lifesteal from gear, sets, spirits and talents is capped here
 /* Skill Mastery: every skill (0-2) and the ultimate (3) can be trained to Lv 10 with Gold + Mana Stones, +12% damage per level */
 const MASTERY_MAX = 10, MASTERY_STEP = .12;
 function masteryLv(i){ return (S.mastery && S.mastery[i]) || 0; }
