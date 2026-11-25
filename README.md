@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.26.1 – Clear Path
+- `YOMI_REQ` labels are functions with progress and location (player asked how to reach "Kami Trial 3").
+
 ### v0.26.0 – Shinsekai
 - World map (`REGIONS`, `worldMap()` on top of the Gates tab): 1 Neo-Tokyo (all existing content), 2 Yomi (open), 3 Takamagahara, 4 Ryugu-jo, 5 Mugen (coming soon, greyed out).
 - Yomi (`YOMI_GATES` Y1–Y9, `findGate`, theme `yomi`): unlock `YOMI_REQ` = Master 99 + Kami 3 + Rift 30. Circle i base level 125 + 7i (+1 per floor), mult .7, HP ×.75, loot at hero level with rarity +0.4 and any set, stones tier 10, red Yomi recolor of all mobs. Soul Embers: 1 per first floor clear, 5 per circle boss. Circle bosses: Unique 8 %, Godforged 3 %.

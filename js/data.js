@@ -586,10 +586,11 @@ const REGIONS = [
   {id:4, name:'Ryūgū-jō',     sub:'Dragon Palace',    color:'#7fffd4', icon:'🐉', soon:true, desc:'The palace of the Dragon King at the bottom of the sea.'},
   {id:5, name:'Mugen',        sub:'The Endless',      color:'#c77dff', icon:'∞', soon:true, desc:'Beyond every map. Nobody has come back.'},
 ];
+/* requirements show where to go and how far you are (v0.26.1, player asked what "Kami Trial 3" means) */
 const YOMI_REQ = [
-  ['Master Lv 99', () => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX],
-  ['Kami Trial 3 (Tsukuyomi)', () => typeof kamiCleared === 'function' && kamiCleared() >= 3],
-  ['Abyss Rift depth 30', () => ((S.rift && S.rift.best) || 0) >= 30],
+  [() => `Master Lv 99 (${S.rank === 'M' ? (S.master.lv||0) : 0}/99) · Arena tab`, () => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX],
+  [() => `Beat Kami Trial 3 – Tsukuyomi (${typeof kamiCleared === 'function' ? kamiCleared() : 0}/3 trials) · Arena tab, opens at Paragon 10/20/30`, () => typeof kamiCleared === 'function' && kamiCleared() >= 3],
+  [() => `Abyss Rift depth 30 (best ${(S.rift && S.rift.best) || 0}/30) · Arena tab`, () => ((S.rift && S.rift.best) || 0) >= 30],
 ];
 function regionOpen(id){ return id === 1 || (id === 2 && YOMI_REQ.every(([, f]) => f())); }
 /* Nine Circles of Yomi: 10 floors each, a boss on floor 10. Circle N opens when circle N-1's boss is beaten. */

@@ -235,7 +235,7 @@ function renderSheet(){
 function worldMap(){
   const cur = UI.region || 1;
   return `<div class="worldmap"><div class="bt">🗺 WORLD MAP · SHINSEKAI</div><div class="regions">${REGIONS.map(rg => { const open = regionOpen(rg.id);
-    const reqs = rg.id === 2 && !open ? `<span class="rreq">${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n}`).join('<br>')}</span>` : '';
+    const reqs = rg.id === 2 && !open ? `<span class="rreq">${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n()}`).join('<br>')}</span>` : '';
     return `<button class="region ${cur === rg.id ? 'sel' : ''} ${open ? '' : 'locked'} ${rg.soon ? 'soon' : ''}" style="--c:${rg.color}" data-a="region" data-id="${rg.id}"><i>${rg.icon}</i><b>${rg.id}. ${rg.name}</b><small>${rg.sub}</small>${rg.soon ? '<em>COMING SOON</em>' : open ? '' : '<em>🔒 LOCKED</em>'}${reqs}</button>`; }).join('<span class="rlink"></span>')}</div></div>`;
 }
 function sheetYomi(){
@@ -412,7 +412,7 @@ function sheetStats(mode){
     return `<div class="box yomitree"><div class="bt">⛩ SHINIGAMI ARTS · REGION 2 <span class="tpbadge">🔥 <b>${sf}</b> SOUL EMBER${sf === 1 ? '' : 'S'}</span></div><div class="hint" style="margin-top:0">Earned in the Circles of Yomi (1 per new floor, 5 per circle boss). ${sp} spent.</div>
     <div class="ttree"><div class="tbranch" style="--c:#ff4d6d"><div class="tbh"><b>Shinigami</b><small>${sp} pts</small></div>${YOMI_TREE.map(nd => { const r = S.yomi.tree[nd.id]||0, open = sp >= nd.req, can = open && sf > 0 && r < nd.max;
       return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="yomiTalent" data-id="${nd.id}" ${can ? '' : 'disabled'}><span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? nd.desc + (nd.stat && r ? ` · now +${+(nd.per*r).toFixed(1)}%` : '') : `Spend ${nd.req} Soul Embers in this tree`}</span></button>`; }).join('<i class="tlink"></i>')}</div></div></div>`; })()
-    : `<div class="box yomitree locked"><div class="bt">⛩ SHINIGAMI ARTS · REGION 2</div><div class="hint" style="margin-top:0">A new skill tree with a new skill opens in Region 2 (Yomi). Requirements: ${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n}`).join(' · ')}</div></div>`;
+    : `<div class="box yomitree locked"><div class="bt">⛩ SHINIGAMI ARTS · REGION 2</div><div class="hint" style="margin-top:0">A new skill tree with a new skill opens in Region 2 (Yomi). Requirements: ${YOMI_REQ.map(([n, f]) => `${f() ? '✔' : '✖'} ${n()}`).join(' · ')}</div></div>`;
   if(mode === 'talents') return `${tf ? `<div class="ptsbar"><div class="ptsb tal"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>spend them below</small></div></div>` : ''}
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>
