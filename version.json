@@ -1,12 +1,10 @@
 {
-  "version": "0.16.2",
+  "version": "0.17.0",
   "date": "2026-11-25",
-  "title": "Deeper Climb",
+  "title": "Ki",
   "notes": [
-    "Talent tree v2: each branch now has 4 talents with 10 ranks plus 2 ★ keystones that change how you fight (Berserker, Executioner, Second Life, Thorns, Treasure Sense, Crystal Heart). Far more ranks than points: pick your style.",
-    "More talent points over time: 1 per level, +1 per 10 Training Tower floors, +2 per rank exam.",
-    "Training Tower map: see the next 5 floors with place, rewards, elites, bosses and modifiers.",
-    "Floor modifiers keep the climb fresh: Golden (x2 Gold), Giants, Swarm, Frenzy and Spirit Surge, each with bigger rewards.",
-    "Tabs now always open at the top. Bosses break a bit faster."
+    "Breaker Crystals are gone. Skills now run on Ki, your fighting spirit: a glowing 0-100 Ki bar fills as you hit, block and defeat enemies.",
+    "Every skill shows its Ki cost right on the button (20 / 40 / 60 Ki). If you press a skill too early you see how much Ki is missing.",
+    "Keystone Crystal Heart is now Ki Heart (+40 Ki at the start of every fight)."
   ]
 }

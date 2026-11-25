@@ -68,7 +68,7 @@ const TALENTS = {
     {id:'bond',   name:'Spirit Bond',  stat:'petP',     per:5,   max:10, req:10, desc:'+5% Spirit damage'},
     {id:'swift',  name:'Swift',        stat:'spd',      per:2,   max:10, req:15, desc:'+2% Attack Speed'},
     {id:'k_treasure', name:'Treasure Sense', key:'treasure', max:1, req:20, desc:'KEYSTONE: elite and boss floors drop 1 extra item'},
-    {id:'k_crystal',  name:'Crystal Heart',  key:'crystal',  max:1, req:30, desc:'KEYSTONE: start every fight with 2 extra crystals'}]},
+    {id:'k_crystal',  name:'Ki Heart',       key:'crystal',  max:1, req:30, desc:'KEYSTONE: start every fight with +40 Ki'}]},
 };
 function talentNodes(){ return Object.values(TALENTS).flatMap(b => b.nodes); }
 function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)); }
@@ -257,7 +257,10 @@ const DAILY = {
 /* ---------- progressive unlocks (keeps the start simple) ---------- */
 const SKILL_LV = [1, 3, 5];
 const SKILL_COST = [1, 2, 3];
-// Breaker Crystals: earned by fighting, spent on skills
+// Ki: fighting spirit, built by hitting, blocking and defeating enemies, spent on skills.
+// Counted internally in units of KI_UNIT (the old crystal); shown to players as 0-100 Ki.
+const KI_UNIT = 20;
+function kiOf(e){ return Math.floor(e*KI_UNIT + 1e-6); }
 const ENERGY = {max:5, start:2, hit:.15, kill:.4, hurt:.1, strike:.3, parry:1};
 // active combat
 // Timing combat (default): a ring shrinks onto the enemy, press while it is inside the gold zone.
@@ -300,11 +303,11 @@ const SPECS = {
   ],
   storm:[
     {id:'thunder', name:'Thunder God',    desc:'Lightning obeys you. Chain Storm jumps 3 more times.',              stats:{skill:20},           skill:{i:1, hits:3}, perk:'+20% Skill DMG'},
-    {id:'tempest', name:'Tempest Dancer', desc:'Never stop moving. Strikes charge 40% more crystals.',                stats:{spd:15},             energy:{strike:1.4}, skill:{i:0, mult:1.3}, perk:'+15% Attack Speed'},
+    {id:'tempest', name:'Tempest Dancer', desc:'Never stop moving. Strikes build 40% more Ki.',                stats:{spd:15},             energy:{strike:1.4}, skill:{i:0, mult:1.3}, perk:'+15% Attack Speed'},
   ],
   void:[
     {id:'warden',  name:'Abyss Warden',   desc:'An unbreakable wall. Shadow Veil shields 60% more.',                stats:{hpP:20, def:15},     skill:{i:2, shield:1.6}, perk:'+20% HP, +15 DEF'},
-    {id:'reaper',  name:'Void Reaper',    desc:'Every death feeds you. Kills give +0.5 crystal, Void Pierce hits 40% harder.', stats:{atkP:10},  energy:{kill:.5}, skill:{i:0, mult:1.4}, perk:'+10% ATK'},
+    {id:'reaper',  name:'Void Reaper',    desc:'Every death feeds you. Kills give +10 Ki, Void Pierce hits 40% harder.', stats:{atkP:10},  energy:{kill:.5}, skill:{i:0, mult:1.4}, perk:'+10% ATK'},
   ],
   blood:[
     {id:'berserker', name:'Crimson Berserker', desc:'Rage without end. Berserk lasts 4s longer and grants more ATK.', stats:{atkP:12},          skill:{i:2, dur:4, atk:.2}, perk:'+12% ATK'},

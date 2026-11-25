@@ -299,7 +299,7 @@ function sheetHero(){
   const slots = SLOTS.map(sl => { const it = S.eq[sl];
     return `<button class="slot ${it?'has':''}" style="--r:${it?RARITY[it.rar].color:'#2a3150'}" data-a="${it?'item':'sheet'}" data-id="${it?it.id:'bag'}">
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
-  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Breaker Crystals</b>. You earn them by hitting and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i>${specOf() && specOf().skill.i === i ? ` <i class="up">▲ ${specOf().name}</i>` : ''}<span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
+  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b>, your fighting spirit (0-100). You build it by hitting, blocking and defeating enemies. Use skills back-to-back for a <b>CHAIN</b> bonus.</div>` + a.skills.map((s,i) => `<div class="skl"><b>${s.name}</b> <i>${'◆'.repeat(SKILL_COST[i])} · Lv ${SKILL_LV[i]}</i>${specOf() && specOf().skill.i === i ? ` <i class="up">▲ ${specOf().name}</i>` : ''}<span>${s.desc}</span></div>`).join('') + `<div class="skl ult"><b>${a.ult.name}</b> <i>ULT</i><span>${a.ult.desc}</span></div>`;
   return `<div class="cols">
     <div class="box sys"><div class="bt">STATS</div><div class="hint" style="margin-top:0">Stat points, all numbers and the talent tree moved to their own tab.</div><button class="btn primary" data-a="sheet" data-id="stats">Open Stats & Talents ${S.points || talentFree() ? `(${S.points + talentFree()} points free)` : ''}</button></div>
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
@@ -441,14 +441,14 @@ function itemDetail(id){
 function buildBattleHud(){
   const a = AFF[S.aff];
   const btns = a.skills.map((s,i) => skillUnlocked(i)
-      ? `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="fill"></span><b>${s.name}</b><span class="cost">${'<i></i>'.repeat(SKILL_COST[i])}</span><kbd>${i+1}</kbd></button>`
+      ? `<button class="skb" data-a="skill" data-id="${i}" style="--c:${a.color}"><span class="fill"></span><b>${s.name}</b><span class="cost">${SKILL_COST[i]*KI_UNIT} KI</span><kbd>${i+1}</kbd></button>`
       : `<button class="skb locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${SKILL_LV[i]}</b></button>`).join('') +
     (ultUnlocked() ? `<button class="skb ult" data-a="ult" style="--c:${a.color}"><span class="fill"></span><b>ULT</b><kbd>R</kbd></button>`
       : `<button class="skb ult locked" disabled style="--c:${a.color}"><b>${ICON.lock}<br>Lv ${ULT_LV}</b></button>`);
   $('#bSkills').style.setProperty('--c', a.color);
-  $('#bSkills').innerHTML = `<div class="sk-top"><span class="flow" id="bFlow"></span><span class="chain" id="bChain"></span><div class="crys" id="bCrys"><span class="crlbl">CRYSTALS<small id="bCrysN">0/5</small></span>${'<span class="cr"><i></i></span>'.repeat(ENERGY.max)}</div></div>
+  $('#bSkills').innerHTML = `<div class="sk-top"><span class="flow" id="bFlow"></span><span class="chain" id="bChain"></span><div class="kibar" id="bKi"><span class="kil">KI</span><div class="kitrack"><i></i>${[1,2,3,4].map(n => `<b style="left:${n*20}%"></b>`).join('')}</div><span class="kin"><span id="bKiN">0</span><small>/100</small></span></div></div>
     <div class="sk-row"><button class="skb strike" data-a="strike" style="--c:#ffd166"><b>STRIKE</b><small>SPACE · TAP</small></button>${btns}</div>
-    <div class="sk-hint" id="bHint">Strike to charge crystals · skills cost ◆</div>`;
+    <div class="sk-hint" id="bHint">Strike to build Ki · skills cost Ki</div>`;
   $('#bParty').innerHTML = BT.units.filter(u => u.side === 'p' && u.kind !== 'pet').map((u,i) => `<div class="pc ${u.kind}" data-i="${i}"><b>${esc(u.name)}</b><div class="hp"><i></i><s></s></div></div>`).join('');
   syncFarmUI();
   onWaveUI();
@@ -479,14 +479,12 @@ function onWaveUI(){
 function updateBattleHud(){
   if(!BT) return;
   const a = AFF[S.aff];
-  $$('#bCrys .cr').forEach((c,i) => { const f = clamp(BT.energy - i, 0, 1); c.style.setProperty('--f', f); c.classList.toggle('full', f >= 1); });
-  $('#bCrys').classList.toggle('pop', BT.crystalPop > 0);
-  $('#bCrysN').textContent = `${Math.floor(BT.energy)}/${ENERGY.max}`;
+  const ki = $('#bKi'); if(ki){ ki.querySelector('.kitrack i').style.width = clamp(BT.energy/ENERGY.max, 0, 1)*100 + '%'; ki.classList.toggle('pop', BT.crystalPop > 0); ki.classList.toggle('full', BT.energy >= ENERGY.max); $('#bKiN').textContent = kiOf(BT.energy); }
   const th = threatsOnHero().length > 0, sb = $('#bSkills .strike');
   if(sb){ sb.classList.toggle('parry', th); sb.querySelector('b').textContent = th ? 'PARRY!' : 'STRIKE'; }
   const hint = $('#bHint'); if(hint){ const need = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy < SKILL_COST[i]);
     hint.textContent = timingMode() ? (BT.stumble > 0 ? 'Stumbled! Wait for the ring, don\'t mash.' : th ? 'Red ! : press SPACE just before the hit to PARRY' : S.settings.autoFight ? 'AUTO FIGHT is on. Turn it off to land PERFECT hits.' : BT.ring ? 'Press SPACE while the ring is inside the gold zone' : BT.energy >= 1 ? 'Skills ready: press 1 / 2 / 3' : 'Wait for the ring...') : th ? 'Enemy attack incoming: press SPACE now to parry!' : BT.energy < 1 ? ((BT.flow||0) ? 'Keep the rhythm: steady strikes build FLOW' : 'Strike (Space / tap) in a steady rhythm to build FLOW')
-      : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : (() => { const rd = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy >= SKILL_COST[i]); return BT.ult >= 100 ? 'ULTIMATE ready! Press R (or tap it)' : rd >= 0 ? `Skill ready! Press ${rd + 1} (or tap it)` : need >= 0 ? 'Skills light up when you have enough ◆' : 'Use a skill! Back-to-back skills = CHAIN bonus'; })(); hint.classList.toggle('warn', th); }
+      : alive('e').some(u => u.kind === 'enemy' && !u.boss && u.hp/u.maxHp < EXECUTE_AT) ? 'Gold HP bar: one strike EXECUTES it!' : (() => { const rd = a.skills.findIndex((s,i) => skillUnlocked(i) && BT.energy >= SKILL_COST[i]); return BT.ult >= 100 ? 'ULTIMATE ready! Press R (or tap it)' : rd >= 0 ? `Skill ready! Press ${rd + 1} (or tap it)` : need >= 0 ? 'Skills light up when you have enough Ki' : 'Use a skill! Back-to-back skills = CHAIN bonus'; })(); hint.classList.toggle('warn', th); }
   const fl = $('#bFlow'); if(fl){ const n = BT.flow || 0; fl.innerHTML = n ? `FLOW ${'<i></i>'.repeat(n)}${'<s></s>'.repeat(FLOW.max - n)}` : ''; fl.classList.toggle('max', n >= FLOW.max); }
   const ch = $('#bChain'); ch.textContent = S.settings.simple ? '' : BT.chain > 1 && BT.chainT > 0 ? `CHAIN x${BT.chain} · +${Math.round((BT.chainMult-1)*100)}%` : BT.chainT > 0 ? 'CHAIN READY' : '';
   $$('#bSkills .skb').forEach(b => {
@@ -604,7 +602,7 @@ function cancelAuto(){ if(UI.autoNext){ clearTimeout(UI.autoNext); UI.autoNext =
 
 function enterBattle(){ cancelAuto(); closeModal(); showScreen('battle'); buildBattleHud();
   if(timingMode()){ if(!S.flags.tipRing){ S.flags.tipRing = true; S.flags.tipStrike2 = true; setTimeout(() => toast('NEW: TIMING COMBAT', 'A white ring closes in on the enemy. Press SPACE (or tap) while it is inside the gold zone: PERFECT hits deal huge damage. Mashing makes you stumble! Just want to farm? Use AUTO FIGHT (top right).', 'gold'), 700); } }
-  else if(S.record.kills === 0 || !S.flags.tipStrike2){ S.flags.tipStrike2 = true; setTimeout(() => toast('HOW TO FIGHT', 'Press SPACE or tap the screen to STRIKE. Strikes charge your crystals, crystals power your skills.', 'gold'), 700); } }
+  else if(S.record.kills === 0 || !S.flags.tipStrike2){ S.flags.tipStrike2 = true; setTimeout(() => toast('HOW TO FIGHT', 'Press SPACE or tap the screen to STRIKE. Strikes build Ki, Ki powers your skills (1 / 2 / 3).', 'gold'), 700); } }
 function leaveBattle(){ cancelAuto(); BT = null; showScreen('home'); renderHome(); }
 
 /* ---------- actions ---------- */

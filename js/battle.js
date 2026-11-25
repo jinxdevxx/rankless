@@ -356,7 +356,7 @@ function useSkill(i){
     if(BT && !BT.over && !BT.hero.dead && !BT.cutin && (BT.skillMsgT||0) < BT.clock){
       BT.skillMsgT = (BT.clock||0) + .5;
       if(!skillUnlocked(i)) addText(BT.hero, `Skill ${i+1} unlocks at Lv ${SKILL_LV[i]}`, '#c4cde8', 16);
-      else if(BT.energy < SKILL_COST[i]) addText(BT.hero, `Need ${SKILL_COST[i]} ◆ (have ${Math.floor(BT.energy)})`, '#9fd8ff', 18);
+      else if(BT.energy < SKILL_COST[i]) addText(BT.hero, `Need ${SKILL_COST[i]*KI_UNIT} Ki (have ${kiOf(BT.energy)})`, '#9fd8ff', 18);
       else if(!alive('e').length) addText(BT.hero, 'No target', '#c4cde8', 16);
     }
     return;
@@ -568,7 +568,7 @@ function stepBattle(dt){
     for(const u of BT.units) stepUnit(u, dt);
     // auto skills
     if((window.BOT_AUTO || (timingMode() ? S.settings.autoFight : S.settings.autoSkill)) && !BT.cutin && alive('e').length && BT.units.some(u => u.side === 'e' && u.state !== 'enter')){
-      // spend crystals when the gauge is nearly full, most expensive skill first
+      // spend Ki when the gauge is nearly full, most expensive skill first
       if(BT.energy >= ENERGY.max - .01 || BT.chainT > 0) for(let i=2;i>=0;i--){
         const sk = AFF[S.aff].skills[i];
         if(sk.type === 'buff' && sk.heal && BT.hero.hp/BT.hero.maxHp > .7 && !sk.atk) continue;

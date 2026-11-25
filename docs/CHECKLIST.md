@@ -6,7 +6,7 @@ Add new player feedback here as a new point, so it is never forgotten.
 ## Must always hold (test every round)
 1. **Fresh start works**: new character starts with weapon + armor and wins E-F1..F3 by just spamming SPACE (`node tools/fresh_start_test.js`).
 2. **Combat = Classic**: SPACE spam strikes, parry on red "!", no ring system. Skills fire only by pressing 1/2/3/R (or tapping). AUTO FARM button turns automatic skills + ultimate on/off.
-3. **Skills always respond**: pressing a skill key either casts it or shows why not ("Need N ◆", "unlocks at Lv X"). Test keys 1/2/3/R and button taps.
+3. **Skills always respond**: Ki bar (0–100) visible, every skill shows its Ki cost; pressing a skill either casts it or shows why not ("Need 40 Ki", "unlocks at Lv X"). Test keys 1/2/3/R and button taps.
 4. **Bag stays clean**: items worse than equipped even at +15 are marked ✖, "Salvage useless" removes ALL of them (only locked items kept) and shows Stones/Gold; useless drops are auto-salvaged after fights; few Commons in D/C.
 5. **Gear is always the best**: Equip best and auto-equip compare real Power (enhance level included). A strong +8 item stays equipped over a weaker fresh drop. Sets (2/4 pieces) are counted: run `node tools/equip_best_test.js`, must be 100 % optimal. Bag cards show +/- Power, item details show "beats yours at +N".
 6. **Spirit Legion matters**: spirits are ranged only, can't die, are bought/levelled/slotted with Gold (no drops) and give a clearly useful bonus + damage.
@@ -24,6 +24,7 @@ Add new player feedback here as a new point, so it is never forgotten.
 9. **Update flow**: version bump, English patch notes, README changelog entry for every change, live-update post (German, short), devlog updated.
 
 ## Improve continuously (pick the weakest point each round)
+- RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.
 - Combat must be more fun and creative WITHOUT being harder to play: e.g. easy skill combos, weak points that open up, boss moves you answer with a skill. Small steps, one idea per round, ask for feedback.
 - Gameplay over graphics. No pure visual rounds.
 - Progression decisions that are easy to understand (stats, gear, enchant, jobs).

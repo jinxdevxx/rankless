@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.17.0 – Ki
+- Breaker Crystals replaced by Ki (KI_UNIT = 20, shown 0–100): animated Ki bar with markers every 20, skill buttons show Ki cost, feedback 'Need X Ki', texts/tutorials/jobs/keystone renamed.
+
 ### v0.16.2 – Deeper Climb
 - Talent tree v2 (data.js TALENTS): 4 stat talents × 10 ranks + 2 keystones per branch (req 0/5/10/15/20/30 points). Keystones: berserk, exec, second, thorns, treasure, crystal (BT.keys). New stat dr (Bulwark, max 40 %).
 - Talent points: level − 2 + floor(tower best / 10) + 2 × rank index.

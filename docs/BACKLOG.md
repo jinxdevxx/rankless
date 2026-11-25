@@ -3,6 +3,8 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Crystals look bad / make no sense: replaced by a Ki bar (0–100) with Ki cost on every skill (v0.17.0)
+- [ ] RECURRING: balancing + flow + dopamine every round (not too easy, not too hard, always progressing)
 - [x] Talents maxed too fast: tree v2 with 10 ranks, keystones, more point sources (v0.16.2) – keep extending (recurring)
 - [x] Training Tower needs better design/feeling: tower map + floor modifiers (v0.16.2) – keep improving (recurring)
 - [ ] Pure spammer without skills still wobbles on C-Rank (bot 124–231 min); keep tuning
