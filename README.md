@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.20.0 – Real Fights
+- Analysis (tools/survival_test.js): with AUTO ATTACK / mashing the hero took 0 damage (572 auto-parries in 6 A-Rank fights); without presses died in 4 s.
+- doParry(mash): mashing only blocks (u.blocked → half damage) + 0.75x counter, no stun; AUTO ATTACK always counts as mashing (heroAction(true)). Timed press = PERFECT PARRY as before.
+- enemyAtk base 50 → 30. LIFESTEAL_CAP 20 % applied at the end of calcStats.
+- Skills tab (sheetSkills) with mastery; setting 'Screen shake'.
+- Bots: spamskill E→B 36 min, A 83, S ~330, S+ ~550 min; pure spam without skills walls at C-F8 (timeouts) – tuning continues.
+
 ### v0.19.1 – Auto Repeat
 - Tower-only AUTO REPEAT toggle (settings.towerRepeat): auto-continue repeats the floor (loss → one floor down), countdown shown on the Repeat button.
 

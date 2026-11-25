@@ -358,6 +358,7 @@ const SKILL_COST = [1, 2, 3];
 // Ki: fighting spirit, built by hitting, blocking and defeating enemies, spent on skills.
 // Counted internally in units of KI_UNIT (the old crystal); shown to players as 0-100 Ki.
 const KI_UNIT = 20;
+const LIFESTEAL_CAP = 20;   // % - lifesteal from gear, sets, spirits and talents is capped here
 /* Skill Mastery: every skill (0-2) and the ultimate (3) can be trained to Lv 10 with Gold + Mana Stones, +12% damage per level */
 const MASTERY_MAX = 10, MASTERY_STEP = .12;
 function masteryLv(i){ return (S.mastery && S.mastery[i]) || 0; }

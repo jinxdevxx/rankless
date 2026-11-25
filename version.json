@@ -1,9 +1,12 @@
 {
-  "version": "0.19.1",
+  "version": "0.20.0",
   "date": "2026-11-25",
-  "title": "Auto Repeat",
+  "title": "Real Fights",
   "notes": [
-    "Training Tower: new AUTO REPEAT button next to AUTO ATTACK and AUTO FARM. When it is on, the tower repeats the same floor after every win so you can farm it, with the countdown on the Repeat button.",
-    "If you lose while repeating, it steps one floor down and keeps farming there, so it never gets stuck."
+    "BALANCE FIX: mashing SPACE or AUTO ATTACK made you practically immortal (every enemy hit was auto-parried). Now mashing BLOCKS (half damage + small counter), and only your own calm, timed press is a PERFECT PARRY (no damage, stun, big counter).",
+    "Enemies hit softer overall to make up for it, so fights are a real challenge again without instant deaths.",
+    "Lifesteal from all sources together is capped at 20%.",
+    "NEW: separate Skills tab in the menu bar with your skills, Ki costs and Skill Mastery.",
+    "NEW: Screen shake can be turned off in the menu (Esc)."
   ]
 }

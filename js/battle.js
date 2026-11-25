@@ -201,12 +201,12 @@ function frontEnemy(){ const f = alive('e').filter(u => u.state !== 'enter'); re
 
 /* ---------- active combat: strike & parry (Space / tap) ---------- */
 function threatsOnHero(){ return BT ? alive('e').filter(u => u.tele === BT.hero && u.state === 'idle' && (u.interval - u.timer) <= TELE + .02) : []; }
-function heroAction(){
+function heroAction(auto){
   if(!BT || BT.over || BT.cutin || BT.hero.dead) return;
   const h = BT.hero, k = bk();
   const threats = threatsOnHero();
   // time between presses on the battle clock (unaffected by hit-stop and slow motion)
-  const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = gap < .35; BT.lastPress = nowC; BT.sincePress = 0;   // mashing never parries
+  const nowC = BT.clock || 0, gap = nowC - (BT.lastPress ?? -9), spam = auto || gap < .35;   // AUTO ATTACK always counts as mashing: it blocks, only your own timing parries BT.lastPress = nowC; BT.sincePress = 0;   // mashing never parries
   // flow: rhythm builds it, mashing breaks it, long pauses let it fade
   BT.flow = BT.flow || 0;
   if(gap < FLOW.min){ /* mashing: flow is kept but doesn't grow */ }
@@ -271,16 +271,22 @@ function stepRing(dt){
 }
 
 function doParry(h, threats, k, mash){
-  // mash = pressed in a hurry: still blocks and counters, but a calm timed press is the PERFECT parry
-  for(const u of threats){ u.timer = 0; u.tele = null; stunUnit(u, mash ? .5 : .9); addText(u, mash ? 'BLOCKED' : 'PARRIED', '#9fd8ff', mash ? 18 : 22); }
+  if(mash){
+    // mashing: you BLOCK the coming hit (it deals half damage) and land a small counter, but the enemy is NOT stunned
+    for(const u of threats) if(!u.blocked){ u.blocked = true; addText(u, 'BLOCK', '#9fd8ff', 16); }
+    const t = threats[0]; dealDamage(h, t, .75, {color:'#9fd8ff', parry:true}); gainEnergy(ENERGY.parry*.25);
+    return;
+  }
+  // calm, timed press: PERFECT PARRY - the attack is cancelled, the enemy is stunned and you counter hard
+  for(const u of threats){ u.timer = 0; u.tele = null; u.blocked = false; stunUnit(u, .9); addText(u, 'PARRIED', '#9fd8ff', 22); }
   const t = threats[0];
   h.x = t.x - (t.size*.35 + 40)*k; h.state = 'strike'; h.st = 0;
-  BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:(mash ? 90 : 140)*k, c:'#ffd166', life:.45, max:.45});
+  BT.fx.push({k:'ring', x:h.x, y:h.y, r:10, R:140*k, c:'#ffd166', life:.45, max:.45});
   BT.fx.push({k:'slash', x:t.x, y:t.y - t.size*k*.5, r:t.size*k*.8, rot:-.6, c:'#ffd166', life:.3, max:.3});
-  dealDamage(h, t, mash ? 1.0 : 1.4, {color:'#ffd166', parry:true});
-  gainEnergy(ENERGY.parry*(mash ? .5 : 1)); BT.ult = Math.min(100, BT.ult + (mash ? 4 : 8));
-  if(!mash){ addText(h, 'PERFECT PARRY', '#ffd166', 30); BT.slowmo = .35; BT.flashT = .06; }
-  BT.shake = Math.max(BT.shake, mash ? .08 : .15); BT.parries = (BT.parries||0) + 1;
+  dealDamage(h, t, 1.4, {color:'#ffd166', parry:true});
+  gainEnergy(ENERGY.parry); BT.ult = Math.min(100, BT.ult + 8);
+  addText(h, 'PERFECT PARRY', '#ffd166', 30); BT.slowmo = .35; BT.flashT = .06;
+  BT.shake = Math.max(BT.shake, .15); BT.parries = (BT.parries||0) + 1;
   SFX.parry();
 }
 
@@ -586,7 +592,7 @@ function stepBattle(dt){
   BT.ult = Math.min(100, BT.ult + dt*.6);
 
   if(timingMode() && !BT.over && !BT.cutin) stepRing(dt);
-  if(S.settings.autoAttack && !BT.over && !BT.cutin && !BT.hero.dead){ BT.autoAtkT = (BT.autoAtkT ?? .3) - dt; if(BT.autoAtkT <= 0){ BT.autoAtkT = .3; heroAction(); } }   // AUTO ATTACK button
+  if(S.settings.autoAttack && !BT.over && !BT.cutin && !BT.hero.dead){ BT.autoAtkT = (BT.autoAtkT ?? .3) - dt; if(BT.autoAtkT <= 0){ BT.autoAtkT = .3; heroAction(true); } }   // AUTO ATTACK button
   for(let i=BT.pending.length-1;i>=0;i--){ const p = BT.pending[i]; p.t -= dt; if(p.t <= 0){ BT.pending.splice(i,1); if(!BT.over) p.fn(); } }
 
   if(!BT.over){
@@ -774,7 +780,7 @@ function finishBattle(win){
 function renderBattle(t, dt){
   const c = ctx, k = bk();
   c.save();
-  if(BT.shake > 0){ const s = Math.min(1, BT.shake)*10; c.translate(rand(-s,s), rand(-s,s)); }
+  if(BT.shake > 0 && S.settings.shake !== false){ const s = Math.min(1, BT.shake)*10; c.translate(rand(-s,s), rand(-s,s)); }
   if(BT.zoom > 0){ const z = 1 + BT.zoom, fx = VW*.55, fy = groundY() - VH*.15; c.translate(fx, fy); c.scale(z, z); c.translate(-fx, -fy); }
   c.drawImage(getBg(BT.theme), 0, 0, VW, VH);
   sceneFx(BT.theme, t, dt);

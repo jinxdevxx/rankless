@@ -24,7 +24,7 @@ function defaultSave(){
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
-    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'classic', autoJunk:true}, flags:{manualSkills:true},
+    settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true, simple:true, combat:'classic', autoJunk:true, shake:true}, flags:{manualSkills:true},
     unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
@@ -75,7 +75,7 @@ const xpNeed  = lv => Math.floor(280 * Math.pow(1.21, Math.min(lv, 30)-1) * Math
 const xpFor   = L  => 6 * Math.pow(1.12, L-1);
 const goldFor = L  => 5 * Math.pow(1.11, L-1);
 const enemyHp = L  => 1050 * Math.pow(1.16, L-1);
-const enemyAtk= L  => 50 * Math.pow(1.14, L-1);
+const enemyAtk= L  => 30 * Math.pow(1.14, L-1);
 
 function addXP(n){
   S.xp += Math.floor(n);
@@ -153,6 +153,7 @@ function calcStats(src){
   o.crit = Math.min(75, o.crit);
   o.interval = 1.25 / (1 + o.spd/100);
   o.compMult = 1 + st.wil*.01;
+  o.lifestealRaw = o.lifesteal; o.lifesteal = Math.min(LIFESTEAL_CAP, o.lifesteal);   // lifesteal stacks from many sources: capped
   return o;
 }
 function heroStats(){ return calcStats(S); }

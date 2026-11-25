@@ -136,7 +136,7 @@ function renderHome(){
   const pts = S.points > 0, newItems = S.inv.some(i => i.isNew);
   let shown = 0;
   $$('.nav button').forEach(b => {
-    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id === 'stats' ? 'hero' : id);
+    const id = b.dataset.id, ok = id === 'home' || isUnlocked(id === 'stats' || id === 'skills' ? 'hero' : id);
     b.hidden = !ok; if(ok && id !== 'home') shown++;
     b.classList.toggle('on', UI.sheet === id || (!UI.sheet && id === 'home'));
     const d = b.querySelector('.dot'); if(d) d.outerHTML = '';
@@ -217,7 +217,7 @@ function closeSheet(){ UI.sheet = null; $('#sheet')?.classList.remove('on'); if(
 function renderSheet(){
   if(UI.sheet) hidePatchNote();
   if(!UI.sheet) return;
-  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats & Talents',sheetStats], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
+  const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats & Talents',sheetStats], skills:['Skills',sheetSkills], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
   const [title, fn] = map[UI.sheet];
   $('#sheetTitle').textContent = title;
   const body = $('#sheetBody'), sc = body.scrollTop;
@@ -343,6 +343,17 @@ function sheetStats(){
       <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
       <div class="ttree">${tree}</div></div>`;
 }
+/* ---------- Skills tab: element, Ki costs, Skill Mastery ---------- */
+function sheetSkills(){
+  const a = AFF[S.aff];
+  const mrow = (i, name, tag, desc) => { const lv = masteryLv(i), c = masteryCost(i), max = lv >= MASTERY_MAX, ok = !max && S.gold >= c.gold && S.stones >= c.stones;
+    return `<div class="skl mast ${i === 3 ? 'ult' : ''}"><div class="mh"><b>${name}</b> <i>${tag}</i><span class="mastlv">Mastery ${lv}/${MASTERY_MAX} · +${Math.round(lv*MASTERY_STEP*100)}% DMG</span></div><span>${desc}</span>
+      ${max ? '<div class="tag">MASTERED</div>' : `<div class="mrow">${haveNeed('gold','Gold',S.gold,c.gold)}${haveNeed('stone','Mana Stones',S.stones,c.stones)}<button class="btn small ${ok ? 'primary' : ''}" data-a="mastery" data-id="${i}" ${ok ? '' : 'disabled'}>Train → ${lv + 1}<small> (+12%)</small></button></div>`}</div>`; };
+  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b> (0-100), built by hitting, blocking and defeating enemies. <b>Train</b> a skill to make it hit harder: check the damage split after a fight to see which pays off.</div>`
+    + a.skills.map((sk,i) => mrow(i, sk.name, `${SKILL_COST[i]*KI_UNIT} Ki · unlocks Lv ${SKILL_LV[i]}${specOf() && specOf().skill.i === i ? ' · ▲ ' + specOf().name : ''}`, sk.desc)).join('')
+    + mrow(3, a.ult.name, 'ULT', a.ult.desc);
+  return `<div class="box sys"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
+}
 function sheetHero(){
   const hs = heroStats(), a = AFF[S.aff];
   const stats = Object.entries(STAT_INFO).map(([k,v]) => `<div class="stat"><span class="sk">${v.name}</span><span class="sv">${S.stats[k]}</span><span class="sd">${v.desc}</span>
@@ -353,12 +364,7 @@ function sheetHero(){
   const slots = SLOTS.map(sl => { const it = S.eq[sl];
     return `<button class="slot ${it?'has':''}" style="--r:${it?RARITY[it.rar].color:'#2a3150'}" data-a="${it?'item':'sheet'}" data-id="${it?it.id:'bag'}">
       ${ICON[sl]}${it?`<span class="plus">${it.plus?'+'+it.plus:''}</span><small>${esc(it.name)}</small>`:`<small>${SLOT_INFO[sl].name}</small>`}</button>`; }).join('');
-  const mrow = (i, name, tag, desc) => { const lv = masteryLv(i), c = masteryCost(i), max = lv >= MASTERY_MAX, ok = !max && S.gold >= c.gold && S.stones >= c.stones;
-    return `<div class="skl mast ${i === 3 ? 'ult' : ''}"><div class="mh"><b>${name}</b> <i>${tag}</i><span class="mastlv">Mastery ${lv}/${MASTERY_MAX} · +${Math.round(lv*MASTERY_STEP*100)}% DMG</span></div><span>${desc}</span>
-      ${max ? '<div class="tag">MASTERED</div>' : `<div class="mrow">${haveNeed('gold','Gold',S.gold,c.gold)}${haveNeed('stone','Mana Stones',S.stones,c.stones)}<button class="btn small ${ok ? 'primary' : ''}" data-a="mastery" data-id="${i}" ${ok ? '' : 'disabled'}>Train → ${lv + 1}<small> (+12%)</small></button></div>`}</div>`; };
-  const skills = `<div class="hint" style="margin:0 0 6px">Skills cost <b>Ki</b> (0-100), built by hitting, blocking and defeating enemies. <b>Train</b> a skill to make it hit harder: check the damage split after a fight to see which pays off.</div>`
-    + a.skills.map((sk,i) => mrow(i, sk.name, `${SKILL_COST[i]*KI_UNIT} Ki · unlocks Lv ${SKILL_LV[i]}${specOf() && specOf().skill.i === i ? ' · ▲ ' + specOf().name : ''}`, sk.desc)).join('')
-    + mrow(3, a.ult.name, 'ULT', a.ult.desc);
+
   return `<div class="cols">
     <div class="box sys"><div class="bt">STATS</div><div class="hint" style="margin-top:0">Stat points, all numbers and the talent tree moved to their own tab.</div><button class="btn primary" data-a="sheet" data-id="stats">Open Stats & Talents ${S.points || talentFree() ? `(${S.points + talentFree()} points free)` : ''}</button></div>
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
@@ -368,7 +374,7 @@ function sheetHero(){
       return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
   ${enchantBox()}
   ${jobBox()}
-  <div class="box"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
+  <div class="box"><div class="bt">SKILLS</div><div class="hint" style="margin:0">Your skills, Ki costs and Skill Mastery have their own tab now.</div><button class="btn primary" data-a="sheet" data-id="skills">Open Skills</button></div>`;
 }
 
 /* a big, readable cost line: what you have vs. what you need */
