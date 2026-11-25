@@ -25,6 +25,10 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.25.2 – Stone and Slime
+- Mob art pass in the new hero style: golem (angular rock plates, boulder shoulders, fists, glowing E-colored cracks), blob (gloss highlight, slime drips, toothy grin), husk (torn cloak, bone claws). Other styles next.
+- Bot uses endgame sinks (awakening, mastery, +15) for realistic Paragon/Kami measurements.
+
 ### v0.25.1 – God Level
 - God Level: `fmtPow`/`godLv` = 1 + 10·log10(P / 1e12) for P ≥ 1e12 (top bar, gate/arena/master/paragon/kami recommended).
 - Recommended power, measured: gates power/rec at first clear E–A 0.91–1.13, S 0.72, SS 0.54 → REC_MULT S .5→.36, SS .45→.25. Arena exams won at 0.31–0.5 of rec → `ARENA_REC` 0.4. Master League rec was the gate formula (M90: 110B shown, 1.16B enough) → `recMaster` fitted to bot win power (8.5M·1.066^(lv−1)), `recParagon` ×1.13/level, `recKami` ×1.5.

@@ -485,12 +485,16 @@ function drawMonster(c, style, x, y, h, o){
   const eyes = (pts, s=3) => { if(blink) return; c.save(); c.shadowColor = pose === 'windup' ? '#ff3d5e' : E; c.shadowBlur = pose === 'windup' ? 22 : 12; c.fillStyle = pose === 'windup' ? '#ffe0e6' : E; for(const [ex,ey] of pts) c.fillRect(ex, ey, s*(pose === 'windup' ? 1.3 : 1), s*.6); c.restore(); };
 
   if(style === 'husk'){
+    c.save(); c.fillStyle = o.flash ? '#ffffff' : mixHex(B, R, .3);   // v0.25.2: torn cloak
+    c.beginPath(); c.moveTo(4,-78+bob); c.quadraticCurveTo(-14,-64+bob, -18+wk*2,-22); c.lineTo(-12,-28); c.lineTo(-10,-18); c.lineTo(-4,-26); c.lineTo(0,-16); c.lineTo(4,-30); c.quadraticCurveTo(10,-56+bob, 12,-74+bob); c.closePath(); c.fill(); if(c._ol) c.stroke(); c.restore();
     limb(c,-4,-40,-10+wk*2,0,5,3); limb(c,6,-40,10-wk*2,0,5,3);
     c.save(); c.translate(2,-58+bob); c.rotate(.35); c.beginPath(); c.ellipse(0,0,14,23,0,0,7); c.fill(); if(c._ol) c.stroke(); c.restore();
     c.beginPath(); c.arc(17,-75+bob,8,0,7); c.fill(); if(c._ol) c.stroke();
     const ar = pose === 'lunge' ? [[12,-66,34,-60],[34,-60,48,-58]] : [[10,-66,22,-36],[22,-36,24,-10]];
     limb(c, ar[0][0],ar[0][1]+bob, ar[0][2],ar[0][3]+bob, 4,3); limb(c, ar[1][0],ar[1][1]+bob, ar[1][2],ar[1][3], 3,2);
     limb(c,-6,-66+bob,-10,-38,3.5,2.5);
+    if(!o.flash){ c.save(); c.strokeStyle = '#efe6d6'; c.lineWidth = 1.4; const hx = pose === 'lunge' ? 48 : 24, hy2 = pose === 'lunge' ? -58+bob : -10;
+      for(let k2 = -1; k2 <= 1; k2++){ c.beginPath(); c.moveTo(hx, hy2); c.lineTo(hx + 7, hy2 + k2*3 + (pose === 'lunge' ? 0 : 6)); c.stroke(); } c.restore(); }   // bone claws
     eyes([[19,-77+bob],[23,-76+bob]]);
   } else if(style === 'beast'){
     c.translate(0, bob*.5);
@@ -511,6 +515,10 @@ function drawMonster(c, style, x, y, h, o){
     for(const [px,py,pr] of [[-14,-50,5],[-20,-30,4],[-6,-60,3]]){ c.beginPath(); c.arc(px,py,pr,0,7); c.fill(); if(c._ol) c.stroke(); }
     c.restore();
     c.save(); c.fillStyle = E; c.shadowColor = E; c.shadowBlur = 16; c.beginPath(); c.ellipse(18,-32, pose === 'cast' ? 9 : 6, pose === 'cast' ? 8 : 4, 0, 0, 7); c.fill(); if(c._ol) c.stroke(); c.restore();
+    if(!o.flash){ c.save(); c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.ellipse(-10,-52,9,5,-.6,0,7); c.fill();   // v0.25.2: glossy shine, drips, toothy grin
+      c.fillStyle = mixHex(B, R, .4); for(let d = 0; d < 3; d++){ const ph = (t*.8 + d*.33) % 1; c.globalAlpha = 1 - ph; c.beginPath(); c.ellipse(-14 + d*12, -8 + ph*10, 2.5, 3.5 + ph*2, 0, 0, 7); c.fill(); }
+      c.globalAlpha = 1; c.fillStyle = '#1a0f14'; c.beginPath(); c.ellipse(16,-26,8,4.5,0,0,Math.PI); c.fill(); c.fillStyle = '#f4efe2'; for(let k2 = 0; k2 < 4; k2++){ c.beginPath(); c.moveTo(10 + k2*4,-26); c.lineTo(12 + k2*4,-22.5); c.lineTo(14 + k2*4,-26); c.fill(); }
+      c.restore(); }
     eyes([[8,-50],[16,-48]], 4);
   } else if(style === 'brute' || style === 'warden' || style === 'oni'){
     limb(c,-10,-46,-14+wk*1.5,0,9,6); limb(c,10,-46,14-wk*1.5,0,9,6);
@@ -539,15 +547,22 @@ function drawMonster(c, style, x, y, h, o){
     c.save(); c.shadowBlur = 0; c.fillStyle = '#000'; c.beginPath(); c.ellipse(9,-82,9,12,0,0,7); c.fill(); if(c._ol) c.stroke(); c.restore();
     eyes([[6,-84],[12,-84]], 3);
     if(pose === 'cast'){ c.save(); c.fillStyle = R; c.shadowColor = R; c.shadowBlur = 20; c.beginPath(); c.arc(34,-96,6,0,7); c.fill(); if(c._ol) c.stroke(); c.restore(); }
-  } else if(style === 'golem'){
-    c.fillRect(-18,-44,12,44); c.fillRect(6,-44,12,44);
-    c.save(); c.translate(0,bob); c.rotate(.05); c.fillRect(-26,-104,52,62); c.restore();
-    c.fillRect(-8,-124+bob,22,20);
-    c.fillRect(-40,-104+bob,16,22); c.fillRect(24,-104+bob,16,22);
-    const ar = pose === 'lunge' ? [44,-86,30,14] : [26,-82,14,60];
-    c.fillRect(ar[0], ar[1], ar[2], ar[3]); c.fillRect(-40,-82,14,58);
-    c.save(); c.shadowBlur = 0; c.strokeStyle = R; c.globalAlpha = .4; c.lineWidth = 2; c.strokeRect(-20,-96+bob,40,46); c.restore();
-    eyes([[4,-117+bob]], 6);
+  } else if(style === 'golem'){   // v0.25.2: rock plates, boulder shoulders, glowing cracks
+    const P = pts => { poly(c, pts); };
+    P([[-20,-44],[-6,-46],[-5,-6],[-8,0],[-22,0],[-19,-8]]); P([[5,-46],[19,-44],[21,-8],[23,0],[9,0],[6,-6]]);
+    c.save(); c.translate(0,bob); c.rotate(.04);
+    P([[-27,-100],[-10,-108],[12,-107],[28,-98],[26,-60],[14,-44],[-14,-44],[-26,-58]]);
+    c.restore();
+    P([[-9,-123+bob],[9,-126+bob],[15,-114+bob],[11,-103+bob],[-7,-103+bob],[-12,-112+bob]]);
+    for(const sx of [-1, 1]){ c.beginPath(); c.ellipse(sx*31,-98+bob,13,11,sx*.3,0,7); c.fill(); if(c._ol) c.stroke(); }
+    const ar = pose === 'lunge' ? [[36,-92],[54,-84],[66,-76]] : [[34,-90],[38,-62],[36,-34]];
+    limb(c, ar[0][0],ar[0][1]+bob, ar[1][0],ar[1][1]+bob, 8,7); limb(c, ar[1][0],ar[1][1]+bob, ar[2][0],ar[2][1], 7,9);
+    limb(c,-34,-90+bob,-38,-62,8,7); limb(c,-38,-62,-36,-34,7,9);
+    c.beginPath(); c.arc(ar[2][0], ar[2][1], 8, 0, 7); c.fill(); if(c._ol) c.stroke(); c.beginPath(); c.arc(-36,-32,8,0,7); c.fill(); if(c._ol) c.stroke();
+    if(!o.flash){ c.save(); c.strokeStyle = E; c.shadowColor = E; c.shadowBlur = 10; c.lineWidth = 1.6; c.globalAlpha = .75 + Math.sin(t*3)*.2;
+      c.beginPath(); c.moveTo(-18,-96+bob); c.lineTo(-8,-84+bob); c.lineTo(-14,-70+bob); c.lineTo(-4,-56+bob); c.moveTo(16,-98+bob); c.lineTo(8,-82+bob); c.lineTo(18,-66+bob);
+      c.moveTo(-14,-40); c.lineTo(-11,-20); c.moveTo(12,-38); c.lineTo(15,-16); c.moveTo(28,-104+bob); c.lineTo(36,-94+bob); c.stroke(); c.restore(); }
+    eyes([[4,-116+bob],[9,-115+bob]], 3.5);
   }
   if(!o.flash) monsterDetails(c, style, t, R, E, bob, pose, o.seed || 0);
   if(!o.flash && o.fx) gateFx(c, o.fx, t, R, E, style, o.seed || 0);

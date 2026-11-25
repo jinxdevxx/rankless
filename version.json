@@ -1,13 +1,8 @@
 {
-  "version": "0.25.1",
+  "version": "0.25.2",
   "date": "2026-11-25",
-  "title": "God Level",
+  "title": "Stone and Slime",
   "notes": [
-    "NEW: above 1 trillion Power the top bar switches to GOD LEVEL 神. It grows slowly (every x10 Power = +10 levels), recommended values switch too.",
-    "Recommended Power is now measured from real wins: S+ arena was 3x too high, S/S+ gates almost 2x, Master League up to 100x. Now it matches.",
-    "Master Gate is the endgame farm: loot at your hero level with better rarity, monsters around your gear level, every floor beatable.",
-    "Set pieces more than 30 levels below you no longer count for the set bonus, so old gear finally gets replaced (the item window warns you).",
-    "Master League re-tuned for the stronger gear: about 1 hour at x3 speed, about 3 hours to Master 99 in total.",
-    "Removed the 'Talents moved to their own tab' boxes."
+    "Monster look upgrade: golems are now rock giants with boulder shoulders and glowing cracks, slimes got a glossy shine, drips and a toothy grin, husks wear torn cloaks and bone claws."
   ]
 }
