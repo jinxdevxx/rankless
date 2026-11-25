@@ -3,6 +3,7 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Equip best must always equip the best possible gear incl. full sets (e.g. 4/4 Tidecaller) (v0.14.4, verified by brute force)
 - [x] Salvage-all button for items that are worse than equipped even at +15, auto-marked in the bag (v0.14.3)
 - [x] Equip best must always pick the truly best item (+8 vs fresh drop), show which item would be better and at which upgrade level (v0.14.2)
 - [x] Skill key 1 felt broken: works in tests; now always shows why a skill can't fire (v0.14.2). Watch for further reports.

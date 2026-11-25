@@ -199,15 +199,61 @@ function beatsAtPlus(item){
   return -1;
 }
 /* useless = can never beat the equipped item, not even fully enhanced (locked items are kept) */
-function isJunk(it){ return !it.locked && !!S.eq[it.slot] && beatsAtPlus(it) === -1; }
-/* equip the best item per slot; repeats so set bonuses are counted correctly */
+function isJunk(it){
+  if(it.locked || !S.eq[it.slot]) return false;
+  // set pieces stay while you own pieces of that set in at least 2 different slots (a set bonus is possible)
+  if(it.set){ const slots = new Set([...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)].filter(x => x.set === it.set).map(x => x.slot)); if(slots.size >= 2) return false; }
+  return beatsAtPlus(it) === -1;
+}
+/* equip the best possible combination from bag + worn gear.
+   Sets make this tricky: 4 set pieces can beat 4 stronger single items together, so we
+   search from several starting points (current gear, each set forced in) and keep improving
+   slot by slot on TOTAL power until nothing gets better. */
+function eqPower(eq){ return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant})); }
+function bestLoadout(){
+  const all = [...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)];
+  const bySlot = {}; for(const sl of SLOTS) bySlot[sl] = all.filter(it => it.slot === sl);
+  const solo = it => powerWith(it.slot, it);   // rough single-item value for picking set pieces
+  const improve = eq => {
+    for(let pass = 0; pass < 12; pass++){ let changed = false;
+      for(const sl of SLOTS){ let best = eq[sl], bp = eqPower(eq);
+        for(const it of bySlot[sl]){ if(it === eq[sl]) continue; const t = Object.assign({}, eq, {[sl]:it}); const p = eqPower(t); if(p > bp + .01){ bp = p; best = it; } }
+        if(best !== eq[sl]){ eq[sl] = best; changed = true; } }
+      if(!changed){
+        // also try swapping two slots at once (set pairs and stat synergies a single swap can't see)
+        let bp = eqPower(eq), bestPair = null;
+        for(let i = 0; i < SLOTS.length; i++) for(let j = i + 1; j < SLOTS.length; j++){ const a = SLOTS[i], b = SLOTS[j];
+          for(const x of bySlot[a]) for(const y of bySlot[b]){ if(x === eq[a] && y === eq[b]) continue;
+            const p = eqPower(Object.assign({}, eq, {[a]:x, [b]:y})); if(p > bp + .01){ bp = p; bestPair = [a, x, b, y]; } } }
+        if(!bestPair) break;
+        eq[bestPair[0]] = bestPair[1]; eq[bestPair[2]] = bestPair[3];
+      } }
+    return eq;
+  };
+  const starts = [Object.assign({}, S.eq)];
+  const setIds = [...new Set(all.filter(it => it.set).map(it => it.set))];
+  for(const id of setIds){
+    // best piece of this set for every slot, strongest slots first
+    const pieces = SLOTS.map(sl => bySlot[sl].filter(it => it.set === id).sort((a,b) => solo(b) - solo(a))[0]).filter(Boolean).sort((a,b) => solo(b) - solo(a));
+    for(const n of [2, 4]){ if(pieces.length < n) continue;
+      const eq = Object.assign({}, S.eq); for(const it of pieces.slice(0, Math.max(n, pieces.length >= 4 ? 4 : n))) eq[it.slot] = it; starts.push(eq); }
+  }
+  // two sets at once (2+2 or 4+2) when there are enough slots
+  for(const a of setIds) for(const b of setIds){ if(a >= b) continue;
+    const eq = Object.assign({}, S.eq), used = new Set();
+    for(const id of [a, b]){ const pcs = SLOTS.filter(sl => !used.has(sl)).map(sl => bySlot[sl].filter(it => it.set === id).sort((x,y) => solo(y) - solo(x))[0]).filter(Boolean).sort((x,y) => solo(y) - solo(x)).slice(0, 2);
+      if(pcs.length === 2) for(const it of pcs){ eq[it.slot] = it; used.add(it.slot); } }
+    starts.push(eq); }
+  let best = null, bp = -1;
+  for(const st of starts){ const eq = improve(st), p = eqPower(eq); if(p > bp){ bp = p; best = eq; } }
+  return best;
+}
 function equipBest(){
-  let n = 0;
-  for(let pass = 0; pass < 3; pass++){ let changed = false;
-    for(const sl of SLOTS){ let best = null, bg = 0;
-      for(const it of S.inv.filter(i => i.slot === sl)){ const g = powerGain(it); if(g > bg){ bg = g; best = it; } }
-      if(best){ const old = S.eq[sl]; S.inv = S.inv.filter(x => x !== best); S.eq[sl] = best; if(old) S.inv.push(old); n++; changed = true; } }
-    if(!changed) break; }
+  const target = bestLoadout(); if(!target || eqPower(target) <= eqPower(S.eq) + .01) return 0;
+  const all = [...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)];
+  let n = 0; for(const sl of SLOTS){ if(target[sl] !== S.eq[sl]) n++; S.eq[sl] = target[sl] || null; }
+  const worn = new Set(SLOTS.map(sl => S.eq[sl]).filter(Boolean));
+  S.inv = all.filter(it => !worn.has(it));
   return n;
 }
 function maxRank(a,b){ return RANKS.indexOf(a) >= RANKS.indexOf(b) ? a : b; }

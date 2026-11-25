@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.14.4 – True Best
+- bestLoadout(): set-aware search over bag + worn gear. Starts from current gear, each set forced in (2/4 pieces) and set pairs (2+2), then improves on TOTAL power with single and two-slot swaps.
+- New tools/equip_best_test.js compares with a brute force over every combination: 150/150 optimal; ~0.15 s with a full bag.
+- isJunk() keeps set pieces while a set bonus is possible (pieces in 2+ slots).
+
 ### v0.14.3 – Clean Bag
 - isJunk(): bag items that lose to the equipped item even at +15 (and are not locked) get a ✖ mark.
 - Bag banner with "Salvage useless (N)" button salvages all of them at once.

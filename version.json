@@ -1,10 +1,10 @@
 {
-  "version": "0.14.3",
+  "version": "0.14.4",
   "date": "2026-11-25",
-  "title": "Clean Bag",
+  "title": "True Best",
   "notes": [
-    "Items that can never beat your gear, not even at +15, are now marked ✖ and faded in the bag.",
-    "New button: Salvage useless. Sells all of them at once for Mana Stones and Gold.",
-    "Locked items and items that could still win after enhancing are always kept."
+    "Equip best now finds the best possible combination from your bag, including set bonuses: a full Tidecaller (or any) set is equipped when 2 or 4 pieces together beat stronger single items.",
+    "Checked against trying every possible combination: 150 of 150 test bags were equipped perfectly.",
+    "Salvage useless keeps set pieces while you own pieces of that set in at least 2 slots."
   ]
 }
