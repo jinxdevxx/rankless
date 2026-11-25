@@ -1,11 +1,11 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "date": "2026-11-25",
-  "title": "New Look",
+  "title": "Daily Gates & Item Sets",
   "notes": [
-    "Completely new art direction: warm dusk skies with clouds, cherry blossoms in the city, an evening shrine in the snow and a sunset arena.",
-    "Characters are drawn in color now: faces with eyes, coats in your power's color, boots, belts, ink outlines and cel shading. Your katana is real steel.",
-    "Monsters have colored bodies and outlines instead of neon glow.",
-    "New menu design: warm gold instead of cyan, rounded buttons, friendlier fonts, no more sci-fi brackets."
+    "Daily Gates (in the Gate Map): Gold Vault, Training Grounds and Crystal Mine. 3 tries each per day, reset at midnight. Defeats do not cost a try.",
+    "Crystal Mine gives Mana Stones, Soul Shards and a guaranteed Epic or better item.",
+    "Item sets: Tidecaller (Gate E), Railbreaker (Gate D) and Frostbound (Gate C). Wear 2 or 4 pieces for strong bonuses.",
+    "Epic items can belong to a set, Legendary and Mythic items always do. Set items show a small diamond in your bag, and the Champion screen lists your active set bonuses."
   ]
 }

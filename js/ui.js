@@ -190,6 +190,10 @@ function renderSheet(){
 
 function sheetGates(){
   const tp = teamPower();
+  const daily = `<div class="dailies"><div class="bt">Daily Gates · reset at midnight</div><div class="dgrid">${Object.entries(DAILY).map(([k,d]) => { const left = dailyLeft(k);
+    return `<div class="dcard ${left ? '' : 'done'}" style="--c:${d.color}"><div class="dic">${ICON[d.icon]}</div><b>${d.name}</b><small>${d.desc}</small>
+      <div class="row"><span class="tries">${'●'.repeat(left)}${'○'.repeat(DAILY_TRIES - left)}</span><span class="sp"></span>
+      <button class="btn small ${left ? 'primary' : ''}" data-a="startDaily" data-id="${k}" ${left ? '' : 'disabled'}>${left ? 'Enter' : 'Tomorrow'}</button></div></div>`; }).join('')}</div></div>`;
   return GATES.map(g => {
     const unlocked = rankAtLeast(g.rank), cl = S.gates[g.id]||0, T = THEMES[g.theme];
     let floors = '';
@@ -205,7 +209,7 @@ function sheetGates(){
       ${unlocked ? `<div class="floors">${floors}</div><div class="hint">Numbers show recommended Power. Yours: <b>${fmt(tp)}</b></div>` :
         `<div class="hint">Pass the ${RANKS[RANKS.indexOf(g.rank)-1]}-Rank Exam in the Arena to unlock.</div>`}
     </div>`;
-  }).join('') + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
+  }).join('').replace(/^/, daily) + `<div class="gatecard locked"><div class="gh"><span class="grank r-B">B</span><div><h3>???</h3><p>New gates are coming in future updates.</p></div></div></div>`;
 }
 
 function sheetArena(){
@@ -244,13 +248,15 @@ function sheetHero(){
       <label class="tgl"><input type="checkbox" data-a="toggleSetting" data-id="autoStats" ${S.settings.autoStats?'checked':''}><span></span>Auto-assign stat points</label>${stats}</div>
     <div class="box"><div class="bt">COMBAT <span class="pts on">Power ${fmt(powerOf(hs))}</span></div><div class="kvs">${derived}</div></div>
   </div>
-  <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div></div>
+  <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div>
+    ${(() => { const sc = setCounts(S.eq); const ids = Object.keys(sc); if(!ids.length) return '<div class="hint">Epic and better items from each gate can belong to a set. Wear 2 or 4 pieces for bonuses.</div>';
+      return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
   <div class="box"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
 
 function itemCard(it, eq){
   return `<button class="icard ${it.isNew?'new':''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
-    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}</button>`;
+    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}</button>`;
 }
 function sheetBag(){
   const f = UI.bagFilter || 'all';
@@ -315,6 +321,9 @@ function itemDetail(id){
         ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
       <div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
         ${it.affixes.map(a => `<div class="aff">${statLine(a.k,a.v)}</div>`).join('')}</div>
+      ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
+        return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
+          <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq && cur ? `<div class="cmp"><small>Currently equipped: <b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b></small></div>` : ''}
       <div class="enh"><div><b>Enhance ${it.plus < MAX_PLUS ? `+${it.plus} → +${it.plus+1}` : '(MAX)'}</b>
         ${it.plus < MAX_PLUS ? `<small><span class="${S.gold>=ec.gold?'':'bad'}">${ICON.gold}${fmt(ec.gold)}</span> <span class="${S.stones>=ec.stones?'':'bad'}">${ICON.stone}${fmt(ec.stones)}</span> · Success ${Math.round(er*100)}%</small>` : ''}</div>
@@ -359,6 +368,7 @@ function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
+    : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
 }
 function updateBattleHud(){
@@ -405,12 +415,15 @@ function showResult(r){
     const canNext = win && BT.floor < FLOORS;
     btns = `<button class="btn" data-a="leave">Home</button>${win && !isUnlocked('gates') ? '' : `<button class="btn" data-a="retry">${win?'Repeat':'Retry'}</button>`}
       ${canNext ? `<button class="btn primary big-next" data-a="nextFloor">NEXT FLOOR ›</button>` : ''}`;
+  } else if(BT.mode === 'daily'){
+    const left = dailyLeft(BT.kind);
+    btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
   } else btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}`;
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
   const autoOn = BT.mode === 'gate' && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
-    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : esc(BT.hunter.name)}</div>
+    <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
     <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(r.gold)}</b></span><span class="cur cxp">XP <b>+${fmt(r.xp)}</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b>+${r.stones}</b></span>`:''}</div>
     ${r.levels ? `<div class="lvup">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
@@ -499,7 +512,8 @@ function act(a, el){
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
-    case 'retry': { cancelAuto(); if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'retry': { cancelAuto(); if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
+    case 'startDaily': startDaily(id); break;
     case 'nextFloor': cancelAuto(); startGate(BT.gate.id, BT.floor + 1); break;
     case 'closeModal': closeModal(); break;
     case 'settings': openMenu(); break;

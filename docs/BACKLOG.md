@@ -18,9 +18,13 @@ Open requests from the player come first. Every development round starts here.
 - [x] UI redesign to match: warm gold, rounded, friendlier fonts (v0.7.0)
 - [ ] Keep balancing after every gameplay change (bot runs)
 
+## Done recently
+- Daily Gates (v0.8.0)
+- Item sets (v0.8.0)
+
 ## Next up
-- Daily Gates (Gold / XP / Material)
-- Item sets (2/4-piece bonuses)
+- More combat juice (hit-stop, finisher moments, boss phases)
+- Job Change at Rank C
 
 ## Planned
 - Job Change at Rank C, skill tree

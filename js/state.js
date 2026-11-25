@@ -24,7 +24,7 @@ function defaultSave(){
     shards:{}, comps:{}, party:[],
     gates:{E:0,D:0,C:0}, arena:{E:0,D:0,C:0},
     settings:{autoSalvage:-1, speed:1, autoSkill:false, farm:'push', autoEquip:true, autoStats:true, sfx:true, music:true}, flags:{manualSkills:true},
-    unlocks:{}, pendingUnlocks:[],
+    unlocks:{}, pendingUnlocks:[], daily:{date:'', left:{}},
     record:{kills:0, bosses:0, items:0, bestRarity:0},
     lastSeen:Date.now(), nextId:1,
   };
@@ -90,16 +90,22 @@ function rollRarity(bonus=0){
   for(let i=0;i<w.length;i++){ r -= w[i]; if(r <= 0) return i; }
   return 0;
 }
-function makeItem(slot, ilvl, rar){
+function makeItem(slot, ilvl, rar, set){
   const info = SLOT_INFO[slot];
   const keys = Object.keys(AFFIXES).sort(() => Math.random()-.5).slice(0, RARITY[rar].affixes);
   const affixes = keys.map(k => { const [a,b] = AFFIXES[k]; return {k, v: Math.round(rand(a,b) * (1 + rar*.15) * 10)/10}; });
   return {
     id: S.nextId++, slot, ilvl: Math.max(1, Math.round(ilvl)), rar, plus:0, affixes, isNew:true,
-    name: `${pick(PREFIX[rar])} ${pick(info.names)}`,
+    name: set ? `${SETS[set].name} ${pick(info.names)}` : `${pick(PREFIX[rar])} ${pick(info.names)}`,
+    ...(set ? {set} : {}),
   };
 }
-function randomItem(ilvl, bonus=0){ return makeItem(pick(SLOTS), ilvl, rollRarity(bonus)); }
+function randomItem(ilvl, bonus=0, gateId){
+  const rar = rollRarity(bonus);
+  const set = gateId && SET_OF_GATE[gateId] && (rar >= 3 || (rar === 2 && Math.random() < .5)) ? SET_OF_GATE[gateId] : undefined;
+  return makeItem(pick(SLOTS), ilvl, rar, set);
+}
+function setCounts(eq){ const n = {}; for(const sl of SLOTS){ const it = eq[sl]; if(it && it.set) n[it.set] = (n[it.set]||0) + 1; } return n; }
 function itemBase(it){
   const out = {}, info = SLOT_INFO[it.slot], m = RARITY[it.rar].mult;
   for(const k in info.base){
@@ -125,6 +131,10 @@ function calcStats(src){
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
+  const sc = setCounts(src.eq);
+  for(const id in sc){ const st = SETS[id]; if(!st) continue;
+    if(sc[id] >= 2) for(const k in st.b2) o[k] += st.b2[k];
+    if(sc[id] >= 4) for(const k in st.b4) o[k] += st.b4[k]; }
   o.atk *= 1 + o.atkP/100; o.hp *= 1 + o.hpP/100;
   o.crit = Math.min(75, o.crit);
   o.interval = 1.25 / (1 + o.spd/100);
@@ -207,6 +217,12 @@ function checkUnlocks(silent){
     if(UNLOCKS[k].prog() >= 1){ S.unlocks[k] = true; if(!silent){ fresh.push(k); S.pendingUnlocks.push(k); } }
   }
   return fresh;
+}
+/* daily gates reset at local midnight */
+function todayKey(){ const d = new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+function dailyLeft(kind){
+  if(!S.daily || S.daily.date !== todayKey()) S.daily = {date:todayKey(), left:{gold:DAILY_TRIES, xp:DAILY_TRIES, mat:DAILY_TRIES}};
+  return S.daily.left[kind] ?? DAILY_TRIES;
 }
 function nextGoal(){
   for(const k of UNLOCK_ORDER) if(!S.unlocks[k]) return {kind:'unlock', key:k, name:UNLOCKS[k].name, hint:UNLOCKS[k].hint, p:clamp(UNLOCKS[k].prog(),0,1)};

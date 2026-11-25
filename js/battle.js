@@ -79,6 +79,14 @@ function startGate(gateId, floor){
   spawnWave();
   enterBattle();
 }
+function startDaily(kind){
+  if(dailyLeft(kind) <= 0) return;
+  const gate = currentGate(), L = Math.max(1, S.level);
+  const pool = gate.enemies, waves = [[pick(pool), pick(pool), pick(pool)], [gate.elite, pick(pool), pick(pool)]];
+  BT = newBattle({mode:'daily', kind, gate, L, theme:gate.theme, waves});
+  spawnWave();
+  enterBattle();
+}
 function startArena(rank, idx, exam){
   const h = exam ? EXAMS[rank] : HUNTERS[rank][idx];
   BT = newBattle({mode:'arena', rank, idx, exam, hunter:h, theme:'arena', L:h.lv, waves:[]});
@@ -464,10 +472,25 @@ function finishBattle(win){
       let n = isBoss ? 3 : isElite ? 2 : (Math.random() < .55 ? 1 : 0) + (Math.random() < .2 ? 1 : 0);
       if(r.first) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400;
-      for(let i=0;i<n;i++){ const it = randomItem(BT.L + (isBoss ? 2 : 0), bonus); r.items.push(it); }
+      for(let i=0;i<n;i++){ const it = randomItem(BT.L + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }
       r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) + (isBoss ? 15 : isElite ? 5 : 0);
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
+    }
+  } else if(BT.mode === 'daily'){
+    if(win){
+      const L = BT.L, tier = GATES.indexOf(BT.gate);
+      dailyLeft(BT.kind); S.daily.left[BT.kind]--;
+      r.daily = BT.kind; r.first = false;
+      if(BT.kind === 'gold') r.gold = Math.round(goldFor(L)*90*(1 + hs.gold/100));
+      if(BT.kind === 'xp') r.xp = Math.round(xpFor(L)*55*(1 + hs.xp/100));
+      if(BT.kind === 'mat'){
+        r.stones = 30*(1 + tier);
+        r.items.push(randomItem(L + 1, 2.5, BT.gate.id));
+        const known = Object.keys(S.shards).length ? Object.keys(S.shards) : BT.gate.enemies;
+        const t = pick(known); const n = 4 + tier*2;
+        S.shards[t] = (S.shards[t]||0) + n; r.shards = Object.assign({}, r.shards, {[t]:(r.shards[t]||0) + n}); checkBind(t);
+      }
     }
   } else {
     if(win){

@@ -408,6 +408,25 @@ textarea{width:100%;background:rgba(5,8,20,.85);border:1px solid var(--line2);bo
 .sk-hint{font-size:13px;color:#c4cde8;background:rgba(6,10,24,.7);padding:4px 10px;border-radius:8px;align-self:flex-end}
 .sk-hint.warn{color:#fff;background:rgba(122,20,40,.85)}
 
+/* ---------- item sets ---------- */
+.icard .setd{position:absolute;bottom:4px;right:5px;width:9px;height:9px;transform:rotate(45deg);border:1px solid rgba(0,0,0,.5)}
+.setbox{margin-top:10px;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--s) 50%,transparent);background:color-mix(in srgb,var(--s) 10%,transparent);font-size:14px;color:var(--muted)}
+.setbox b{color:var(--s);font-size:15px}
+.setbox small{color:var(--muted)}
+.setbox div.on{color:#fff}
+.setbox div.on::before{content:"✓ ";color:var(--good)}
+
+/* ---------- daily gates ---------- */
+.dailies{display:flex;flex-direction:column;gap:8px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.dcard{padding:12px 14px;border-radius:16px;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--c) 16%,transparent),rgba(255,255,255,.03))}
+.dcard.done{opacity:.5}
+.dcard .dic{font-size:28px;color:var(--c)}
+.dcard b{display:block;font-family:"Bebas Neue",sans-serif;font-weight:400;font-size:26px;letter-spacing:.05em}
+.dcard small{display:block;color:var(--muted);font-size:13px}
+.dcard .row{margin-top:10px}
+.tries{color:var(--c);letter-spacing:3px}
+
 /* ---------- live patch banner ---------- */
 /* while the banner shows, everything at the top moves down so nothing overlaps */
 body.upd .topbar, body.upd .b-top{top:64px}

@@ -146,6 +146,22 @@ const EXAMS = {
   C:{name:'Seiji Valen', title:'B-Rank Examiner', aff:'blood', lv:37, hair:0, gear:3, comps:['oni','specter','fang'], next:'B', line:"Prove you are no longer rankless."},
 };
 
+/* ---------- item sets (dropped in their gate, Epic or better) ---------- */
+const SETS = {
+  tide: {name:'Tidecaller',  gate:'E', color:'#7fd3ff', b2:{hpP:10},  b4:{atkP:15, lifesteal:4}, d2:'+10% HP',            d4:'+15% ATK, +4% Lifesteal'},
+  rail: {name:'Railbreaker', gate:'D', color:'#ffb066', b2:{spd:8},   b4:{crit:6, critDmg:20},  d2:'+8% Attack Speed',   d4:'+6% Crit Rate, +20% Crit DMG'},
+  frost:{name:'Frostbound',  gate:'C', color:'#c9e8ff', b2:{hpP:12},  b4:{skill:25},            d2:'+12% HP',            d4:'+25% Skill DMG'},
+};
+const SET_OF_GATE = {E:'tide', D:'rail', C:'frost'};
+
+/* ---------- daily gates ---------- */
+const DAILY_TRIES = 3;
+const DAILY = {
+  gold:{name:'Gold Vault',      desc:'A vault full of greedy monsters. Huge Gold reward.',            icon:'gold',  color:'#f7c75a'},
+  xp:  {name:'Training Grounds',desc:'Endless sparring. Huge XP reward.',                             icon:'hero',  color:'#9fd8ff'},
+  mat: {name:'Crystal Mine',    desc:'Mana Stones, Soul Shards and a guaranteed Epic or better item.', icon:'stone', color:'#c9a8ff'},
+};
+
 /* ---------- progressive unlocks (keeps the start simple) ---------- */
 const SKILL_LV = [1, 3, 5];
 const SKILL_COST = [1, 2, 3];
