@@ -1,9 +1,9 @@
 {
-  "version": "0.18.1",
+  "version": "0.18.2",
   "date": "2026-11-25",
-  "title": "Longer Road",
+  "title": "Living Monsters",
   "notes": [
-    "Enemies are a bit tougher across all gates, so the road to B-Rank takes a few hours instead of minutes, and the B/A/S gates are real long-term goals.",
-    "Test runs: with skills about 45 test minutes to B-Rank (a few hours for a human), no floor is a wall."
+    "Monster makeover: glowing energy veins that pulse in each monster's colour, plus details per type: crystal spikes and burning tails on beasts, orbiting bubbles on blobs, glowing shoulder spikes and chest sigils on brutes and oni, smoke trails and spectral chains on ghosts, pulsing cores and glowing cracks on golems, chest cores and torn cloth on husks.",
+    "Every monster now stands in a soft coloured glow, and the glow flares up when it winds up an attack."
   ]
 }

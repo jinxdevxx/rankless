@@ -432,6 +432,7 @@ function drawMonster(c, style, x, y, h, o){
   c.fillStyle = 'rgba(0,0,0,.45)';
   const sw = style === 'beast' ? 40 : style === 'brute' || style === 'warden' || style === 'golem' || style === 'oni' ? 36 : 26;
   c.beginPath(); c.ellipse(0, 0, sw*k, 6*k, 0, 0, 7); c.fill(); if(c._ol) c.stroke();
+  if(!o.flash){ const gg = c.createRadialGradient(0, 0, 2, 0, 0, sw*k*1.3); gg.addColorStop(0, o.rim + '55'); gg.addColorStop(1, o.rim + '00'); c.fillStyle = gg; c.beginPath(); c.ellipse(0, 0, sw*k*1.3, 9*k, 0, 0, 7); c.fill(); }
   c.scale(f*k, k);
   if(pose === 'lunge') c.translate(8, 0);
   if(pose === 'hurt') c.rotate(-.08);
@@ -509,7 +510,56 @@ function drawMonster(c, style, x, y, h, o){
     c.save(); c.shadowBlur = 0; c.strokeStyle = R; c.globalAlpha = .4; c.lineWidth = 2; c.strokeRect(-20,-96+bob,40,46); c.restore();
     eyes([[4,-117+bob]], 6);
   }
+  if(!o.flash) monsterDetails(c, style, t, R, E, bob, pose, o.seed || 0);
   c._ol = false;
+  c.restore();
+}
+
+/* glowing energy veins, spikes, cores and particles that make every monster type look alive */
+function monsterDetails(c, style, t, R, E, bob, pose, seed){
+  const pulse = .55 + Math.sin(t*3 + seed)*.25, hot = pose === 'windup' || pose === 'cast' ? 1 : 0;
+  const glow = (col, blur) => { c.shadowColor = col; c.shadowBlur = blur; };
+  const vein = (pts, w = 2) => { c.beginPath(); c.moveTo(pts[0][0], pts[0][1]); for(let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]); c.stroke(); };
+  c.save(); c._ol = false; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.strokeStyle = R; c.fillStyle = R; c.globalAlpha = Math.min(1, pulse + hot*.4); glow(R, 10 + hot*12); c.lineWidth = 2;
+  if(style === 'husk'){
+    // glowing chest core + cracked veins + cloth strips
+    c.beginPath(); c.arc(6, -60 + bob, 5 + hot*2, 0, 7); c.fill();
+    vein([[6,-60+bob],[0,-52+bob],[-4,-44+bob]]); vein([[6,-60+bob],[14,-68+bob],[16,-74+bob]]); vein([[6,-60+bob],[-2,-70+bob]]);
+    c.globalAlpha = .5; c.shadowBlur = 0; c.fillStyle = mixHex(R, '#000000', .5);
+    for(let i = 0; i < 3; i++){ const sx = -8 + i*7, sw2 = Math.sin(t*4 + i)*3; c.beginPath(); c.moveTo(sx, -40); c.lineTo(sx + 4, -40); c.lineTo(sx + 2 + sw2, -26 - i*3); c.closePath(); c.fill(); }
+  } else if(style === 'beast'){
+    // glowing stripes along the back, crystal spikes, burning tail tip
+    for(let i = 0; i < 4; i++) vein([[-18 + i*10, -50], [-14 + i*10, -40], [-18 + i*10, -32]], 2);
+    c.globalAlpha = .9; for(let i = 0; i < 3; i++){ const px = -12 + i*12; c.beginPath(); c.moveTo(px - 3, -53); c.lineTo(px, -70 - (i%2)*6 - hot*4); c.lineTo(px + 3, -53); c.closePath(); c.fill(); }
+    c.beginPath(); c.arc(-58, -62 + Math.sin(t*6)*6, 4 + Math.sin(t*10)*1.2, 0, 7); c.fill();
+    c.fillStyle = E; glow(E, 14); c.beginPath(); c.moveTo(44, -42); c.lineTo(56, -41); c.lineTo(44, -39); c.fill();
+  } else if(style === 'blob'){
+    // inner core + orbiting bubbles
+    const cg = c.createRadialGradient(0, -36, 2, 0, -36, 24); cg.addColorStop(0, E + 'cc'); cg.addColorStop(1, E + '00');
+    c.fillStyle = cg; c.beginPath(); c.arc(0, -36, 22, 0, 7); c.fill(); c.fillStyle = R;
+    for(let i = 0; i < 4; i++){ const a = t*1.6 + i*1.57, rx = Math.cos(a)*40, ry = Math.sin(a)*14 - 36; c.globalAlpha = .7; c.beginPath(); c.arc(rx, ry, 3 + (i%2), 0, 7); c.fill(); }
+  } else if(style === 'brute' || style === 'warden' || style === 'oni'){
+    // glowing shoulder spikes + chest sigil
+    c.globalAlpha = .95;
+    for(const [sx, sy] of [[-22,-104],[-14,-108],[22,-102]]){ c.beginPath(); c.moveTo(sx - 4, sy + bob); c.lineTo(sx - 2, sy - 14 - hot*4 + bob); c.lineTo(sx + 4, sy + bob); c.closePath(); c.fill(); }
+    c.globalAlpha = Math.min(1, pulse + hot*.4); c.lineWidth = 2.5;
+    c.beginPath(); c.arc(0, -78 + bob, 9, 0, 7); c.stroke();
+    vein([[0,-87+bob],[0,-69+bob]]); vein([[-9,-78+bob],[9,-78+bob]]);
+    vein([[-14,-60],[-10,-52],[-14,-46]], 2); vein([[14,-62],[10,-54],[14,-48]], 2);
+  } else if(style === 'ghost'){
+    // smoky trail + spectral chains + glowing hood rim
+    for(let i = 0; i < 5; i++){ const py = -20 + i*4, px = -30 - i*7 + Math.sin(t*3 + i)*4; c.globalAlpha = .35 - i*.05; c.beginPath(); c.arc(px, py + Math.sin(t*2 + i)*3, 7 - i, 0, 7); c.fill(); }
+    c.globalAlpha = .8; c.lineWidth = 2; c.beginPath(); c.arc(9, -84, 14, Math.PI*1.1, Math.PI*1.95); c.stroke();
+    c.globalAlpha = .6; c.lineWidth = 1.6; for(let i = 0; i < 4; i++){ c.beginPath(); c.ellipse(-6 + i*6, -40 + Math.sin(t*3 + i)*2, 3, 2, .5, 0, 7); c.stroke(); }
+  } else if(style === 'golem'){
+    // pulsing core + glowing cracks
+    const cg = c.createRadialGradient(0, -74 + bob, 1, 0, -74 + bob, 14 + hot*4); cg.addColorStop(0, '#ffffff'); cg.addColorStop(.35, E); cg.addColorStop(1, E + '00');
+    c.globalAlpha = 1; c.fillStyle = cg; c.beginPath(); c.arc(0, -74 + bob, 14 + hot*4, 0, 7); c.fill();
+    c.globalAlpha = Math.min(1, pulse + hot*.4); c.lineWidth = 1.8;
+    vein([[-20,-98+bob],[-12,-88+bob],[-16,-80+bob],[-8,-74+bob]]); vein([[18,-96+bob],[10,-86+bob],[14,-78+bob],[6,-74+bob]]);
+    vein([[-32,-100+bob],[-30,-88+bob]]); vein([[32,-100+bob],[30,-88+bob]]);
+  }
   c.restore();
 }
 

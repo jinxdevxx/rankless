@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.18.2 – Living Monsters
+- monsterDetails(): per-style glowing veins, spikes, cores, bubbles, chains, cracks; flare on windup/cast; coloured ground glow under monsters.
+
 ### v0.18.1 – Longer Road
 - enemyHp base 800 → 1050, enemyAtk base 44 → 50. Bots: spamskill E→B 43 min, B ~85 min, A ~220 min; pure spam E→B ~200 min.
 
