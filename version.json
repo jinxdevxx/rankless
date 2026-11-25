@@ -1,11 +1,11 @@
 {
-  "version": "0.14.1",
+  "version": "0.14.2",
   "date": "2026-11-25",
-  "title": "Back to Classic",
+  "title": "Best Gear",
   "notes": [
-    "Ring combat removed again: fights work like before. Press SPACE to strike as often as you like.",
-    "Skills no longer fire on their own. Press 1 / 2 / 3 and R (or tap them). The hint tells you when a skill is ready.",
-    "New AUTO FARM button (top right): turn it on and skills and the ultimate fire automatically for easy farming, turn it off to fight yourself.",
-    "Kept from 0.14.0: Legion companions grow with your hero, and new characters start with their weapon and armor."
+    "Every item in your bag now shows how much Power it adds (+ green) or loses (- red) compared with what you wear, enhance levels included.",
+    "Item details tell you: 'Better, equip it', 'Enhance to +N and it beats your current item', or 'Never better, salvage it'.",
+    "Equip best rechecked: it compares real Power (a strong +8 item stays on over a weaker fresh drop) and counts set bonuses correctly. It shows your Power before and after.",
+    "Skill keys always answer: if a skill can't fire you now see why ('Need 2 ◆', 'unlocks at Lv 3'). Numpad 1-3 work too."
   ]
 }

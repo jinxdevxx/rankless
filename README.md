@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.14.2 – Best Gear
+- Bag cards show Power gain/loss vs the equipped item (powerGain, enhance level included).
+- Item detail: upgrade potential (beatsAtPlus): better now / beats yours at +N / never better.
+- Equip best rewritten (equipBest): per-slot real Power gain, up to 3 passes for set bonuses, toast shows Power before → after. Auto-equip on drop uses the same rule.
+- Skill presses give feedback when they can't fire (crystals missing, level lock); numpad 1–3 supported; no key-repeat casts.
+- New docs/CHECKLIST.md: standing list of every player requirement, checked each development round.
+
 ### v0.14.1 – Back to Classic
 - Ring (Timing) combat disabled on player request; code kept dormant (`timingMode()` returns false). Combat style option removed from the menu.
 - Saves migrate once to classic combat with auto skills OFF (flag combatV3).

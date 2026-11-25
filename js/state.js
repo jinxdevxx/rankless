@@ -167,7 +167,7 @@ function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* ---------- inventory helpers ---------- */
 function addItem(it){
   S.record.items++; S.record.bestRarity = Math.max(S.record.bestRarity, it.rar);
-  if(S.settings.autoEquip && powerWith(it.slot, it) > powerOf(heroStats())){
+  if(S.settings.autoEquip && powerGain(it) > 0){
     const old = S.eq[it.slot]; S.eq[it.slot] = it; it.isNew = false;
     if(old) storeItem(old);
     return 'equipped';
@@ -189,6 +189,24 @@ function storeItem(it){
 function powerWith(slot, item){
   const eq = Object.assign({}, S.eq); eq[slot] = item;
   return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant}));
+}
+/* power gained by wearing `item` instead of what is in that slot now (negative = worse) */
+function powerGain(item){ return powerWith(item.slot, item) - powerWith(item.slot, S.eq[item.slot]); }
+/* lowest enhance level at which `item` would beat the equipped one; 0 = already better, -1 = never */
+function beatsAtPlus(item){
+  if(powerGain(item) > 0) return 0;
+  for(let p = item.plus + 1; p <= MAX_PLUS; p++){ if(powerGain(Object.assign({}, item, {plus:p})) > 0) return p; }
+  return -1;
+}
+/* equip the best item per slot; repeats so set bonuses are counted correctly */
+function equipBest(){
+  let n = 0;
+  for(let pass = 0; pass < 3; pass++){ let changed = false;
+    for(const sl of SLOTS){ let best = null, bg = 0;
+      for(const it of S.inv.filter(i => i.slot === sl)){ const g = powerGain(it); if(g > bg){ bg = g; best = it; } }
+      if(best){ const old = S.eq[sl]; S.inv = S.inv.filter(x => x !== best); S.eq[sl] = best; if(old) S.inv.push(old); n++; changed = true; } }
+    if(!changed) break; }
+  return n;
 }
 function maxRank(a,b){ return RANKS.indexOf(a) >= RANKS.indexOf(b) ? a : b; }
 function rankAtLeast(r){ return RANKS.indexOf(S.rank) >= RANKS.indexOf(r); }

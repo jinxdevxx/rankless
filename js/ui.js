@@ -306,7 +306,7 @@ function jobBox(){
 }
 function itemCard(it, eq, up){
   return `<button class="icard ${it.isNew?'new':''}" style="--r:${RARITY[it.rar].color}" data-a="item" data-id="${it.id}">
-    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${up ? '<span class="upg" title="Better than what you wear">▲</span>' : ''}</button>`;
+    ${ICON[it.slot]}<span class="il">${it.ilvl}</span>${it.plus?`<span class="plus">+${it.plus}</span>`:''}${it.locked?`<span class="lk">${ICON.lock}</span>`:''}${eq?'<span class="eqb">E</span>':''}${it.set && SETS[it.set] ? `<span class="setd" style="background:${SETS[it.set].color}" title="${SETS[it.set].name} set"></span>` : ''}${!eq ? (() => { const g = powerGain(it); return `<span class="pgain ${g > 0 ? 'up' : 'down'}" title="Power change if you equip it">${g > 0 ? '+' : '−'}${fmt(Math.abs(g))}</span>`; })() : ''}</button>`;
 }
 function sheetBag(){
   const f = UI.bagFilter || 'all';
@@ -321,7 +321,7 @@ function sheetBag(){
       <button class="btn small" data-a="salvageBelow" data-id="0">Salvage Common</button>
       <button class="btn small" data-a="salvageBelow" data-id="1">Salvage Rare</button>
       <button class="btn small primary" data-a="autoEquip">Equip best</button></div>
-    <div class="grid-items">${(() => { const base = powerOf(heroStats()); return items.map(i => itemCard(i, false, powerWith(i.slot, i) > base)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
+    <div class="grid-items">${(() => { return items.map(i => itemCard(i, false)).join(''); })() || '<div class="empty">No items yet. Clear gate floors to find loot!</div>'}</div>`;
 }
 
 function sheetLegion(){
@@ -364,13 +364,14 @@ function itemDetail(id){
   const f = findItem(id); if(!f) return closeModal();
   const {it, eq} = f; it.isNew = false;
   const r = RARITY[it.rar], b = itemBase(it), cur = S.eq[it.slot];
-  const diff = eq ? 0 : powerWith(it.slot, it) - powerOf(heroStats());
+  const diff = eq ? 0 : powerGain(it), bp = eq ? 0 : beatsAtPlus(it);
   const ec = enhanceCost(it), er = enhanceRate(it), sv = salvageValue(it);
   const canEnh = it.plus < MAX_PLUS && S.gold >= ec.gold && S.stones >= ec.stones;
   showModal(`<div class="idet" style="--r:${r.color}">
       <div class="ihead"><div class="iicon">${ICON[it.slot]}</div><div><small>${r.name} ${SLOT_INFO[it.slot].name} · iLvl ${it.ilvl}</small>
         <h3>${esc(it.name)}${it.plus?` <span class="plus">+${it.plus}</span>`:''}</h3>
-        ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>=0?'up':'down'}">${diff>=0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
+        ${eq ? '<span class="tag">EQUIPPED</span>' : `<span class="cpd ${diff>0?'up':'down'}">${diff>0?'▲':'▼'} ${fmt(Math.abs(diff))} Power</span>`}</div></div>
+      ${eq ? '' : `<div class="upot ${bp === 0 ? 'good' : bp > 0 ? 'mid' : 'bad'}">${bp === 0 ? '✔ Better than what you wear right now. Equip it!' : bp > 0 ? `⬆ Enhance this to <b>+${bp}</b> and it beats your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}.` : `✖ Even at +${MAX_PLUS} this stays weaker than your ${cur ? (cur.plus ? '+' + cur.plus + ' ' : '') + esc(cur.name) : 'current item'}. Salvage it.`}</div>`}
       <div class="ilines">${Object.entries(b).map(([k,v]) => `<div>${statLine(k,v)}</div>`).join('')}
         ${it.affixes.map(a => `<div class="afx">${statLine(a.k,a.v)}</div>`).join('')}</div>
       ${it.set && SETS[it.set] ? (() => { const st = SETS[it.set], n = setCounts(S.eq)[it.set] || 0;
@@ -580,12 +581,9 @@ function act(a, el){
     case 'salvageBelow': { const max = +id; let st = 0, gd = 0, n = 0;
       S.inv = S.inv.filter(it => { if(it.rar <= max && !it.locked){ const v = salvageValue(it); st += v.stones; gd += v.gold; n++; return false; } return true; });
       S.stones += st; S.gold += gd; if(n) toast('SALVAGED', `${n} items → +${st} Mana Stones, +${fmt(gd)} Gold`); save(); renderSheet(); renderHome(); break; }
-    case 'autoEquip': { let n = 0;
-      for(const sl of SLOTS){ let best = null, bp = powerOf(heroStats());
-        for(const it of S.inv.filter(i => i.slot === sl)){ const p = powerWith(sl, it); if(p > bp){ bp = p; best = it; } }
-        if(best){ const old = S.eq[sl]; S.inv = S.inv.filter(x => x !== best); S.eq[sl] = best; if(old) S.inv.push(old); n++; } }
-      S.inv.forEach(i => i.isNew = false);
-      toast(n ? 'EQUIPMENT UPDATED' : 'ALREADY OPTIMAL', n ? `${n} item(s) equipped.` : ''); save(); renderSheet(); renderHome(); break; }
+    case 'autoEquip': { const before = teamPower(), n = equipBest();
+      S.inv.forEach(i => i.isNew = false); UI.shownPower = undefined;
+      toast(n ? 'EQUIPMENT UPDATED' : 'ALREADY OPTIMAL', n ? `${n} item(s) equipped · Power ${fmt(before)} → ${fmt(teamPower())}` : 'Nothing in your bag beats what you wear (enhance levels included).'); save(); renderSheet(); renderHome(); break; }
     case 'party': if(S.comps[id] && !S.party.includes(id) && S.party.length < partySlots()){ S.party.push(id); save(); renderSheet(); renderHome(); } break;
     case 'unparty': S.party = S.party.filter(x => x !== id); save(); renderSheet(); renderHome(); break;
     case 'starUp': { const st = S.comps[id], need = shardNeed(id)*STAR_COST[st];
@@ -653,7 +651,8 @@ document.addEventListener('keydown', e => {
   if(UI.screen !== 'battle' || !BT) return;
   if(UI.menuOpen || $('#modal').classList.contains('on')) return;
   const kk = e.key.toLowerCase();
-  if(e.key >= '1' && e.key <= '3') useSkill(+e.key - 1);
+  const num = /^(Digit|Numpad)([1-3])$/.exec(e.code || '');
+  if(num || (e.key >= '1' && e.key <= '3')){ if(!e.repeat) useSkill((num ? +num[2] : +e.key) - 1); }
   else if(kk === 'q' || kk === 'w' || kk === 'e') useSkill({q:0,w:1,e:2}[kk]);
   else if(kk === 'r') useUlt();
   else if(e.key === ' '){ e.preventDefault(); if(!e.repeat) heroAction(); }

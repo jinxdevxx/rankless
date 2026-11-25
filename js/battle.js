@@ -296,7 +296,16 @@ function ultUnlocked(){ return S.level >= ULT_LV; }
 function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
 function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
-  if(!canUseSkill(i)) return;
+  if(!canUseSkill(i)){
+    // say WHY nothing happened, so a press never feels broken
+    if(BT && !BT.over && !BT.hero.dead && !BT.cutin && (BT.skillMsgT||0) < BT.clock){
+      BT.skillMsgT = (BT.clock||0) + .5;
+      if(!skillUnlocked(i)) addText(BT.hero, `Skill ${i+1} unlocks at Lv ${SKILL_LV[i]}`, '#c4cde8', 16);
+      else if(BT.energy < SKILL_COST[i]) addText(BT.hero, `Need ${SKILL_COST[i]} ◆ (have ${Math.floor(BT.energy)})`, '#9fd8ff', 18);
+      else if(!alive('e').length) addText(BT.hero, 'No target', '#c4cde8', 16);
+    }
+    return;
+  }
   const sk = skillDef(i);
   BT.energy -= SKILL_COST[i]; BT.gcd = .45; SFX.skill(S.aff);
   BT.ult = Math.min(100, BT.ult + SKILL_COST[i]*12);

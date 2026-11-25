@@ -3,6 +3,9 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Equip best must always pick the truly best item (+8 vs fresh drop), show which item would be better and at which upgrade level (v0.14.2)
+- [x] Skill key 1 felt broken: works in tests; now always shows why a skill can't fire (v0.14.2). Watch for further reports.
+- [x] Auto skills while spamming: AUTO FARM button does that (confirmed by player)
 - [x] Ring combat was too hard and looked bad: removed again, classic Space combat back (v0.14.1)
 - [x] Skills must not fire automatically; AUTO FARM button to switch it on for farming (v0.14.1)
 - [ ] Make classic combat less boring with something CREATIVE but simple (Space spam stays allowed). Ideas: skill combos that are easy to hit, enemy weak points that open up, boss moves you answer with a skill. Small steps, ask for feedback.
