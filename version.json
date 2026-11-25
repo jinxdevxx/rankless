@@ -1,10 +1,9 @@
 {
-  "version": "0.19.0",
+  "version": "0.19.1",
   "date": "2026-11-25",
-  "title": "Skill Mastery",
+  "title": "Auto Repeat",
   "notes": [
-    "NEW: Skill Mastery. Train each skill and your ultimate up to Mastery 10 with Gold and Mana Stones, +12% damage per level (Champion tab). Use the damage split after fights to see which skill pays off.",
-    "From B-Rank on, your hero stands in a rotating rune circle in your rank colour on the home screen, with more rings and sparks the higher you climb.",
-    "Balance: late bosses (Frost Matriarch, Abyss King, Storm Lord, Sunken Queen, Eclipse Emperor) have less HP, all elites have 20% less HP, Sunken Sun and Eclipse Throne are a bit softer."
+    "Training Tower: new AUTO REPEAT button next to AUTO ATTACK and AUTO FARM. When it is on, the tower repeats the same floor after every win so you can farm it, with the countdown on the Repeat button.",
+    "If you lose while repeating, it steps one floor down and keeps farming there, so it never gets stuck."
   ]
 }

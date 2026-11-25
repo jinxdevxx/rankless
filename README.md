@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.19.1 – Auto Repeat
+- Tower-only AUTO REPEAT toggle (settings.towerRepeat): auto-continue repeats the floor (loss → one floor down), countdown shown on the Repeat button.
+
 ### v0.19.0 – Skill Mastery
 - Skill Mastery (S.mastery[0..3], MASTERY_MAX 10, +12 %/level, gold + stones cost) applied in useSkill/useUlt; UI rows in the Champion tab with have/need chips.
 - drawRankAura(): rank-coloured rotating rune rings + sparks on the home screen from B-Rank on.

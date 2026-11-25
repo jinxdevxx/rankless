@@ -526,6 +526,7 @@ function syncFarmUI(){
   $('#bAuto').textContent = tm ? (S.settings.autoFight ? 'AUTO FIGHT: ON' : 'AUTO FIGHT: OFF') : (S.settings.autoSkill ? 'AUTO FARM: ON' : 'AUTO FARM: OFF');
   $('#bAuto').classList.toggle('on', tm ? !!S.settings.autoFight : S.settings.autoSkill);
   $('#bAuto').hidden = false;
+  const br = $('#bRep'); if(br){ const show = !!(BT && BT.mode === 'tower'); br.hidden = !show; br.textContent = VW < 640 ? (S.settings.towerRepeat ? 'REP ON' : 'REP OFF') : (S.settings.towerRepeat ? 'AUTO REPEAT: ON' : 'AUTO REPEAT: OFF'); br.classList.toggle('on', !!S.settings.towerRepeat); }
   const ba = $('#bAtk'); if(ba){ ba.textContent = S.settings.autoAttack ? 'AUTO ATTACK: ON' : 'AUTO ATTACK: OFF'; ba.classList.toggle('on', !!S.settings.autoAttack); }
   $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
   if(VW < 640){   // phones: short labels so the top bar fits in one row
@@ -621,7 +622,7 @@ function showResult(r){
   } else { const nx = win ? nextArenaFight() : null;
     btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[0] === 'M' ? `MASTER LV ${(S.master.lv||0) + 1}` : nx[2] ? (EXAMS[nx[0]].next === 'M' ? 'MASTER TRIAL' : 'RANK EXAM') : 'NEXT FIGHT'} › <small>${esc(nx[0] === 'M' ? masterFoe((S.master.lv||0) + 1).name : nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
-  const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack);
+  const towerAuto = BT.mode === 'tower' && (S.settings.farm !== 'off' || S.settings.autoSkill || S.settings.autoAttack || S.settings.towerRepeat);
   const autoOn = (towerAuto || ((BT.mode === 'gate' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off')) && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
@@ -647,8 +648,8 @@ function showResult(r){
   rewardAnim(r);
   if(best >= 0) setTimeout(() => SFX.loot(best), 350);
   if(r.levels) setTimeout(() => SFX.levelup(), 700);
-  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; if(S.settings.farm !== 'repeat'){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
-    autoCountdown(win ? `Floor ${tf} starts in` : `Back to floor ${tf} in`, 3);
+  if(autoOn && BT.mode === 'tower'){ let tf = BT.floor; const rep = S.settings.towerRepeat || S.settings.farm === 'repeat'; if(!rep){ if(win) tf++; else tf = Math.max(1, tf - 1); } else if(!win) tf = Math.max(1, tf - 1);
+    autoCountdown(!win ? `Back to floor ${tf} in` : tf === BT.floor ? `Repeating floor ${tf} in` : `Floor ${tf} starts in`, 3, tf === BT.floor ? '#bResult [data-a="retry"]' : null);
     UI.autoNext = later(() => { UI.autoNext = null; clearInterval(UI.autoCd); if(UI.screen === 'battle') startTower(tf); }, 3000); }
   else if(autoOn && BT.mode === 'rush'){ const kd = BT.kind; UI.autoNext = later(() => { UI.autoNext = null; if(UI.screen === 'battle') startRush(kd); }, 2600); }
   else if(autoOn){
@@ -684,9 +685,9 @@ function rewardAnim(r){
   }, 250);
 }
 /* visible countdown on the result screen while auto-continue is running */
-function autoCountdown(label, secs){
+function autoCountdown(label, secs, sel){
   clearInterval(UI.autoCd); let n = secs;
-  const put = () => { const el = document.getElementById('autoTxt'); if(el) el.textContent = `${label} ${n}…`; const nb = document.querySelector('#bResult .big-next'); if(nb && !nb.dataset.base) nb.dataset.base = nb.innerHTML; if(nb) nb.innerHTML = `${nb.dataset.base} <small class="cd">${n}</small>`; };
+  const put = () => { const el = document.getElementById('autoTxt'); if(el) el.textContent = `${label} ${n}…`; const nb = document.querySelector(sel || '#bResult .big-next'); if(nb && !nb.dataset.base) nb.dataset.base = nb.innerHTML; if(nb) nb.innerHTML = `${nb.dataset.base} <small class="cd">${n}</small>`; };
   put(); UI.autoCd = setInterval(() => { n = Math.max(0, n - 1); put(); if(n <= 0) clearInterval(UI.autoCd); }, 1000);
 }
 /* timers that also fire while the tab is in the background (driven by the frame loop and the background ticker) */
@@ -778,6 +779,7 @@ function act(a, el){
     case 'strike': heroAction(); break;
     case 'ult': useUlt(); break;
     case 'speed': S.settings.speed = S.settings.speed >= 3 ? 1 : S.settings.speed + 1; syncFarmUI(); save(); break;
+    case 'towerRepeat': S.settings.towerRepeat = !S.settings.towerRepeat; toast(S.settings.towerRepeat ? 'AUTO REPEAT ON' : 'AUTO REPEAT OFF', S.settings.towerRepeat ? 'The tower repeats this floor after every win, so you can farm it. Turn off to keep climbing.' : 'The tower climbs to the next floor again.', 'gold'); syncFarmUI(); save(); break;
     case 'autoAtk': S.settings.autoAttack = !S.settings.autoAttack; toast(S.settings.autoAttack ? 'AUTO ATTACK ON' : 'AUTO ATTACK OFF', S.settings.autoAttack ? 'Your hero strikes and blocks on their own. Turn on AUTO FARM too for skills = fully automatic farming.' : 'You strike with SPACE again.', 'gold'); syncFarmUI(); save(); break;
     case 'auto': if(timingMode()){ S.settings.autoFight = !S.settings.autoFight; if(BT){ BT.stumble = 0; BT.autoAt = 0; } toast(S.settings.autoFight ? 'AUTO FIGHT ON' : 'AUTO FIGHT OFF', S.settings.autoFight ? 'Your hero fights on their own (normal hits only, no PERFECTs). Turn it off to fight with skill.' : 'You are in control: hit the gold zone for PERFECT damage.', 'gold'); } else { S.settings.autoSkill = !S.settings.autoSkill; toast(S.settings.autoSkill ? 'AUTO FARM ON' : 'AUTO FARM OFF', S.settings.autoSkill ? 'Skills and the ultimate fire on their own. Good for farming.' : 'Skills are yours again: press 1 / 2 / 3 and R (or tap them).', 'gold'); } syncFarmUI(); save(); break;
     case 'farm': S.settings.farm = {off:'repeat', repeat:'push', push:'off'}[S.settings.farm]; syncFarmUI(); save(); break;

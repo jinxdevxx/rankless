@@ -22,7 +22,7 @@ Add new player feedback here as a new point, so it is never forgotten.
 8. **Simple, not complicated**: no new menus or currencies without a reason. Simplifications stay switchable (Simple Mode in Esc menu).
 8b. **Quiet updates**: update = one click + reload; afterwards only the small left note (auto-hides 10 s / on navigation); patch notes in Esc menu.
 8d. **Background play**: with the tab hidden, fights + AUTO FARM + tower auto-climb keep progressing (simulate document.hidden in Playwright).
-8c. **Automation**: AUTO ATTACK + AUTO FARM farm fully automatically; Training Tower auto-continues with a 3 s countdown; Arena has NEXT FIGHT after wins; Tower changes place every 5 floors.
+8c. **Automation**: AUTO ATTACK + AUTO FARM farm fully automatically; Training Tower auto-continues with a 3 s countdown and has AUTO REPEAT (farm one floor); Arena has NEXT FIGHT after wins; Tower changes place every 5 floors.
 9. **Update flow**: version bump, English patch notes, README changelog entry for every change, live-update post (German, short), devlog updated.
 
 10. **Long game**: ranks E→S+ each with gate + arena + exam, Master League 1–99 reachable; long bot (`node tools/bot_balance.js flame spamskill 900`) shows no wall (>10 losses on a floor) in any gate; E→B ≈ 60 bot-min target.
