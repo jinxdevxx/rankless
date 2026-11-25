@@ -123,7 +123,7 @@ function itemBase(it){
 }
 function statLine(k, v){ return PCT.has(k) ? `+${(Math.round(v*10)/10)}% ${STAT_LABEL[k]}` : `+${fmt(v)} ${STAT_LABEL[k]}`; }
 /* v0.22.0 economy: gold cost about halved, stone cost grows with item level (stones were piling up, gold was the only wall) */
-function enhanceCost(it){ return {gold: Math.ceil(20 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: Math.round((it.plus+1) * (1 + it.rar) * (1 + it.ilvl/45))}; }
+function enhanceCost(it){ return {gold: Math.ceil(20 * Math.pow(1.11, it.ilvl-1) * (it.plus+1) * (1 + it.rar*.5)), stones: Math.round((it.plus+1) * (1 + it.rar) * Math.min(2.5, 1 + it.ilvl/45))}; }   // v0.23.3: capped x2.5 (endgame stone wall)
 function enhanceRate(it){ if(S.settings && S.settings.simple) return it.plus < MAX_PLUS ? 1 : 0; return ENHANCE_RATE[it.plus] ?? 0; }
 /* salvage gives the base value plus 65% of everything spent on enhancing (35% is lost) */
 const SALVAGE_REFUND = .65;
@@ -143,7 +143,7 @@ function calcStats(src){
     for(const a of it.affixes) o[a.k] += a.v;
   }
   if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
-  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat) o[nd.stat] += talentValue(nd, r); }
+  if(src.talents) for(const b in TALENTS) for(const nd of TALENTS[b].nodes){ const r = src.talents[nd.id] || 0; if(r && nd.stat){ const v = talentValue(nd, r); o[nd.stat] += v; if(nd.stat2) o[nd.stat2] += v; } }
   if(src.relics) for(const id of src.relics.active || []){ const lv = src.relics.owned[id]; if(lv && RELICS[id]) o[RELICS[id].stat] += relicValue(id, lv); }
   if(src.paragon){ o.atkP += src.paragon; o.hpP += src.paragon; }
   o.dr = Math.min(40, o.dr);

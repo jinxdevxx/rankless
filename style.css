@@ -1001,3 +1001,5 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .ptime{display:block;color:#ffd27a;font:800 12px Nunito,sans-serif;margin-top:2px} .ptime.big{font-size:15px;margin:4px 0 10px;color:#e8e2f0} .ptime b{color:#ffd27a}
 .jrny{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
 .jrny div{padding:8px 10px;border-radius:10px;background:#0004;border:1px solid #ffd27a44} .jrny b{display:block;font:900 13px Nunito,sans-serif;color:#fff} .jrny span{font:700 12px Nunito,sans-serif;color:#ffd27a}
+
+.t10{margin:-4px auto 6px;display:block;font-size:12px;padding:3px 12px}

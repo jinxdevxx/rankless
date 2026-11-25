@@ -372,7 +372,7 @@ function sheetStats(){
   const tree = Object.entries(TALENTS).map(([bk, br]) => `<div class="tbranch" style="--c:${br.color}"><div class="tbh"><b>${br.name}</b><small>${talentSpent(bk)} pts</small></div>
     ${br.nodes.map(nd => { const r = (S.talents[nd.id]||0), open = talentOpenNode(bk, nd), can = open && free > 0 && r < nd.max;
       return `<button class="tnode ${nd.key ? 'key' : ''} ${r ? 'has' : ''} ${open ? '' : 'locked'} ${r >= nd.max ? 'max' : ''}" data-a="talent" data-id="${nd.id}" ${can ? '' : 'disabled'}>
-        <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? (nd.key ? nd.desc : talentNext(nd, r)) : `Spend ${nd.req} pts in ${br.name}`}</span></button>`; }).join('<i class="tlink"></i>')}</div>`).join('');
+        <span class="tn">${nd.key ? '★ ' : ''}${nd.name}</span><span class="tr">${r}/${nd.max}</span><span class="td">${open ? (nd.key ? nd.desc : nd.flat ? `${nd.desc} · now +${+talentValue(nd, r).toFixed(1)}%` : talentNext(nd, r)) : !talentBranchOpen(bk) ? 'Opens in the Master League' : `Spend ${nd.req} pts in ${br.name}`}</span></button>${can && nd.max >= 20 && free >= 2 ? `<button class="btn small t10" data-a="talent10" data-id="${nd.id}">+${Math.min(10, free, nd.max - r)}</button>` : ''}`; }).join('<i class="tlink"></i>')}</div>`).join('');
   const tf = talentFree(), sp = S.points;
   const pointsBar = (tf || sp) ? `<div class="ptsbar">
       ${tf ? `<button class="ptsb tal" data-a="goTalents"><span class="tpbadge">★ <b>${tf}</b> TALENT POINT${tf === 1 ? '' : 'S'}</span><small>tap to spend ›</small></button>` : ''}
@@ -385,7 +385,7 @@ function sheetStats(){
       <div class="box"><div class="bt">ALL STATS</div><div class="kvs">${more}</div></div>
     </div>
     <div class="box"><div class="bt" id="talentsHead">TALENTS ${free ? `<span class="tpbadge">★ <b>${free}</b> TALENT POINT${free === 1 ? '' : 'S'}</span>` : '<span class="pts">0 points free</span>'}<span class="sp"></span>${talentSpent() ? '<button class="btn small" data-a="talentReset">Reset (free)</button>' : ''}</div>
-      <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free.</div>
+      <div class="hint" style="margin-top:0">Talent points: <b>1 per level</b> from Lv 3, <b>+1 per 10 Training Tower floors</b>, <b>+2 per rank exam</b>. Talents have 10 ranks (the first 3 count double), ★ keystones change how you fight. You can't max everything: pick a style. Reset is free. In the Master League the <b>Ascension</b> branch opens: its <b>Limit Break</b> takes every leftover point.</div>
       <div class="ttree">${tree}</div></div>`;
 }
 /* ---------- Skills tab: element, Ki costs, Skill Mastery ---------- */
@@ -801,6 +801,8 @@ function act(a, el){
     case 'startArena': { const i = +el.dataset.i; if(i < 0 && !examReady(S.rank)){ toast('Clear the gate boss of your rank first'); break; } startArena(S.rank, i, i < 0); break; }
     case 'talent': { const nd = Object.values(TALENTS).flatMap(b => b.nodes).find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)), tier = TALENTS[bk].nodes.indexOf(nd);
       if(talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; UI.shownPower = undefined; save(); renderSheet(); renderHome(); } break; }
+    case 'talent10': { const nd = talentNodes().find(n => n.id === id); if(!nd) break; const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.includes(nd)); let k = 0;
+      while(k < 10 && talentFree() > 0 && talentOpenNode(bk, nd) && (S.talents[id]||0) < nd.max){ S.talents[id] = (S.talents[id]||0) + 1; k++; } UI.shownPower = undefined; save(); renderSheet(); renderHome(); break; }
     case 'goTalents': { const el = document.getElementById('talentsHead'); if(el) el.scrollIntoView({behavior:'smooth', block:'start'}); break; }
     case 'mastery': { const i = +id, c = masteryCost(i); if(masteryLv(i) >= MASTERY_MAX || S.gold < c.gold || S.stones < c.stones) break;
       S.gold -= c.gold; S.stones -= c.stones; S.mastery[i] = masteryLv(i) + 1; SFX.unlockFx(); toast('SKILL TRAINED', `${i === 3 ? AFF[S.aff].ult.name : AFF[S.aff].skills[i].name} is now Mastery ${S.mastery[i]} (+${Math.round(S.mastery[i]*MASTERY_STEP*100)}% damage)`, 'gold'); save(); renderSheet(); renderHome(); break; }
@@ -959,13 +961,19 @@ function itemTipHtml(it, eq){
     if(x + w > innerWidth - 8) x = e.clientX - w - 16; if(y + h > innerHeight - 8) y = Math.max(8, innerHeight - h - 8);
     tip.style.left = x + 'px'; tip.style.top = y + 'px'; };
   document.addEventListener('mouseover', e => {
-    const el = e.target.closest && e.target.closest('.icard[data-id]');
+    const el = e.target.closest && e.target.closest('[data-a="item"][data-id]');
     if(!el){ if(cur){ cur = null; tip.classList.remove('on'); } return; }
     if(el === cur) return; cur = el;
     const f = typeof findItem === 'function' ? findItem(el.dataset.id) : null;
     if(!f){ tip.classList.remove('on'); return; }
     tip.innerHTML = itemTipHtml(f.it, f.eq); tip.classList.add('on'); place(e);
   });
-  document.addEventListener('mousemove', e => { if(cur) place(e); });
-  document.addEventListener('click', () => { cur = null; tip.classList.remove('on'); }, true);
+  const hide = () => { cur = null; tip.classList.remove('on'); };
+  document.addEventListener('mousemove', e => { if(cur){ if(!cur.isConnected) hide(); else place(e); } });
+  document.addEventListener('click', hide, true);
+  document.addEventListener('keydown', hide, true);
+  document.addEventListener('wheel', hide, {passive:true, capture:true});
+  document.addEventListener('mouseleave', hide);
+  window.addEventListener('blur', hide);
+  setInterval(() => { if(cur && (!cur.isConnected || !cur.matches(':hover'))) hide(); }, 300);   // element re-rendered or mouse already gone: never leave a stuck tooltip
 })();

@@ -60,7 +60,7 @@ function enemyUnit(type, L, slot){
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 /* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
-let MASTER_HM = 9, MASTER_AM = 1.15, MASTER_SLOPE = .2;
+let MASTER_HM = 13, MASTER_AM = 1.3, MASTER_SLOPE = .2, MASTER_XP = 2.5;
 function hunterUnit(h){
   const st = synthHunter(h), a = AFF[h.aff];
   const boost = h.master ? (1.6 + h.master*.012) * (h.rival ? 1.1 : 1)   // Master League: own gentle curve
@@ -347,7 +347,7 @@ function dealDamage(att, tgt, mult, opt={}){
   if(tgt.kind === 'hero' && att.blocked){ dmg *= .65; att.blocked = false; }   // a block softens the hit, it doesn't erase it   // you can't swing freely anymore, so hits on you sting less   // the hero no longer auto-attacks, so each hit counts more
   if(opt.skill) dmg *= 1 + (att.skillP||0)/100;
   if(att.kind === 'hero') dmg *= opt.skill ? SKILL_SCALE : HIT_SCALE;
-  if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; }
+  if(att.kind === 'hero'){ if(BT.keys.berserk && att.hp < att.maxHp*.5) dmg *= 1.25; if(BT.keys.exec && tgt.hp < tgt.maxHp*.3) dmg *= 1.5; if(BT.keys.wrath && (tgt.boss || tgt.kind === 'hunter')) dmg *= 1.3; }
   if(tgt.kind === 'hero' && BT.heroDr) dmg *= 1 - BT.heroDr/100;
   if((tgt.boss || tgt.elite) && att.side === 'p'){
     if(tgt.brokenT > 0) dmg *= BREAK.mult;
@@ -426,7 +426,7 @@ function checkBind(type){
 /* ---------- skills ---------- */
 function skillUnlocked(i){ return S.level >= SKILL_LV[i]; }
 function ultUnlocked(){ return S.level >= ULT_LV; }
-function gainEnergy(n){ if(!BT) return; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
+function gainEnergy(n){ if(!BT) return; if(BT.keys && BT.keys.kiflow && n > 0) n *= 1.5; const before = Math.floor(BT.energy); BT.energy = Math.min(ENERGY.max, BT.energy + n); if(Math.floor(BT.energy) > before){ BT.crystalPop = .35; SFX.crystal(); } }
 function canUseSkill(i){ return BT && !BT.over && skillUnlocked(i) && !BT.hero.dead && BT.energy >= SKILL_COST[i] && BT.gcd <= 0 && alive('e').length && !BT.cutin; }
 function useSkill(i){
   if(!canUseSkill(i)){
@@ -778,7 +778,7 @@ function finishBattle(win){
       if((isBoss || isElite) && BT.keys.treasure) n += 1;
       const bonus = f*.03 + (isElite ? .35 : 0) + (isBoss ? 1.0 : 0) + (r.first ? .3 : 0) + hs.gold/400;
       for(let i=0;i<n;i++){ const it = randomItem(BT.L + (isBoss ? 2 : 0), bonus, g.id); r.items.push(it); }
-      r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) + (isBoss ? 15 : isElite ? 5 : 0);
+      r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) * (g.id === 'M' ? 2 : 1) + (isBoss ? 15 : isElite ? 5 : 0);   // Master Gate: double stones
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
       if(r.first) r.diamonds += isBoss ? (f > FLOORS ? 3 : 5) : (f === 5 || f === 8 || f === 9) ? 1 : 0;
@@ -823,7 +823,7 @@ function finishBattle(win){
   } else {
     if(win){
       if(BT.master){ const lv = BT.master; if(lv > MASTER_MAX){ if(lv - MASTER_MAX > (S.paragon||0)){ S.paragon = lv - MASTER_MAX; r.first = true; r.paragonUp = S.paragon; } } else if(lv > (S.master.lv||0)){ S.master.lv = lv; r.first = true; }
-        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? 5 : 1.5));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 40 + 2*lv : 12;   // v0.22.1: stones matter again (enhance + awakening)
+        r.gold = Math.round(goldFor(BT.L)*(r.first ? 25 : 8)); r.xp = Math.round(r.xp + xpFor(BT.L)*(r.first ? MASTER_XP : 1));   // v0.21.2: smaller master rewards so the hero level doesn't explode r.stones = r.first ? 60 + 3*lv : 25;   // v0.23.3: more stones in the endgame (bot: stone-starved at Master 40-50)
         if(r.first){ r.diamonds += lv % 10 === 0 ? 5 : 1; if(!r.paragonUp) r.masterUp = lv; }
         r.items.push(randomItem(BT.L, r.first ? 2 : .8, 'SS'));
       } else {

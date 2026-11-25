@@ -3,6 +3,13 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Title Kami for Master 99 (v0.23.3)
+- [x] Tooltip on equipped gear, no stuck tooltips (v0.23.3)
+- [x] 60 unusable talent points at Master 99 → Ascension branch (v0.23.3)
+- [x] Master League ~3 h to M99 at x3, no wall (v0.23.3)
+- [ ] Unique items (rarer, stronger, special effects) + review all drop chances
+- [ ] Endgame item tier beyond Unique (own name) + drop info button at gates (where to farm what)
+- [ ] RECURRING: check GitHub Pages deploy after every push (gh run list)
 - [x] Relic slots at Master 99: message wrongly asked for Master 30/60/90 (v0.23.2)
 - [x] Show total play time in the save + milestone times (v0.23.1)
 - [x] Endgame after Master 99: Paragon ladder, auras, Rift milestones (v0.23.0)

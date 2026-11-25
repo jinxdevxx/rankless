@@ -1,9 +1,12 @@
 {
-  "version": "0.23.2",
+  "version": "0.23.3",
   "date": "2026-11-25",
-  "title": "Relic Slots Fix",
+  "title": "Kami",
   "notes": [
-    "Relics: the 'slots full' message no longer tells Master 99 players to reach Master 30/60/90. It shows the next slot level, or that 4 slots is the maximum.",
-    "Relic list shows how many slots you have and when the next one opens."
+    "Master 99 title is now KAMI 神 (god).",
+    "NEW talent branch Ascension (opens in the Master League): Godly Power, Divine Body, Kami Eye, Spirit Sovereign, keystones Divine Wrath and Endless Ki, and Limit Break that takes every leftover point. +10 buttons for big nodes.",
+    "Hover tooltip now also works on your equipped gear (Champion tab) and on loot; it hides cleanly when you move away, scroll, press a key or click.",
+    "Master League paced for about 3 hours to Master 99 at x3 speed: masters are tougher, master XP lower, no more wall at Master 40-50.",
+    "Endgame Mana Stones: stone cost capped, Master League and Master Gate give more stones."
   ]
 }

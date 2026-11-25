@@ -25,6 +25,15 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.23.3 – Kami
+- Title Master 99: RANKLESS → KAMI 神; aura "Kami Runes".
+- Talent analysis: max spendable was 126, a Master 99 player has ~184 points (≈58 unusable, colleague reported 60). New branch `ascend` (rank M): 4 nodes ×20, keystones `wrath` (+30 % vs bosses/hunters) and `kiflow` (+50 % Ki gain), `a_limit` (flat +0.5 % ATK & HP, max 999). Ranks above 10 weigh 0.6. `talent10` button.
+- Item tooltip on every `[data-a=item]` (bag, equipment, loot); hides on leave/scroll/key/click/blur, and when the element is re-rendered.
+- Master pacing (bot from Master 0 snapshot, skills): master XP ×5 → ×2.5, foe HP ×9 → ×13, ATK ×1.15 → ×1.3. Master phase 100 → 133 bot-min (~44 min at x3), wall at M40–50 removed (was 166 bot-min: stone-starved). Full run ≈ 506 bot-min ≈ 2.8 h at x3 to Master 99 (player target ~3 h).
+- Stones: enhance stone multiplier capped at ×2.5; master stones 60 + 3×Lv / 25; Master Gate stones ×2.
+- Bot: farms the highest beatable Master Gate floor, spends Ascension talents.
+- GitHub Pages deploys failed 15:51–16:05 with HTTP 500 (GitHub outage) — v0.23.0–0.23.2 were pushed but not live.
+
 ### v0.23.2 – Relic Slots Fix
 - Checked: slot count was correct (1 + Master 30/60/90 = 4 at Master 99, designed max). Bug was the toast text, which always said "More slots at Master 30 / 60 / 90". Now dynamic (next slot level or "4 is the maximum"); relic header shows it too.
 - Bot: `START_SNAP=<file>` continues from a saved character (fast master-phase measurements).

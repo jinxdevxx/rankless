@@ -27,7 +27,7 @@ const { chromium } = require('playwright');
         const sc = PET_SLOT_COST[S.pets.slots+1]; if(sc && S.gold >= sc && Object.keys(S.pets.owned).length > S.pets.slots){ S.gold -= sc; S.pets.slots++; fillPetSlots(); log.push(`${(simTime/60).toFixed(0)}m SLOT ${S.pets.slots}`); }
         for(const id of S.pets.active){ const lv = S.pets.owned[id]; if(lv < PET_MAX_LV && S.gold >= petUpCost(id, lv)*2){ S.gold -= petUpCost(id, lv); S.pets.owned[id]++; } }
       }
-      { const order = ['blade','tough','eye','iron','brutal','leech','k_berserk','arts','giant','k_second']; let g = 0; while(talentFree() > 0 && g++ < 60){ const id = order.find(x => { const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.some(n => n.id === x)); const nd = TALENTS[bk].nodes.find(n => n.id === x); return (S.talents[x]||0) < nd.max && talentOpenNode(bk, nd); }); if(!id) break; S.talents[id] = (S.talents[id]||0) + 1; } }
+      { const order = ['blade','tough','eye','iron','brutal','leech','k_berserk','arts','giant','k_second','a_power','a_vital','a_crit','k_wrath','a_spirit','k_kiflow','a_limit']; let g = 0; while(talentFree() > 0 && g++ < 60){ const id = order.find(x => { const bk = Object.keys(TALENTS).find(b => TALENTS[b].nodes.some(n => n.id === x)); const nd = TALENTS[bk].nodes.find(n => n.id === x); return (S.talents[x]||0) < nd.max && talentOpenNode(bk, nd); }); if(!id) break; S.talents[id] = (S.talents[id]||0) + 1; } }
       checkUnlocks(true);
       if(isUnlocked('enchant') && !S.enchant && S.diamonds>=2){ S.diamonds-=2; S.enchant={el:ENCH,lv:1}; syncAff(); log.push(`${(simTime/60).toFixed(0)}m ENCHANT ${ENCH}`); }
       if(S.enchant && S.enchant.lv<5){ const c=enchantCost(S.enchant.lv+1); if(S.diamonds>=c.diamonds && S.gold>=c.gold*2){ S.diamonds-=c.diamonds; S.gold-=c.gold; S.enchant.lv++; log.push(`${(simTime/60).toFixed(0)}m ENCH LV${S.enchant.lv}`); } }
@@ -48,7 +48,7 @@ const { chromium } = require('playwright');
       if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX){ log.push('MASTER 99 DONE'); break; }
         if(!window.__snaps) window.__snaps = {}; const mk = 'M' + (S.master.lv||0); if(((S.master.lv||0) % 10 === 0) && !window.__snaps[mk]) window.__snaps[mk] = JSON.stringify(S);
         startMaster(); const w = run(); log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);
-        if(!w){ { manage(); const mf = Math.min(10, (S.gates.M||0) + 1); startGate('M', mf); const gw = run(); log.push(`${(simTime/60).toFixed(0)}m MGATE F${mf} ${gw ? 'clear' : 'lose'} gateLv${masterGateLv()}`); } for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startTower((S.tower.best||0)+1); run(); }
+        if(!w){ { manage(); window.__mgFail = window.__mgFail || 0; const mf = Math.max(1, Math.min(10, (S.gates.M||0) + 1) - (window.__mgFail >= 2 ? 1 : 0)); startGate('M', mf); const gw = run(); if(mf > (S.gates.M||0)) window.__mgFail = gw ? 0 : window.__mgFail + 1; log.push(`${(simTime/60).toFixed(0)}m MGATE F${mf} ${gw ? 'clear' : 'lose'} gateLv${masterGateLv()}`); } for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startTower((S.tower.best||0)+1); run(); }
         continue; }
       if(full && !list){ log.push('ALL DONE'); break; }
       startGate(gate.id, nf); const w = run();

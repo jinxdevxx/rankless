@@ -73,10 +73,19 @@ const TALENTS = {
     {id:'swift',  name:'Swift',        stat:'spd',      per:2,   max:10, req:15, desc:'+2% Attack Speed'},
     {id:'k_treasure', name:'Treasure Sense', key:'treasure', max:1, req:20, desc:'KEYSTONE: elite and boss floors drop 1 extra item'},
     {id:'k_crystal',  name:'Ki Heart',       key:'crystal',  max:1, req:30, desc:'KEYSTONE: start every fight with +40 Ki'}]},
+  /* v0.23.3: endgame branch, opens in the Master League. Before it, a Master 99 player had ~60 points with nowhere to go */
+  ascend: {name:'Ascension', color:'#c77dff', rank:'M', nodes:[
+    {id:'a_power',  name:'Godly Power',      stat:'atkP',    per:2,   max:20, req:0,  desc:'+2% ATK'},
+    {id:'a_vital',  name:'Divine Body',      stat:'hpP',     per:2.5, max:20, req:0,  desc:'+2.5% HP'},
+    {id:'a_crit',   name:'Kami Eye',         stat:'critDmg', per:3,   max:20, req:10, desc:'+3% Crit DMG'},
+    {id:'a_spirit', name:'Spirit Sovereign', stat:'petP',    per:4,   max:20, req:20, desc:'+4% Spirit damage'},
+    {id:'k_wrath',  name:'Divine Wrath',  key:'wrath',  max:1, req:30, desc:'KEYSTONE: +30% damage to bosses, hunters and masters'},
+    {id:'k_kiflow', name:'Endless Ki',    key:'kiflow', max:1, req:50, desc:'KEYSTONE: you gain Ki 50% faster'},
+    {id:'a_limit',  name:'Limit Break',      stat:'atkP', stat2:'hpP', per:.5, flat:true, max:999, req:60, desc:'+0.5% ATK and +0.5% HP per point, no real limit'}]},
 };
 /* front-loaded ranks: the first 3 ranks are worth double, ranks 8-10 a bit less, so every early point is felt */
 const TALENT_W = [2, 2, 2, 1, 1, 1, 1, .6, .6, .6];
-function talentValue(nd, r){ let v = 0; for(let i = 0; i < Math.min(r, TALENT_W.length); i++) v += TALENT_W[i]*nd.per; return v; }
+function talentValue(nd, r){ if(nd.flat) return r*nd.per; let v = 0; for(let i = 0; i < r; i++) v += (TALENT_W[i] ?? .6)*nd.per; return v; }
 /* which hero stat a talent finally changes (for showing real numbers) */
 const TALENT_SHOW = {atkP:['atk','ATK'], hpP:['hp','HP'], defP:['def','DEF'], crit:['crit','% Crit'], critDmg:['critDmg','% Crit DMG'], skill:['skill','% Skill DMG'],
   lifesteal:['lifesteal','% Lifesteal'], dr:['dr','% less damage'], gold:['gold','% Gold'], xp:['xp','% XP'], petP:['petP','% Spirit DMG'], spd:['spd','% Atk Speed']};
@@ -84,7 +93,8 @@ function talentNodes(){ return Object.values(TALENTS).flatMap(b => b.nodes); }
 function talentTotal(){ return Math.max(0, S.level - 2) + Math.floor((S.tower && S.tower.best || 0)/10) + 2*Math.max(0, RANKS.indexOf(S.rank)) + 2*Math.floor(((S.master && S.master.lv) || 0)/10); }
 function talentSpent(br){ let n = 0; for(const b in TALENTS) if(!br || b === br) for(const nd of TALENTS[b].nodes) n += (S.talents && S.talents[nd.id]) || 0; return n; }
 function talentFree(){ return talentTotal() - talentSpent(); }
-function talentOpenNode(br, nd){ return talentSpent(br) >= nd.req; }
+function talentBranchOpen(br){ return !TALENTS[br].rank || S.rank === TALENTS[br].rank; }
+function talentOpenNode(br, nd){ return talentBranchOpen(br) && talentSpent(br) >= nd.req; }
 function hasKey(k){ return talentNodes().some(nd => nd.key === k && (S.talents && S.talents[nd.id])); }
 const STAT_INFO = {
   str:{name:'Strength', desc:'Raises ATK'},
@@ -259,7 +269,7 @@ const HUNTERS = {
 /* ---------- Master League: after S+, an endless ladder from level 1 to 99 ---------- */
 const MASTER_MAX = 99;
 /* titles you earn while climbing the Master League; every 10 levels also gives +2 talent points */
-const MASTER_TITLES_BY_LV = [[99,'RANKLESS','#ffffff'],[80,'Sovereign','#ff3d6a'],[60,'Mythic','#ff8a5c'],[40,'Legend','#ffd27a'],[20,'Rift Champion','#c9a8ff'],[10,'Grandmaster','#7fd8ff'],[1,'Master','#e9dcff']];
+const MASTER_TITLES_BY_LV = [[99,'KAMI 神','#fff4c2'],[80,'Sovereign','#ff3d6a'],[60,'Mythic','#ff8a5c'],[40,'Legend','#ffd27a'],[20,'Rift Champion','#c9a8ff'],[10,'Grandmaster','#7fd8ff'],[1,'Master','#e9dcff']];
 function masterTitle(lv){ const t = MASTER_TITLES_BY_LV.find(([m]) => lv >= m); return t ? {name:t[1], color:t[2]} : null; }
 const MASTER_NAMES = ['Kage','Rin Solace','Takeshi Mori','Elara Vance','Juno Blackthorn','Haku','Seren Ash','Ryuji Kane','Vale Starling','Oboro','Kira Neon','Draken','Amaya Frost','Sable','Zero'];
 const MASTER_TITLES = ['Master Breaker','Gate Sovereign','Legend of the Rift','Sky Splitter','Undying Blade','Crowned Hunter','Myth Walker'];
@@ -464,7 +474,7 @@ const MASTER_UNLOCKS = [
   [70, 'Mythic Boons',  'Red mythic boons with huge power.'],
   [80, 'Deep Dive',     'Start a run at depth 10 with 3 free boons.'],
   [90, 'Relic Slot 4',  'Wear 4 relics at once.'],
-  [99, 'Ascension',     'All relics are 50% stronger. You are Rankless.'],
+  [99, 'Ascension',     'All relics are 50% stronger. You are Kami, a god among Breakers.'],
 ];
 function masterHas(n){ return S.rank === 'M' && (n <= 1 || ((S.master && S.master.lv) || 0) >= n); }
 const RIFT_BOONS = {
@@ -508,7 +518,7 @@ function paragonFoe(p){ const h = masterFoe(MASTER_MAX + p); h.title = `Paragon 
 const AURAS = {
   none:     {name:'No aura',        color:'#9fb4d0', how:'Always',                        ok:() => true},
   abyss:    {name:'Abyss Flame',    color:'#b05cff', how:'Reach Rift depth 25',           ok:() => (S.rift.best||0) >= 25},
-  rankless: {name:'Rankless Runes', color:'#ffd27a', how:'Reach Master Lv 99',            ok:() => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX},
+  rankless: {name:'Kami Runes',     color:'#ffd27a', how:'Reach Master Lv 99 (Kami)',            ok:() => S.rank === 'M' && (S.master.lv||0) >= MASTER_MAX},
   inferno:  {name:'Inferno',        color:'#ff5a3c', how:'Reach Rift depth 50',           ok:() => (S.rift.best||0) >= 50},
   wings:    {name:'Spirit Wings',   color:'#7fe8ff', how:'Awaken a spirit to ★10',        ok:() => Object.values((S.pets && S.pets.stars) || {}).some(v => v >= 10)},
   tempest:  {name:'Tempest',        color:'#4cc9ff', how:'Reach Paragon 10',              ok:() => (S.paragon||0) >= 10},
