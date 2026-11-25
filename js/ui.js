@@ -69,6 +69,7 @@ function hunterPortrait(h){
 
 /* ---------- screens ---------- */
 function showScreen(id){
+  if(UI.screen && UI.screen !== id) hidePatchNote();
   UI.screen = id;
   for(const s of $$('.scr')) s.classList.toggle('on', s.id === 'scr-' + id);
   SFX.music(id === 'battle' ? 'battle' : 'home');
@@ -190,6 +191,7 @@ function drawHomeScene(t, dt){
 function openSheet(id){ UI.sheet = id; $('#sheet').classList.add('on'); renderSheet(); renderHome(); }
 function closeSheet(){ UI.sheet = null; $('#sheet')?.classList.remove('on'); if(UI.screen === 'home') renderHome(); }
 function renderSheet(){
+  if(UI.sheet) hidePatchNote();
   if(!UI.sheet) return;
   const map = {gates:['Gates',sheetGates], arena:['Hunter Arena',sheetArena], hero:['Champion',sheetHero], stats:['Stats & Talents',sheetStats], bag:['Inventory',sheetBag], legion:['Legion',sheetLegion]};
   const [title, fn] = map[UI.sheet];
@@ -207,7 +209,7 @@ function sheetGates(){
       <button class="btn small ${left ? 'primary' : ''}" data-a="startDaily" data-id="${k}" ${left ? '' : 'disabled'}>${left ? 'Enter' : 'Tomorrow'}</button></div></div>`; }).join('')}</div></div>`;
   const rg = currentGate(), rl = rushLevel(), hs0 = heroStats(), rgold = Math.round(goldFor(rl)*RUSH_GOLD*(1 + hs0.gold/100)), rxp = Math.round(xpFor(rl)*TRAIN_XP*(1 + hs0.xp/100));
   const tb = S.tower.best || 0, tn = tb + 1, trw = towerReward(tn), tfarm = towerReward(Math.max(1, tb));
-  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Climb floor after floor. Higher floors pay more. Every ${TOWER.chestEvery}th floor: elite + chest.</span>
+  const towerCard = `<div class="towercard"><div class="tl"><small>FARM · UNLIMITED</small><b>Training Tower</b><span>Climb floor after floor. New place every 5 floors, monsters from every gate. Every 5th floor: elite + chest, every 10th: boss + big chest.</span>
       <div class="tstat"><span>Best floor <b>${tb}</b></span><span>Next <b>${tn}</b></span></div></div>
     <div class="tr"><button class="tbtn2 climb" data-a="startTower" data-id="${tn}"><small>CLIMB · FLOOR ${tn}</small><span class="cur gold">${ICON.gold}<b>${fmt(trw.gold)}</b></span><span class="cur cxp">XP <b>${fmt(trw.xp)}</b></span></button>
       ${tb ? `<button class="tbtn2" data-a="startTower" data-id="${tb}"><small>FARM · FLOOR ${tb}</small><span class="cur gold">${ICON.gold}<b>${fmt(tfarm.gold)}</b></span><span class="cur cxp">XP <b>${fmt(tfarm.xp)}</b></span></button>` : ''}</div></div>`;
@@ -455,6 +457,7 @@ function syncFarmUI(){
   $('#bAuto').textContent = tm ? (S.settings.autoFight ? 'AUTO FIGHT: ON' : 'AUTO FIGHT: OFF') : (S.settings.autoSkill ? 'AUTO FARM: ON' : 'AUTO FARM: OFF');
   $('#bAuto').classList.toggle('on', tm ? !!S.settings.autoFight : S.settings.autoSkill);
   $('#bAuto').hidden = false;
+  const ba = $('#bAtk'); if(ba){ ba.textContent = S.settings.autoAttack ? 'AUTO ATTACK: ON' : 'AUTO ATTACK: OFF'; ba.classList.toggle('on', !!S.settings.autoAttack); }
   $('#bFarm').textContent = {off:'Auto-continue: Off', repeat:'Auto: Repeat floor', push:'Auto: Next floor'}[S.settings.farm];
   $('#bFarm').classList.toggle('on', S.settings.farm !== 'off');
   $('#bFarm').hidden = !(adv && BT && BT.mode === 'gate');
@@ -463,7 +466,7 @@ function onWaveUI(){
   if(!BT) return;
   $('#bTitle').innerHTML = BT.mode === 'gate'
     ? `<small>${BT.gate.rank}-RANK GATE</small><b>${BT.gate.name}</b><span>Floor ${BT.floor} · Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
-    : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
+    : BT.mode === 'tower' ? `<small>TRAINING TOWER</small><b>Floor ${BT.floor}</b><span>${THEMES[BT.theme] && THEMES[BT.theme].name ? THEMES[BT.theme].name + ' · ' : ''}Wave ${BT.waveIdx+1}/${BT.waves.length}${BT.floor % 10 === 0 ? ' · BOSS' : BT.floor % TOWER.chestEvery === 0 ? ' · ELITE' : ''}</span>`
     : BT.mode === 'rush' ? `<small>${BT.kind === 'xp' ? 'TRAINING' : 'GOLD RUSH'}</small><b>${BT.gate.name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : BT.mode === 'daily' ? `<small>DAILY GATE</small><b>${DAILY[BT.kind].name}</b><span>Wave ${BT.waveIdx+1}/${BT.waves.length}</span>`
     : `<small>${BT.exam ? 'RANK EXAM' : 'HUNTER ARENA'}</small><b>${esc(BT.hunter.name)}</b><span>${esc(BT.hunter.title)}</span>`;
@@ -504,6 +507,13 @@ function updateBattleHud(){
   else bb.classList.remove('on');
 }
 
+/* the next arena opponent after a win: next hunter of your rank, then the rank exam */
+function nextArenaFight(){
+  const rank = S.rank, list = HUNTERS[rank]; if(!list) return null;
+  const done = S.arena[rank] || 0;
+  if(done < list.length) return [rank, done, false];
+  return EXAMS[rank] ? [rank, -1, true] : null;
+}
 function showResult(r){
   if(!BT) return;
   const win = r.win, g = BT.gate;
@@ -524,7 +534,8 @@ function showResult(r){
   } else if(BT.mode === 'daily'){
     const left = dailyLeft(BT.kind);
     btns = `<button class="btn" data-a="leave">Home</button>${left > 0 ? `<button class="btn primary" data-a="retry">${win ? 'Again' : 'Retry'} (${left} left)</button>` : ''}`;
-  } else btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}`;
+  } else { const nx = win ? nextArenaFight() : null;
+    btns = `<button class="btn" data-a="leave">Leave</button>${!win ? '<button class="btn primary" data-a="retry">Retry</button>' : ''}${nx ? `<button class="btn primary big-next" data-a="arenaNext">${nx[2] ? 'RANK EXAM' : 'NEXT FIGHT'} › <small>${esc(nx[2] ? EXAMS[nx[0]].name : HUNTERS[nx[0]][nx[1]].name)}</small></button>` : ''}`; }
   const best = r.items.reduce((m,i) => Math.max(m, i.rar), -1);
   const autoOn = (BT.mode === 'gate' || BT.mode === 'tower' || (BT.mode === 'rush' && win)) && S.settings.farm !== 'off' && !(r.unlocked||[]).length;
   $('#bResult').innerHTML = `<div class="res ${win?'w':'l'}">
@@ -667,12 +678,14 @@ function act(a, el){
     case 'strike': heroAction(); break;
     case 'ult': useUlt(); break;
     case 'speed': S.settings.speed = S.settings.speed >= 3 ? 1 : S.settings.speed + 1; syncFarmUI(); save(); break;
+    case 'autoAtk': S.settings.autoAttack = !S.settings.autoAttack; toast(S.settings.autoAttack ? 'AUTO ATTACK ON' : 'AUTO ATTACK OFF', S.settings.autoAttack ? 'Your hero strikes and blocks on their own. Turn on AUTO FARM too for skills = fully automatic farming.' : 'You strike with SPACE again.', 'gold'); syncFarmUI(); save(); break;
     case 'auto': if(timingMode()){ S.settings.autoFight = !S.settings.autoFight; if(BT){ BT.stumble = 0; BT.autoAt = 0; } toast(S.settings.autoFight ? 'AUTO FIGHT ON' : 'AUTO FIGHT OFF', S.settings.autoFight ? 'Your hero fights on their own (normal hits only, no PERFECTs). Turn it off to fight with skill.' : 'You are in control: hit the gold zone for PERFECT damage.', 'gold'); } else { S.settings.autoSkill = !S.settings.autoSkill; toast(S.settings.autoSkill ? 'AUTO FARM ON' : 'AUTO FARM OFF', S.settings.autoSkill ? 'Skills and the ultimate fire on their own. Good for farming.' : 'Skills are yours again: press 1 / 2 / 3 and R (or tap them).', 'gold'); } syncFarmUI(); save(); break;
     case 'farm': S.settings.farm = {off:'repeat', repeat:'push', push:'off'}[S.settings.farm]; syncFarmUI(); save(); break;
     case 'stopFarm': S.settings.farm = 'off'; cancelAuto(); syncFarmUI(); save(); break;
     case 'exit': if(BT && !BT.over){ showModal(`<div class="bt">RETREAT</div><p>Leave the battle? You keep nothing from this fight.</p><div class="row"><button class="btn" data-a="closeModal">Stay</button><span class="sp"></span><button class="btn danger" data-a="retreatYes">Retreat</button></div>`); } else leaveBattle(); break;
     case 'retreatYes': closeModal(); leaveBattle(); break;
     case 'leave': leaveBattle(); break;
+    case 'arenaNext': { cancelAuto(); const nx = nextArenaFight(); if(nx) startArena(nx[0], nx[1], nx[2]); break; }
     case 'towerNext': { cancelAuto(); startTower(BT.floor + 1); break; }
     case 'retry': { cancelAuto(); if(BT.mode === 'tower') startTower(BT.floor); else if(BT.mode === 'rush') startRush(BT.kind); else if(BT.mode === 'gate') startGate(BT.gate.id, BT.floor); else if(BT.mode === 'daily') startDaily(BT.kind); else startArena(BT.rank, BT.idx, BT.exam); break; }
     case 'startDaily': startDaily(id); break;
@@ -693,8 +706,7 @@ function act(a, el){
     case 'toggleSetting': S.settings[id] = !S.settings[id]; if(id === 'autoStats' && S.settings.autoStats) autoAssignStats(); save(); renderSheet(); renderHome(); break;
     case 'doUpdate': doUpdate(); break;
     case 'checkUpdate': checkForUpdate(true); break;
-    case 'patchInfo': if(UPDATE_INFO) showModal(`<div class="bt">NEW PATCH</div>${patchNotesHtml(UPDATE_INFO)}
-      <div class="row"><button class="btn" data-a="closeModal">Later</button><span class="sp"></span><button class="btn primary" data-a="doUpdate">Update now</button></div>`); break;
+    case 'patchInfo': case 'patchNotes': openPatchNotes(); break;
   }
 }
 document.addEventListener('click', e => {

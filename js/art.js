@@ -20,7 +20,17 @@ const THEMES = {
   subway:{sky:['#050303','#120a07','#1f110a'], accent:'#ff8a3c', accent2:'#ffcf33', ground:['#16100b','#040302'], horizon:.64, fx:'sparks'},
   shrine:{sky:['#232c58','#7c7fb4','#f0c2b4'], accent:'#ffd9c9', accent2:'#ff8fa3', ground:['#e8eef7','#a3b1c7'], horizon:.66, fx:'snow'},
   arena: {sky:['#2a1f44','#8a4f63','#f0a86a'], accent:'#ffd27a', accent2:'#ff8a5c', ground:['#cfa46c','#7a5634'], horizon:.60, fx:'embers'},
+  // Training Tower variants: same scenery, new moods (base = which scenery to draw)
+  t_night: {base:'harbor', name:'Moonlit Docks',   sky:['#060b1d','#14214a','#3b3f73'], accent:'#cfe3ff', accent2:'#7fb6e6', ground:['#22262f','#0c0d12'], horizon:.64, fx:'rain'},
+  t_ember: {base:'subway', name:'Crimson Depths',  sky:['#1a0606','#3a0d0d','#6b1a12'], accent:'#ff6a3c', accent2:'#ffb347', ground:['#1e0c08','#080302'], horizon:.64, fx:'embers'},
+  t_dawn:  {base:'shrine', name:'Blossom Shrine',  sky:['#9fb4ff','#f7a8b8','#ffd6a5'], accent:'#fff1e6', accent2:'#ff9fb8', ground:['#f6e9ef','#c8b3c4'], horizon:.66, fx:'petals'},
+  t_dusk:  {base:'city',   name:'Burning Skyline', sky:['#3a1c47','#c8506a','#ffb36b'], accent:'#ffd27a', accent2:'#ff8a5c', ground:['#2b1d24','#120a0f'], horizon:.70, fx:'embers'},
+  t_void:  {base:'arena',  name:'Void Colosseum',  sky:['#0b0618','#2a1450','#7a3fb0'], accent:'#c9a8ff', accent2:'#7fd8ff', ground:['#3a2a5a','#150d26'], horizon:.60, fx:'sparks'},
+  t_storm: {base:'harbor', name:'Storm Pier',      sky:['#1d2430','#4b5668','#9aa7b5'], accent:'#e8f0ff', accent2:'#9fd8ff', ground:['#2c2c30','#101014'], horizon:.64, fx:'rain'},
+  t_jade:  {base:'shrine', name:'Jade Garden',     sky:['#0f2a2a','#2f6f63','#a8e0c0'], accent:'#d8ffe8', accent2:'#7fe0b0', ground:['#d8efe4','#8fb8a6'], horizon:.66, fx:'snow'},
+  t_gold:  {base:'arena',  name:'Golden Arena',    sky:['#3a2408','#a86a1c','#ffd27a'], accent:'#fff0c0', accent2:'#ffb347', ground:['#d9b06a','#8a6430'], horizon:.60, fx:'embers'},
 };
+const TOWER_THEMES = ['t_night','t_ember','t_dawn','t_dusk','t_void','t_storm','t_jade','t_gold'];
 
 /* deterministic random for static scenery */
 function srng(seed){ return () => { seed = (seed*1664525 + 1013904223) >>> 0; return seed/4294967296; }; }
@@ -37,6 +47,7 @@ function getBg(theme){
 }
 
 function buildBg(g, theme){
+  const base = (THEMES[theme] && THEMES[theme].base) || theme;
   const T = THEMES[theme], W = VW, H = VH, hz = H*T.horizon, r = srng(theme.length*977 + 13);
   // sky
   const sk = g.createLinearGradient(0,0,0,hz);
@@ -53,8 +64,8 @@ function buildBg(g, theme){
     }
   }
   // moon
-  if(theme === 'city' || theme === 'harbor' || theme === 'shrine'){
-    const mx = theme === 'shrine' ? W*.78 : W*.16, my = H*.17, mr = Math.min(W,H)*.07;
+  if(base === 'city' || base === 'harbor' || base === 'shrine'){
+    const mx = base === 'shrine' ? W*.78 : W*.16, my = H*.17, mr = Math.min(W,H)*.07;
     const mg = g.createRadialGradient(mx,my,mr*.2,mx,my,mr*4);
     mg.addColorStop(0,'rgba(255,230,200,.28)'); mg.addColorStop(1,'rgba(255,230,200,0)');
     g.fillStyle = mg; g.fillRect(0,0,W,hz);
@@ -63,11 +74,11 @@ function buildBg(g, theme){
     g.fillStyle = mg2; g.beginPath(); g.arc(mx,my,mr,0,7); g.fill();
   }
 
-  if(theme === 'city') buildCity(g,W,H,hz,r,T);
-  else if(theme === 'harbor') buildHarbor(g,W,H,hz,r,T);
-  else if(theme === 'subway') buildSubway(g,W,H,hz,r,T);
-  else if(theme === 'shrine') buildShrine(g,W,H,hz,r,T);
-  else if(theme === 'arena') buildArena(g,W,H,hz,r,T);
+  if(base === 'city') buildCity(g,W,H,hz,r,T);
+  else if(base === 'harbor') buildHarbor(g,W,H,hz,r,T);
+  else if(base === 'subway') buildSubway(g,W,H,hz,r,T);
+  else if(base === 'shrine') buildShrine(g,W,H,hz,r,T);
+  else if(base === 'arena') buildArena(g,W,H,hz,r,T);
 
   // ground
   const gg = g.createLinearGradient(0,hz,0,H);
@@ -79,7 +90,7 @@ function buildBg(g, theme){
   g.fillStyle = hl; g.fillRect(0,hz-H*.12,W,H*.18);
   // soft ground bands
   for(let i=1;i<6;i++){ const y = hz + (H-hz)*Math.pow(i/6,1.6); g.fillStyle = 'rgba(255,255,255,.025)'; g.fillRect(0, y, W, (H-hz)*.04); }
-  if(theme === 'arena'){
+  if(base === 'arena'){
     g.strokeStyle = 'rgba(255,209,102,.18)'; g.lineWidth = 3;
     g.beginPath(); g.ellipse(W/2, hz + (H-hz)*.55, W*.42, (H-hz)*.38, 0, 0, 7); g.stroke();
     g.beginPath(); g.ellipse(W/2, hz + (H-hz)*.55, W*.12, (H-hz)*.11, 0, 0, 7); g.stroke();
@@ -183,9 +194,10 @@ function buildArena(g,W,H,hz,r,T){
 /* ---------- animated scene layers ---------- */
 const PARTS = [];
 function sceneFx(theme, t, dt){
+  const base = (THEMES[theme] && THEMES[theme].base) || theme;
   const T = THEMES[theme], W = VW, H = VH, hz = H*T.horizon;
   const c = ctx;
-  if(theme === 'harbor'){
+  if(base === 'harbor'){
     // water shimmer
     c.strokeStyle = 'rgba(63,198,255,.18)'; c.lineWidth = 1;
     for(let i=0;i<14;i++){ const y = hz - H*.045 + (i%5)*H*.009; const x = ((i*173 + t*30*(i%2?1:-1)) % (W+200)) - 100; c.beginPath(); c.moveTo(x,y); c.lineTo(x+40+i*3,y); c.stroke(); }
@@ -197,7 +209,7 @@ function sceneFx(theme, t, dt){
     c.lineTo(lx + Math.cos(Math.PI+a-.08)*W*.6, ly + Math.sin(Math.PI+a-.08)*W*.6);
     c.lineTo(lx + Math.cos(Math.PI+a+.08)*W*.6, ly + Math.sin(Math.PI+a+.08)*W*.6); c.fill();
   }
-  if(theme === 'subway'){
+  if(base === 'subway'){
     for(let x = W*.08, i=0; x < W; x += W*.22, i++){
       const fl = Math.sin(t*13 + i*7) > .93 ? .25 : 1;
       const lg = c.createRadialGradient(x, H*.22, 2, x, H*.22, H*.22);
@@ -206,7 +218,7 @@ function sceneFx(theme, t, dt){
       c.fillStyle = `rgba(255,210,150,${.9*fl})`; c.fillRect(x-8, H*.2, 16, 5);
     }
   }
-  if(theme === 'arena'){
+  if(base === 'arena'){
     for(let i=0;i<3;i++){ const sx = W*(.2 + i*.3) + Math.sin(t*.5 + i*2)*W*.12;
       const bg = c.createLinearGradient(W*(.2+i*.3), 0, sx, hz + H*.2);
       bg.addColorStop(0,'rgba(255,230,170,.18)'); bg.addColorStop(1,'rgba(255,230,170,0)');

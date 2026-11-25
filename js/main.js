@@ -69,9 +69,7 @@ async function checkForUpdate(manual){
       if(updTarget() === info.version){ scheduleUpdateRetry(); return; }
       showUpdateBanner(info);
       // the big popup appears only once per version (per browser); the banner stays until you update
-      if(!popupSeen(info.version)){
-        if(!(UI.screen === 'battle' && BT && !BT.over)) showUpdatePopup(info); else UI.updatePopupPending = true;
-      }
+      // no popup in your face: the slim banner with the Update button is enough
     } else if(manual) toast('UP TO DATE', `You are on the newest version (v${GAME_VERSION}).`);
   }catch(e){ if(manual) toast('UPDATE CHECK FAILED', 'Could not reach the server. Try again in a moment.', 'red'); }
 }
@@ -105,14 +103,30 @@ function finishUpdateCheck(){
   if(window.GAME_VERSION === tgt){ try{ sess()?.removeItem('rk_upd_target'); sess()?.removeItem('rk_upd_tries'); }catch(e){} history.replaceState(null, '', location.pathname + location.hash); }
   else scheduleUpdateRetry();
 }
+/* after an update: a small note on the left that hides itself after 10 s or as soon as you do something.
+   Full patch notes: click the note, or Esc menu > Patch notes. */
 function whatsNew(){
   const info = window.GAME_PATCH;
   if(!info || !S.created || info.version === 'dev') return false;
   if(S.seenVersion === info.version) return false;
   S.seenVersion = info.version; save();
-  showModal(`<div class="bt">PATCH INSTALLED</div><h3 class="pn-title">What's new</h3>${patchNotesHtml(info)}
-    <div class="row"><span class="sp"></span><button class="btn primary" data-a="closeModal">Let's go</button></div>`);
-  return true;
+  showPatchNote(info);
+  return false;   // never blocks the start (offline rewards etc. still show)
+}
+function showPatchNote(info){
+  let el = document.getElementById('patchNote');
+  if(!el){ el = document.createElement('button'); el.id = 'patchNote'; el.dataset.a = 'patchNotes'; document.body.appendChild(el); }
+  el.innerHTML = `<small>UPDATED</small><b>v${esc(info.version)} · ${esc(info.title||'')}</b><span>What's new? Tap here</span><i></i>`;
+  el.classList.remove('out'); el.classList.add('on');
+  clearTimeout(UI.patchNoteT); UI.patchNoteT = setTimeout(hidePatchNote, 10000);
+}
+function hidePatchNote(){ const el = document.getElementById('patchNote'); if(el && el.classList.contains('on')){ el.classList.add('out'); setTimeout(() => el.classList.remove('on','out'), 400); } }
+function openPatchNotes(){
+  const info = window.GAME_PATCH;
+  hidePatchNote();
+  showModal(`<div class="bt">PATCH NOTES</div>${info && info.notes ? patchNotesHtml(info) : '<p>No notes for this build.</p>'}
+    ${UPDATE_INFO ? `<div class="hint">A newer version is ready: <b>v${esc(UPDATE_INFO.version)}</b></div>${patchNotesHtml(UPDATE_INFO)}` : ''}
+    <div class="row"><button class="btn" data-a="closeModal">Close</button><span class="sp"></span>${UPDATE_INFO ? '<button class="btn primary" data-a="doUpdate">Update now</button>' : ''}</div>`);
 }
 
 function boot(){

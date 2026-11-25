@@ -82,7 +82,7 @@ function openMenu(){
       <label class="mrow">After a fight <select data-a="menuFarm">
         ${[['push','go to next floor'],['repeat','repeat floor'],['off','wait for me']].map(([v,l]) => `<option value="${v}" ${S.settings.farm===v?'selected':''}>${l}</option>`).join('')}</select></label>
     </div>
-    ${window.GAME_PATCH && window.GAME_PATCH.notes && window.GAME_PATCH.notes.length ? `<details class="mpn"><summary>Patch notes v${esc(GAME_VERSION)}</summary>${patchNotesHtml(window.GAME_PATCH)}</details>` : ''}
+    <button class="btn" data-a="patchNotes" style="width:100%;margin-top:10px">Patch notes (v${esc(GAME_VERSION)})</button>
     <p class="muted mfoot">Slot ${SLOT} · saved automatically · v${esc(window.GAME_VERSION||'dev')}</p>
   </div>`, true);
 }

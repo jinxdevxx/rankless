@@ -173,7 +173,7 @@ function teamPower(){
 // recommended Power, calibrated on bot playthroughs (power at which floors were cleared)
 function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
-const REC_MULT = {E:1.25, D:1.9, C:1.05};   // v0.16.0: median bot power at first clear
+const REC_MULT = {E:1.2, D:1.5, C:1.0};   // v0.16.0: median bot power at first clear
 function recPower(gateId, floor){ const g = GATES.find(x => x.id === gateId); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] || 1)); }
 
 /* ---------- inventory helpers ---------- */

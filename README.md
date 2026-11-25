@@ -25,6 +25,13 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.16.1 – Smooth Flow
+- Update flow: no popup when an update is found (slim banner with Update button only); after updating a small self-hiding note (10 s, or on any navigation) replaces the big modal; patch notes button in the Esc menu and on the save screen (openPatchNotes).
+- Training Tower: 8 themed places (TOWER_THEMES, scenery variants via THEMES.base), monsters mixed from all reachable gates, elite every 5th floor, boss (60 % HP) every 10th with double chest, floor banner.
+- AUTO ATTACK button (setting autoAttack) presses strike every 0.3 s; combine with AUTO FARM for full auto.
+- Arena: NEXT FIGHT button after a win (nextArenaFight).
+- REC_MULT E 1.2 / D 1.5 / C 1.0.
+
 ### v0.16.0 – Fair Fights
 - Mashing fixed: presses during the strike cooldown are queued (doStrike), mashing keeps Flow, and mashing during a red "!" parries too (doParry mash: 1.0x counter, short stun, half energy; timed press = PERFECT parry 1.4x).
 - Enemy damage only scales with the square root of the gate multiplier (ATK_EASE_EXP .5); gate HP mults D 1.8→2.1... final: D 2.1, C 1.6; enemyHp base 430 → 800; hero HP 130+17/VIT → 170+24/VIT.

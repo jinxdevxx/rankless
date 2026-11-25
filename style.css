@@ -780,3 +780,16 @@ h2,h3{font-family:"Bebas Neue",sans-serif;font-weight:400;letter-spacing:.05em}
 .b-boss .brk div{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
 .b-boss .brk i{display:block;height:100%;background:linear-gradient(90deg,#ffd27a,#ff9a4a);transition:width .15s}
 .b-boss .brk.on{color:#fff;text-shadow:0 0 10px #ffd27a} .b-boss .brk.on i{background:#fff;box-shadow:0 0 10px #ffd27a}
+
+/* ---------- quiet patch note after an update (v0.16.1) ---------- */
+#patchNote{position:fixed;left:16px;bottom:calc(96px + var(--safe-b,0px));z-index:55;display:none;flex-direction:column;align-items:flex-start;gap:1px;max-width:280px;padding:10px 14px 12px;border-radius:14px;
+  background:rgba(24,19,32,.92);border:1px solid rgba(247,199,90,.55);color:#fff;text-align:left;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.35);overflow:hidden}
+#patchNote.on{display:flex;animation:pnIn .35s cubic-bezier(.2,1.4,.4,1)} #patchNote.out{animation:pnOut .4s forwards}
+#patchNote small{font:900 10px Nunito,sans-serif;letter-spacing:.18em;color:var(--gold)}
+#patchNote b{font:400 20px "Bebas Neue",sans-serif;letter-spacing:.04em}
+#patchNote span{font-size:12px;color:var(--muted)}
+#patchNote i{position:absolute;left:0;bottom:0;height:3px;background:var(--gold);animation:pnBar 10s linear forwards}
+@keyframes pnIn{from{opacity:0;transform:translateX(-30px)}to{opacity:1;transform:none}}
+@keyframes pnOut{to{opacity:0;transform:translateX(-30px)}}
+@keyframes pnBar{from{width:100%}to{width:0}}
+@media (max-width:640px){ #patchNote{top:68px;bottom:auto;left:12px;max-width:240px;padding:8px 12px 10px} #patchNote b{font-size:17px} }

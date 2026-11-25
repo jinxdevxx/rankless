@@ -51,7 +51,7 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rush' ? .85*(BT.gate.id === 'E' ? eBest : BT.gate.mult)
     : BT.mode === 'tower' ? TOWER.ease*(BT.gate.id === 'E' ? .75 : BT.gate.mult)   // farm fights: a bit softer than your best floor
     : 1;
-  const hp = enemyHp(lv)*t.hp*ease, mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && BT.mode === 'tower' ? .6 : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1},
     maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd,
@@ -97,10 +97,16 @@ function startGate(gateId, floor){
   enterBattle();
 }
 /* Training Tower */
+/* every 5 floors a new place, monsters from every gate mixed, elite every 5th floor, boss every 10th */
+function towerTheme(f){ return TOWER_THEMES[Math.floor((f - 1)/5) % TOWER_THEMES.length]; }
 function startTower(floor){
-  floor = Math.max(1, floor); const gate = towerGate(floor), L = towerLevel(floor), pool = gate.enemies;
-  const w1 = [pick(pool), pick(pool), pick(pool)], w2 = [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? gate.elite : pick(pool)];
-  BT = newBattle({mode:'tower', floor, gate, L, theme:gate.theme, waves:[w1, w2]});
+  floor = Math.max(1, floor); const gate = towerGate(floor), L = towerLevel(floor);
+  const open = GATES.filter(g => g.baseLv <= L + 4), pool = open.flatMap(g => g.enemies), elites = open.map(g => g.elite);
+  const w1 = [pick(pool), pick(pool), pick(pool)];
+  const w2 = floor % 10 === 0 ? [gate.boss, pick(pool)] : [pick(pool), pick(pool), floor % TOWER.chestEvery === 0 ? pick(elites) : pick(pool)];
+  const theme = towerTheme(floor);
+  BT = newBattle({mode:'tower', floor, gate, L, theme, waves:[w1, w2]});
+  BT.banner = {txt:`FLOOR ${floor} · ${THEMES[theme].name}`, t:1.6, c:THEMES[theme].accent};
   spawnWave();
   enterBattle();
 }
@@ -544,6 +550,7 @@ function stepBattle(dt){
   BT.ult = Math.min(100, BT.ult + dt*.6);
 
   if(timingMode() && !BT.over && !BT.cutin) stepRing(dt);
+  if(S.settings.autoAttack && !BT.over && !BT.cutin && !BT.hero.dead){ BT.autoAtkT = (BT.autoAtkT ?? .3) - dt; if(BT.autoAtkT <= 0){ BT.autoAtkT = .3; heroAction(); } }   // AUTO ATTACK button
   for(let i=BT.pending.length-1;i>=0;i--){ const p = BT.pending[i]; p.t -= dt; if(p.t <= 0){ BT.pending.splice(i,1); if(!BT.over) p.fn(); } }
 
   if(!BT.over){
@@ -656,7 +663,7 @@ function finishBattle(win){
   } else if(BT.mode === 'tower'){
     if(win){ const f = BT.floor, tr = towerReward(f); r.first = f > (S.tower.best||0); S.tower.best = Math.max(S.tower.best||0, f);
       r.gold = Math.round(r.gold + tr.gold*(1 + hs.gold/100)*(r.first ? 1.5 : 1)); r.xp = Math.round(r.xp + tr.xp*(1 + hs.xp/100)*(r.first ? 1.5 : 1));
-      if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += 8 + Math.round(f*1.5); r.diamonds += 1 + Math.floor(f/25); }
+      if(r.first && f % TOWER.chestEvery === 0){ r.chest = true; r.stones += (8 + Math.round(f*1.5))*(f % 10 === 0 ? 2 : 1); r.diamonds += (f % 10 === 0 ? 2 : 1) + Math.floor(f/25); }
     }
   } else if(BT.mode === 'rush'){
     if(win){ if(BT.kind === 'xp'){ r.xp = Math.round(r.xp + xpFor(BT.L)*TRAIN_XP*(1 + hs.xp/100)); r.gold = Math.round(r.gold*.3); }

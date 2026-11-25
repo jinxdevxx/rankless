@@ -3,6 +3,10 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] Update flow less intrusive: click to update, small self-hiding note, patch notes via Esc menu (v0.16.1)
+- [x] Training Tower too monotone: new place every 5 floors, mixed monsters, bosses (v0.16.1)
+- [x] Auto attack button for fully automatic farming (v0.16.1)
+- [x] Arena: go straight to the next boss fight after a win (v0.16.1)
 - [x] 14k power fails a 6.8k recommended D boss (lasered): enemy damage decoupled from gate mult, more hero HP, spam parries, honest recommended power (v0.16.0)
 - [x] Farming boring and separate Gold/XP modes confusing: one Training Tower with gold + XP and climbing floors (v0.16.0)
 - [x] Farm card layout glitch (v0.16.0: replaced)

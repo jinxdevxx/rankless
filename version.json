@@ -1,14 +1,12 @@
 {
-  "version": "0.16.0",
+  "version": "0.16.1",
   "date": "2026-11-25",
-  "title": "Fair Fights",
+  "title": "Smooth Flow",
   "notes": [
-    "BIG BALANCE FIX: spamming SPACE now works. It used to deal LESS damage and could never parry. Now mashing still blocks and counters enemy hits (a calm timed press is still the PERFECT parry), and no press is ever lost.",
-    "Bosses no longer one-shot you: from D-Rank on, enemies get more HP but deal far less damage. Your HP is higher (base and per VIT point).",
-    "NEW: BREAK bar on bosses and elites. Every hit fills it, when full the enemy is BROKEN: helpless and takes double damage for 4 seconds.",
-    "Recommended Power is now honest: measured with test runs, so reaching it means you can win.",
-    "NEW: Training Tower replaces Gold Rush and Training. Climb endless floors with changing enemies, every floor pays Gold AND XP, every 5th floor has an elite and a chest.",
-    "NEW: Stats tab with your big numbers (Max HP, ATK, DEF, Power, all stats), stat points and a TALENT TREE: 1 talent point per level from Lv 3, 3 branches (Might, Guard, Fortune), free reset.",
-    "Skills deal a bit less, basic hits a bit more, so playing without skills is fine and skills still feel great. Enemy healers can no longer out-heal you."
+    "Updates are quieter: click Update and the game reloads on the newest version. Afterwards a small note on the left shows what changed and disappears by itself after 10 seconds (or when you open anything). Full patch notes any time: Esc menu > Patch notes, or on the save screen.",
+    "Training Tower looks different every 5 floors (8 places like Crimson Depths, Blossom Shrine, Void Colosseum), mixes monsters from every gate, has an elite every 5th floor and a boss with a big chest every 10th floor.",
+    "NEW: AUTO ATTACK button in fights. Your hero strikes and blocks on their own. Together with AUTO FARM (skills) you can farm fully automatically.",
+    "Arena: after a win you go straight to the next hunter or the rank exam with NEXT FIGHT.",
+    "Recommended Power fine-tuned."
   ]
 }
