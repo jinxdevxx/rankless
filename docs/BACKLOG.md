@@ -9,7 +9,8 @@ Open requests from the player come first. Every development round starts here.
 - [x] Legion useless → Legion 2.0 abilities + resonance (v0.27.0)
 - [x] Combat screen redesign (v0.27.0) — keep polishing
 - [x] Region trees too small (maxed fast) → +4 nodes, keystones, uncapped Limit Break (v0.27.0)
-- [ ] Re-measure midgame after 80% hit cap (flame/storm/void)
+- [x] Re-measure midgame after 80% hit cap → SS wall, fixed with 50% cap from Lv 40 (v0.27.3)
+- [ ] Master 99 pace: bot ≈ 1 h 40 at x3, target ≈ 3 h – analyze Master League pacing
 - [x] Bot plays the Yomi Arena (v0.27.1)
 - [x] Yomi-only gear sets Hollow Bone + Shinigami (v0.27.2)
 - [ ] Calibrate Yomi circles + Yomi Arena from bot data

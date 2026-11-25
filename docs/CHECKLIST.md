@@ -38,7 +38,7 @@ Add new player feedback here as a new point, so it is never forgotten.
 15. **Endgame keeps going**: after Master 99 there are visible goals (Endgame Goals board), Paragon has resistance (losses happen), Kami Trials are beatable (Determination), nothing piles up unusable (talent points, stones, gold). Bot: `PARAGON=1 START_SNAP=<M90 snapshot> node tools/bot_balance.js storm spamskill 500`.
 
 16. **Worlds** (travel on the map; in a world Home/Gates/Arena/Tower belong to that world; Yomi + Takamagahara arenas winnable step by step). **World map**: 5 regions visible on the Gates tab; Yomi opens only with Master 99 + Kami 3 + Rift 30; Yomi floors winnable step by step; Soul Embers + Shinigami Arts + Scythe (F) and region trees never run out (Limit Break node); Yomi Arena fighter i opens after circle i's boss; Yomi monsters have their own names; Yomi sets (Hollow Bone, Shinigami) drop only in Yomi and beat Eclipse; 3–5 show COMING SOON (Takamagahara ON HOLD until the player says go).
-17. **No one-shots, no immortality**: enemy hit ≤ 50 % max HP in the endgame, ≤ 80 % before; lifesteal ≤ 8 %/s in the endgame (40 %/s elsewhere). Check with tools/survival_test.js and a single-fight instrument on master snapshots.
+17. **No one-shots, no immortality**: enemy hit ≤ 80 % max HP below Lv 40, ≤ 50 % from Lv 40 and in the endgame; lifesteal ≤ 8 %/s in the endgame (40 %/s elsewhere). Check with tools/survival_test.js and a single-fight instrument on master snapshots.
 
 ## Improve continuously (pick the weakest point each round)
 - RECURRING (player wish): balancing, flow and dopamine. Every round look at the bot logs: no walls, no boredom, steady progress, regular rewards (levels, drops, chests, unlocks). Fix the weakest spot.

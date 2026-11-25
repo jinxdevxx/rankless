@@ -1,9 +1,9 @@
 {
-  "version": "0.27.2",
+  "version": "0.27.3",
   "date": "2026-11-25",
-  "title": "Bones and Reapers",
+  "title": "No More Two-Hit Deaths",
   "notes": [
-    "NEW: two Yomi-only gear sets. Hollow Bone (Circles 1-4, Yomi Arena 1-5): +15% HP, -4% damage taken / +20% ATK, +45% Crit DMG. Shinigami (Circles 5-9, Yomi Arena 6-10): +16% ATK, +5% Crit Rate / +30% Skill DMG, +50% Crit DMG, +40% Spirit DMG.",
-    "Yomi drops are never Common; about a third of Yomi drops are set pieces."
+    "From Rank S on (level 40+), one enemy hit can take at most 50% of your HP (was 80%). Flame heroes died 38 times in 9 seconds at the Sunken Queen; that wall is gone.",
+    "Ranks E to A keep the 80% cap, so the early game stays the same."
   ]
 }

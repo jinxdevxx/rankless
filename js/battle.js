@@ -402,7 +402,7 @@ function dealDamage(att, tgt, mult, opt={}){
   const crit = Math.random()*100 < att.crit;
   if(crit) dmg *= att.critDmg/100;
   if(!opt.pierce){ const K = 50*Math.pow(1.066, Math.max(0, (att.level || S.level) - 1)); dmg *= K/(K + tgt.def); }   // DEF scales with the attacker's level, so armor never makes you immune
-  if(tgt.kind === 'hero' && att.side === 'e' && !opt.mech) dmg = Math.min(dmg, tgt.maxHp*(lsPerSec() < .1 ? .5 : .8));   // v0.27: 50% cap in the endgame, 80% elsewhere (the 50% cap made the midgame far too easy)
+  if(tgt.kind === 'hero' && att.side === 'e' && !opt.mech) dmg = Math.min(dmg, tgt.maxHp*(lsPerSec() < .1 ? .5 : (BT.L||1) >= 40 ? .5 : .8));   // v0.27.3: 80% up to Rank A, 50% from S (two-hit deaths: flame died 38x in 9s at the ranged S boss, SS 20-loss walls), 50% in the endgame
   if(tgt.kind === 'hero' && BT.invulnT > 0) return 0;   // Second Sky   // v0.25.5: no single normal hit takes more than 50% of your max HP
   if(tgt.shield > 0){ const ab = Math.min(tgt.shield, dmg); tgt.shield -= ab; dmg -= ab; if(ab > 0 && dmg <= 0) addText(tgt, 'BLOCK', '#9fd8ff', 16); }
   dmg = Math.max(0, dmg);

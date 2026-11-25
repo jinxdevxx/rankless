@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.27.3 – No More Two-Hit Deaths
+- Enemy hit cap: 80 % max HP below level 40, 50 % from level 40 and in the endgame. Bot data (flame spamskill): 80 % cap → S boss 38 deaths in ~9 s / SS-F7 20 losses; 65 % → no change (still two hits); 50 % → max 8 losses on any floor (2 flame runs, storm clean). Master League reached at 107–122 bot-min (≈ 36–41 min at x3).
+
 ### v0.27.2 – Bones and Reapers
 - Yomi-only sets `bone` (Hollow Bone) and `reaper` (Shinigami) in `SETS`; `YOMI_SET_SRC` {YB, YR}; `randomItem` with YB/YR: no Commons, 50 % Rare floor, 60 % set chance for Rare+. Yomi circles 1–4 / arena 1–5 drop Hollow Bone, circles 5–9 / arena 6–10 drop Shinigami. Shinigami 4/4 ≈ +24 % power over Eclipse 4/4 before the final trim.
 
