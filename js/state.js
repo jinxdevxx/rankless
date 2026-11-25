@@ -237,6 +237,12 @@ function bestLoadout(){
   const all = [...S.inv, ...SLOTS.map(sl => S.eq[sl]).filter(Boolean)];
   const bySlot = {}; for(const sl of SLOTS) bySlot[sl] = all.filter(it => it.slot === sl);
   const solo = it => powerWith(it.slot, it);   // rough single-item value for picking set pieces
+  // small bags: check every combination exactly (heuristic below can miss 3-slot set trades, ~0.1 % of cases)
+  const combos = SLOTS.reduce((n, sl) => n*Math.max(1, bySlot[sl].length), 1);
+  if(combos <= 20000){ const lists = SLOTS.map(sl => bySlot[sl].length ? bySlot[sl] : [null]); let best = null, bp = -1; const cur = {};
+    const rec = d => { if(d === SLOTS.length){ const p = eqPower(cur); if(p > bp + .01){ bp = p; best = Object.assign({}, cur); } return; }
+      for(const it of lists[d]){ cur[SLOTS[d]] = it; rec(d + 1); } };
+    rec(0); if(best) return best; }
   const improve = eq => {
     for(let pass = 0; pass < 12; pass++){ let changed = false;
       for(const sl of SLOTS){ let best = eq[sl], bp = eqPower(eq);

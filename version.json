@@ -1,9 +1,8 @@
 {
-  "version": "0.25.3",
+  "version": "0.25.4",
   "date": "2026-11-25",
-  "title": "Ascension",
+  "title": "Perfect Loadout",
   "notes": [
-    "NEW: Ascend items. In the Master League, +15 items can be ascended without limit (✦1, ✦2, ...), +4% base stats each. The endgame use for Gold and Mana Stones.",
-    "Paragon fix: the Master League HP growth wrongly applied to Paragon opponents too (about 4x HP). Paragon now has its own curve (+5% per level)."
+    "Equip Best is now exact for normal bags: it checks every combination, so rare 3-item set trades are no longer missed."
   ]
 }

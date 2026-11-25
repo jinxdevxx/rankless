@@ -25,6 +25,9 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.25.4 – Perfect Loadout
+- `bestLoadout`: exact search when ≤ 20,000 combinations (2500-trial test: 2497 → 2500 optimal; misses were 3-slot set trades, 0.02–0.5 % power). Heuristic + pair swaps stay for huge bags.
+
 ### v0.25.3 – Ascension
 - Item Ascension (`ascendOpen`, `ascendCost`, `it.asc`): rank M, +15 items, +4 % base stats per step, cost gold = goldFor(ilvl)·120·1.18^a, stones = 60·(a+1)·1.08^a. Endless gold/stone sink (bot Paragon runs ended with 1.25T gold + 28k stones unused).
 - Paragon: `MASTER_HPG` capped at Master 99 (v0.25.1 retune gave Paragon foes ~4× HP; bot: Paragon 1–10 took 144 bot-min instead of 14). Paragon foes ×1.05^p, recParagon ×1.12^p.
