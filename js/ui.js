@@ -4,7 +4,7 @@
    ========================================================= */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const UI = {screen:null, sheet:null, createAff:'storm', createHair:0, autoNext:null, autoNextAt:0};
+const UI = {screen:null, sheet:null, createAff:'steel', createHair:0, autoNext:null, autoNextAt:0};
 
 /* ---------- icons ---------- */
 const SVG = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
@@ -17,6 +17,7 @@ const ICON = {
   legion:SVG('<path d="M6 20V10a6 6 0 0 1 12 0v10l-3-2-3 2-3-2z"/><circle cx="10" cy="11" r=".6"/><circle cx="14" cy="11" r=".6"/>'),
   gold:  SVG('<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4"/>'),
   stone: SVG('<path d="M6 9l3-5h6l3 5-6 11z M6 9h12"/>'),
+  dia:   SVG('<path d="M12 3l8 9-8 9-8-9z"/><path d="M4 12h16M12 3v18"/>'),
   gear:  SVG('<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>'),
   close: SVG('<path d="M6 6l12 12M18 6 6 18"/>'),
   lock:  SVG('<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
@@ -76,7 +77,8 @@ function showScreen(id){
 }
 
 /* ---------- create ---------- */
-function renderCreate(){
+function renderCreate(){ UI.createAff = 'steel'; return; }
+function renderCreateOld(){
   $('#affList').innerHTML = Object.entries(AFF).map(([k,a]) => `
     <button class="aff ${UI.createAff===k?'sel':''}" style="--c:${a.color}" data-a="pickAff" data-id="${k}">
       <b>${a.name}</b><small>${a.vibe}</small>
@@ -101,8 +103,9 @@ function renderHome(){
     </div>
     <div class="curs">
       <button class="ibtn" data-a="menu" title="Menu (Esc)">☰</button>
-      <span class="cur gold">${ICON.gold}<b>${fmt(S.gold)}</b></span>
-      <span class="cur stone">${ICON.stone}<b>${fmt(S.stones)}</b></span>
+      <span class="cur gold" title="Gold: buys enhancements and job switches">${ICON.gold}<b>${fmt(S.gold)}</b><em>Gold</em></span>
+      <span class="cur stone" title="Mana Stones: enhance your gear">${ICON.stone}<b>${fmt(S.stones)}</b><em>Stones</em></span>
+      <span class="cur dia" title="Rift Diamonds: enchant your weapon">${ICON.dia}<b>${fmt(S.diamonds||0)}</b><em>Diamonds</em></span>
     </div>`;
   const g = currentGate(), nf = nextFloor(g), cleared = S.gates[g.id] >= FLOORS;
   const arenaDone = S.arena[S.rank] || 0, list = HUNTERS[S.rank];
@@ -255,12 +258,37 @@ function sheetHero(){
   <div class="box"><div class="bt">EQUIPMENT</div><div class="slots">${slots}</div>
     ${(() => { const sc = setCounts(S.eq); const ids = Object.keys(sc); if(!ids.length) return '<div class="hint">Epic and better items from each gate can belong to a set. Wear 2 or 4 pieces for bonuses.</div>';
       return ids.map(id => { const st = SETS[id], n = sc[id]; return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4</small><div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; }).join(''); })()}</div>
+  ${enchantBox()}
   ${jobBox()}
   <div class="box"><div class="bt">SKILLS · ${a.name.toUpperCase()}</div>${skills}</div>`;
 }
 
+/* a big, readable cost line: what you have vs. what you need */
+function costLine(icon, label, have, need){
+  const ok = have >= need;
+  return `<div class="cost ${ok ? 'ok' : 'no'}"><span class="ci">${ICON[icon]}</span><span class="cl">${label}</span><b>${fmt(have)} / ${fmt(need)}</b><span class="cm">${ok ? '✓' : 'need ' + fmt(need - have)}</span></div>`;
+}
+function enchantBox(){
+  if(!isUnlocked('enchant')) return `<div class="box"><div class="bt">WEAPON ENCHANT</div><div class="hint">Clear <b>Floor 5</b> to unlock weapon enchantments. They give your blade an element with new skills.</div></div>`;
+  const en = S.enchant, lv = en ? en.lv : 0;
+  const next = lv < ENCHANT_MAX ? enchantCost(lv + 1) : null;
+  const cards = ELEMENTS.map(el => { const a = AFF[el], on = en && en.el === el;
+    const btn = !en ? `<button class="btn primary" data-a="enchant" data-id="${el}" ${S.diamonds >= ENCHANT_COST[1].d ? '' : 'disabled'}>Enchant</button>`
+      : on ? '<span class="tag">ACTIVE</span>'
+      : `<button class="btn" data-a="enchantSwitch" data-id="${el}" ${S.diamonds >= ENCHANT_SWITCH.d ? '' : 'disabled'}>Switch · ${ENCHANT_SWITCH.d} ${ICON.dia}</button>`;
+    return `<div class="ench ${on ? 'on' : ''}" style="--c:${a.color}"><b>${a.name}</b><small>${a.skills.map(s => s.name).join(' · ')}</small><em>Ultimate: ${a.ult.name}</em>${btn}</div>`; }).join('');
+  return `<div class="box sys enchbox"><div class="bt">WEAPON ENCHANT ${en ? `<span class="pts on">${AFF[en.el].name} · Level ${lv}/${ENCHANT_MAX}</span>` : ''}</div>
+    <div class="hint" style="margin:0 0 10px">Your enchantment stays on every weapon you equip. Each level adds <b>+${ENCHANT_SKILL}% Skill DMG</b>.</div>
+    <div class="enchs">${cards}</div>
+    ${en && next ? `<div class="upgrade"><div class="ut">Upgrade to <b>Level ${lv + 1}</b> <small>(+${ENCHANT_SKILL}% Skill DMG)</small></div>
+      ${costLine('dia', 'Rift Diamonds', S.diamonds||0, next.diamonds)}${next.gold ? costLine('gold', 'Gold', S.gold, next.gold) : ''}
+      <button class="btn primary big-act" data-a="enchantUp" ${(S.diamonds||0) >= next.diamonds && S.gold >= next.gold ? '' : 'disabled'}>Upgrade enchantment</button></div>`
+      : en ? '<div class="hint">Max level reached.</div>' : `${costLine('dia', 'Rift Diamonds', S.diamonds||0, ENCHANT_COST[1].d)}`}
+    <div class="hint">Get Rift Diamonds from first clears of boss and elite floors, Arena wins, Rank Exams, the Crystal Mine and rare drops.</div></div>`;
+}
 function jobBox(){
   const list = SPECS[S.aff] || [], cur = specOf();
+  if(isUnlocked('job') && !S.enchant) return `<div class="box"><div class="bt">JOB CHANGE</div><div class="hint">Enchant your weapon first. Jobs build on your element.</div></div>`;
   if(!isUnlocked('job')) return `<div class="box"><div class="bt">JOB CHANGE</div><div class="hint">Reach <b>Rank C</b> to choose a specialization with a new passive bonus and a stronger skill.</div></div>`;
   const cost = Math.round(goldFor(S.level)*40);
   return `<div class="box sys"><div class="bt">JOB CHANGE ${cur ? `<span class="pts on">${cur.name}</span>` : ''}</div><div class="jobs">${list.map(sp => {
@@ -339,18 +367,18 @@ function itemDetail(id){
         return `<div class="setbox" style="--s:${st.color}"><b>${st.name} Set</b> <small>${n}/4 equipped</small>
           <div class="${n>=2?'on':''}">(2) ${st.d2}</div><div class="${n>=4?'on':''}">(4) ${st.d4}</div></div>`; })() : ''}
       ${!eq ? (() => { const now = heroStats(), eq2 = Object.assign({}, S.eq); eq2[it.slot] = it;
-          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec});
+          const nx = calcStats({level:S.level, stats:S.stats, eq:eq2, spec:S.spec, enchant:S.enchant});
           const rows = [['ATK','atk',0],['HP','hp',0],['DEF','def',0],['Crit','crit',1],['Crit DMG','critDmg',0],['Speed','spd',0],['Lifesteal','lifesteal',1],['Skill DMG','skill',0]]
             .map(([l,k,d]) => { const dv = nx[k] - now[k]; if(Math.abs(dv) < .05) return ''; return (() => { const pct = ['crit','critDmg','spd','lifesteal','skill'].includes(k); return `<span class="${dv > 0 ? 'up' : 'down'}">${l} ${dv > 0 ? '+' : ''}${pct ? dv.toFixed(1) + '%' : fmt(dv)}</span>`; })(); }).join('');
           return `<div class="cmp"><small>Compared with ${cur ? `<b style="color:${RARITY[cur.rar].color}">${esc(cur.name)}${cur.plus?' +'+cur.plus:''}</b>` : 'an empty slot'}:</small><div class="diffs">${rows || '<span>No change</span>'}</div></div>`; })() : ''}
-      <div class="enh"><div><b>Enhance ${it.plus < MAX_PLUS ? `+${it.plus} → +${it.plus+1}` : '(MAX)'}</b>
-        ${it.plus < MAX_PLUS ? `<small><span class="${S.gold>=ec.gold?'':'bad'}">${ICON.gold}${fmt(ec.gold)}</span> <span class="${S.stones>=ec.stones?'':'bad'}">${ICON.stone}${fmt(ec.stones)}</span> · Success ${Math.round(er*100)}%</small>` : ''}</div>
-        <button class="btn primary" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance</button></div>
+      ${it.plus < MAX_PLUS ? `<div class="upgrade"><div class="ut">Enhance <b>+${it.plus} → +${it.plus+1}</b> <small>(+8% base stats · success chance ${Math.round(er*100)}%${er < 1 ? ', materials are lost on failure' : ''})</small></div>
+        ${costLine('gold', 'Gold', S.gold, ec.gold)}${costLine('stone', 'Mana Stones', S.stones, ec.stones)}
+        <button class="btn primary big-act" data-a="enhance" data-id="${it.id}" ${canEnh?'':'disabled'}>Enhance to +${it.plus+1}</button></div>` : '<div class="hint">This item is fully enhanced (+15).</div>'}
       <div class="row">
         ${eq ? `<button class="btn" data-a="unequip" data-id="${it.slot}">Unequip</button>` :
           `<button class="btn primary" data-a="equip" data-id="${it.id}">Equip</button>
            <button class="btn" data-a="lock" data-id="${it.id}">${it.locked?'Unlock':'Lock'}</button>
-           <button class="btn danger" data-a="salvage" data-id="${it.id}" ${it.locked?'disabled':''}>Salvage +${sv.stones} ${ICON.stone}</button>`}
+           <button class="btn danger" data-a="salvage" data-id="${it.id}" ${it.locked?'disabled':''}>Salvage for ${sv.stones} ${ICON.stone}</button>`}
         <span class="sp"></span><button class="btn" data-a="closeModal">Close</button></div>
     </div>`);
 }
@@ -443,7 +471,7 @@ function showResult(r){
     <div class="rtitle">${win ? 'VICTORY' : 'DEFEAT'}</div>
     <div class="rsub">${BT.mode === 'gate' ? `${g.name} · Floor ${BT.floor}${r.first && win ? ' · FIRST CLEAR' : ''}` : BT.mode === 'daily' ? `Daily Gate · ${DAILY[BT.kind].name}` : esc(BT.hunter.name)}</div>
     ${r.rankUp ? `<div class="rankup"><small>RANK EXAM PASSED</small><b>${RANKS[RANKS.indexOf(r.rankUp)-1]} → ${r.rankUp}</b><span>${r.newGate ? `New gate unlocked: ${r.newGate}` : 'You climb higher.'} · Party slot +1</span></div>` : ''}
-    <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(r.gold)}</b></span><span class="cur cxp">XP <b>+${fmt(r.xp)}</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b>+${r.stones}</b></span>`:''}</div>
+    <div class="rrow"><span class="cur gold">${ICON.gold}<b>+${fmt(r.gold)}</b></span><span class="cur cxp">XP <b>+${fmt(r.xp)}</b></span>${r.stones?`<span class="cur stone">${ICON.stone}<b>+${r.stones}</b></span>`:''}${r.diamonds?`<span class="cur dia">${ICON.dia}<b>+${r.diamonds}</b></span>`:''}</div>
     ${r.levels ? `<div class="lvup">LEVEL UP! Lv ${S.level} <small>+${r.levels*3} stat points</small></div>` : ''}
     ${loot ? `<div class="loot">${loot}</div>${best >= 3 ? `<div class="legend" style="color:${RARITY[best].color}">${RARITY[best].name.toUpperCase()} DROP!</div>` : ''}` : ''}
     ${shards ? `<div class="shards">${shards}</div>` : ''}
@@ -479,7 +507,7 @@ function act(a, el){
     case 'create': {
       const n = $('#cName').value.trim().replace(/[^\w\- ]/g,'').slice(0,14);
       if(!n){ $('#cName').focus(); toast('ERROR','Enter a codename.','red'); return; }
-      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = UI.createAff; S.hair = randi(0,2); S.seenVersion = window.GAME_VERSION;
+      S = defaultSave(); S.created = true; S.name = n.toUpperCase(); S.aff = 'steel'; S.flags.enchantV1 = true; S.hair = randi(0,2); S.seenVersion = window.GAME_VERSION;
       // starter gear
       addItem(makeItem('weapon', 1, 0)); addItem(makeItem('armor', 1, 0));
       S.eq.weapon = S.inv.shift(); S.eq.armor = S.inv.shift();
@@ -521,6 +549,13 @@ function act(a, el){
     case 'starUp': { const st = S.comps[id], need = shardNeed(id)*STAR_COST[st];
       if(st < MAX_STARS && (S.shards[id]||0) >= need){ S.shards[id] -= need; S.comps[id]++; toast('STAR UP', `${ENEMY_TYPES[id].name} is now ${S.comps[id]}★`, 'gold'); save(); renderSheet(); renderHome(); } break; }
     case 'skill': useSkill(+id); break;
+    case 'enchant': { if(S.enchant || (S.diamonds||0) < ENCHANT_COST[1].d) break; S.diamonds -= ENCHANT_COST[1].d; S.enchant = {el:id, lv:1}; syncAff(); UI.shownPower = undefined;
+      save(); SFX.unlockFx(); toast('BLADE ENCHANTED', `Your blade now carries ${AFF[id].name}. New skills unlocked!`, 'gold'); renderSheet(); renderHome(); break; }
+    case 'enchantSwitch': { if(!S.enchant || (S.diamonds||0) < ENCHANT_SWITCH.d) break; S.diamonds -= ENCHANT_SWITCH.d; S.enchant.el = id; S.spec = null; syncAff();
+      save(); SFX.unlockFx(); toast('ELEMENT SWITCHED', `${AFF[id].name} · Level ${S.enchant.lv}`, 'gold'); renderSheet(); renderHome(); break; }
+    case 'enchantUp': { const en = S.enchant; if(!en || en.lv >= ENCHANT_MAX) break; const c = enchantCost(en.lv + 1);
+      if((S.diamonds||0) < c.diamonds || S.gold < c.gold) break; S.diamonds -= c.diamonds; S.gold -= c.gold; en.lv++;
+      save(); SFX.levelup(); toast('ENCHANT UPGRADED', `${AFF[en.el].name} · Level ${en.lv}`, 'gold'); renderSheet(); renderHome(); break; }
     case 'chooseSpec': { if(!isUnlocked('job')) break; const cost = Math.round(goldFor(S.level)*40);
       if(S.spec){ if(S.gold < cost) break; S.gold -= cost; }
       S.spec = id; save(); SFX.unlockFx(); toast('JOB CHANGE', `You are now a ${specOf().name}.`, 'gold'); renderSheet(); renderHome(); break; }

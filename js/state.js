@@ -17,7 +17,7 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 
 function defaultSave(){
   return {
-    v:2, created:false, intro:false, name:'', aff:'storm', hair:0,
+    v:2, created:false, intro:false, name:'', aff:'steel', hair:0, enchant:null, diamonds:0,
     level:1, xp:0, points:0, stats:{str:0,vit:0,agi:0,sen:0,wil:0},
     gold:0, stones:0, rank:'E',
     inv:[], eq:{weapon:null,helm:null,armor:null,gloves:null,boots:null,ring:null,amulet:null},
@@ -131,6 +131,7 @@ function calcStats(src){
     const b = itemBase(it); for(const k in b) o[k] += b[k];
     for(const a of it.affixes) o[a.k] += a.v;
   }
+  if(src.enchant) o.skill += src.enchant.lv * ENCHANT_SKILL;
   if(src.spec){ const sp = (SPECS[S.aff] || []).find(x => x.id === src.spec); if(sp) for(const k in sp.stats) o[k] += sp.stats[k]; }
   const sc = setCounts(src.eq);
   for(const id in sc){ const st = SETS[id]; if(!st) continue;
@@ -186,7 +187,7 @@ function storeItem(it){
 }
 function powerWith(slot, item){
   const eq = Object.assign({}, S.eq); eq[slot] = item;
-  return powerOf(calcStats({level:S.level, stats:S.stats, eq}));
+  return powerOf(calcStats({level:S.level, stats:S.stats, eq, spec:S.spec, enchant:S.enchant}));
 }
 function maxRank(a,b){ return RANKS.indexOf(a) >= RANKS.indexOf(b) ? a : b; }
 function rankAtLeast(r){ return RANKS.indexOf(S.rank) >= RANKS.indexOf(r); }
@@ -216,7 +217,7 @@ function checkUnlocks(silent){
   const fresh = [];
   for(const k of UNLOCK_ORDER){
     if(S.unlocks[k]) continue;
-    if(UNLOCKS[k].prog() >= 1){ S.unlocks[k] = true; if(!silent){ fresh.push(k); S.pendingUnlocks.push(k); } }
+    if(UNLOCKS[k].prog() >= 1){ S.unlocks[k] = true; if(!silent){ fresh.push(k); S.pendingUnlocks.push(k); if(k === 'enchant') S.diamonds += ENCHANT_COST[1].d; } }
   }
   return fresh;
 }
@@ -225,6 +226,15 @@ function todayKey(){ const d = new Date(); return `${d.getFullYear()}-${d.getMon
 function dailyLeft(kind){
   if(!S.daily || S.daily.date !== todayKey()) S.daily = {date:todayKey(), left:{gold:DAILY_TRIES, xp:DAILY_TRIES, mat:DAILY_TRIES}};
   return S.daily.left[kind] ?? DAILY_TRIES;
+}
+/* the active element follows the blade's enchantment */
+function syncAff(){ S.aff = S.enchant && ELEMENTS.includes(S.enchant.el) ? S.enchant.el : 'steel'; if(S.aff === 'steel') S.spec = null; }
+function migrateEnchant(){
+  if(S.flags.enchantV1) return;
+  S.flags.enchantV1 = true;
+  // older saves picked a power at creation: keep it as a level 1 enchantment
+  if(S.aff && S.aff !== 'steel' && !S.enchant){ S.enchant = {el:S.aff, lv:1}; S.unlocks.enchant = true; }
+  syncAff();
 }
 function nextGoal(){
   for(const k of UNLOCK_ORDER) if(!S.unlocks[k]) return {kind:'unlock', key:k, name:UNLOCKS[k].name, hint:UNLOCKS[k].hint, p:clamp(UNLOCKS[k].prog(),0,1)};

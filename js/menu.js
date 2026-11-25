@@ -43,6 +43,7 @@ function enterSlot(id){
   const s = readSlot(id);
   if(!s){ S = defaultSave(); showScreen('create'); renderCreate(); return; }
   S = s;
+  migrateEnchant();
   checkUnlocks(true);
   if(!S.flags.manualSkills){ S.settings.autoSkill = false; S.flags.manualSkills = true; }
   UI.shownPower = undefined;

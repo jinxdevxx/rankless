@@ -3,11 +3,15 @@
 Open requests from the player come first. Every development round starts here.
 
 ## Player requests
+- [x] One hero instead of 4 classes; weapon enchantments with a new currency (v0.11.0)
+- [x] Currencies and upgrade costs easy to see (v0.11.0)
+- [x] Full run about 3-4 hours, balanced, rewarding (v0.11.0, keep checking)
+- [ ] Visually more appealing but simple, "psychologically gripping" (ongoing polish)
 - [x] Stuck after 10 floors / arena too hard / no way to farm: Deep Floors, fairer arena, realistic Power (v0.10.0)
 - [x] Combat felt odd: formation and smoother movement (v0.10.0)
 - [x] Gear easier to read: upgrade arrows and stat differences (v0.10.0)
 - [ ] Keep making combat rounder and more skill-based (ongoing)
-- [ ] Game shows 404: repo was set to private, GitHub Pages (free plan) only works for public repos. Waiting for the player to make it public or choose other hosting.
+- [x] 404: repo was private; it is public again and Pages is back online
 - [x] Simpler, better-looking start (v0.4.0)
 - [x] Manual skills instead of auto, more creative skill resource (v0.5.0: Breaker Crystals)
 - [x] Clear in-game update notification (v0.5.0)

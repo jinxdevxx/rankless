@@ -481,7 +481,7 @@ function burst(x, y, c, n){
 function finishBattle(win){
   if(BT.over) return;
   BT.over = true;
-  const r = {win, gold:Math.round(BT.gold), xp:Math.round(BT.xp), items:[], stones:0, shards:BT.shards, levels:0, salvaged:0, first:false, rankUp:null, newGate:null};
+  const r = {win, gold:Math.round(BT.gold), xp:Math.round(BT.xp), items:[], stones:0, diamonds:0, shards:BT.shards, levels:0, salvaged:0, first:false, rankUp:null, newGate:null};
   const hs = heroStats();
   if(BT.mode === 'gate'){
     const g = BT.gate, f = BT.floor;
@@ -496,6 +496,8 @@ function finishBattle(win){
       r.stones = randi(2,4) * (1 + GATES.indexOf(g)*1.5) + (isBoss ? 15 : isElite ? 5 : 0);
       r.gold = Math.round(r.gold * (r.first ? 2 : 1) + goldFor(BT.L)*5);
       r.xp = Math.round(r.xp * (r.first ? 1.5 : 1));
+      if(r.first) r.diamonds += isBoss ? (f > FLOORS ? 3 : 5) : (f === 5 || f === 8 || f === 9) ? 1 : 0;
+      if(Math.random() < .04) r.diamonds += 1;
     }
   } else if(BT.mode === 'daily'){
     if(win){
@@ -505,7 +507,7 @@ function finishBattle(win){
       if(BT.kind === 'gold') r.gold = Math.round(goldFor(L)*90*(1 + hs.gold/100));
       if(BT.kind === 'xp') r.xp = Math.round(xpFor(L)*55*(1 + hs.xp/100));
       if(BT.kind === 'mat'){
-        r.stones = 30*(1 + tier);
+        r.stones = 30*(1 + tier); r.diamonds += 2;
         r.items.push(randomItem(L + 1, 2.5, BT.gate.id));
         const known = Object.keys(S.shards).length ? Object.keys(S.shards) : BT.gate.enemies;
         const t = pick(known); const n = 4 + tier*2;
@@ -520,13 +522,13 @@ function finishBattle(win){
       r.gold = Math.round(goldFor(h.lv) * (BT.exam ? 60 : 25) * (first ? 2 : .5));
       r.xp = Math.round(xpFor(h.lv) * (BT.exam ? 40 : 15) * (first ? 1 : .4));
       r.stones = (BT.exam ? 30 : 6) * (1 + RANKS.indexOf(rank));
-      if(first){ r.items.push(randomItem(h.lv, BT.exam ? 2.5 : 1)); }
+      if(first){ r.items.push(randomItem(h.lv, BT.exam ? 2.5 : 1)); r.diamonds += BT.exam ? 10 : 2; }
       if(BT.exam){ S.rank = EXAMS[rank].next; r.rankUp = S.rank; const ng = GATES.find(g => g.rank === S.rank); if(ng) r.newGate = ng.name; }
       else S.arena[rank] = Math.max(S.arena[rank]||0, BT.idx+1);
     } else { r.gold = Math.round(goldFor(BT.hunter.lv)*6); r.xp = Math.round(r.xp*.5 + xpFor(BT.hunter.lv)*3); }
   }
   // apply
-  S.gold += r.gold; S.stones += r.stones;
+  S.gold += r.gold; S.stones += r.stones; S.diamonds = (S.diamonds||0) + r.diamonds;
   r.levels = addXP(r.xp);
   for(const it of r.items){ const res = addItem(it); if(res === 'salvaged'){ it.salvaged = true; r.salvaged++; } else if(res === 'equipped') it.equipped = true; }
   r.unlocked = checkUnlocks(false);

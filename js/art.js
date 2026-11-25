@@ -284,8 +284,8 @@ function bodyGrad(c, B, R, x0, y0, x1, y1, amt){
 /* ---------- character palette ---------- */
 const INK = '#1b1522';
 const SKIN = '#f3cdab', SKIN_SH = '#d9a483';
-const COAT_OF = {flame:'#9e3b2f', storm:'#2f5a86', void:'#55407f', blood:'#7d2439'};
-const HAIR_OF = {flame:'#3a1f1c', storm:'#1f2a3d', void:'#2a2238', blood:'#2b1218'};
+const COAT_OF = {steel:'#4a5566', flame:'#9e3b2f', storm:'#2f5a86', void:'#55407f', blood:'#7d2439'};
+const HAIR_OF = {steel:'#2a2430', flame:'#3a1f1c', storm:'#1f2a3d', void:'#2a2238', blood:'#2b1218'};
 function coatFor(rim){ for(const k in AFF) if(AFF[k].color === rim) return COAT_OF[k]; return mixHex(rim, '#2a2433', .5); }
 function hairFor(rim){ for(const k in AFF) if(AFF[k].color === rim) return HAIR_OF[k]; return '#241d2c'; }
 

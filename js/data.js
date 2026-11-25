@@ -53,6 +53,13 @@ const STAT_INFO = {
 const HAIRS = ['Spiked','Long','Messy'];
 
 const AFF = {
+  steel:{name:'Steel', color:'#cfd8e3', color2:'#ffffff', title:'Breaker', vibe:'A plain blade, waiting for power.',
+    skills:[
+      {name:'Quick Cut',   cd:4, type:'hit',  target:'single', mult:2.3, desc:'A fast, precise cut for 230% DMG.'},
+      {name:'Whirlwind',   cd:8, type:'hit',  target:'all',    mult:1.4, desc:'Spin through all enemies for 140% DMG.'},
+      {name:'Second Wind', cd:14, type:'buff', heal:.22, dur:0, desc:'Catch your breath: heal 22% HP.'},
+    ],
+    ult:{name:'BLADE STORM', type:'hit', target:'all', mult:1.1, hits:4, desc:'Four sweeping cuts: 110% DMG each to all enemies.'}},
   flame:{name:'Crimson Flame', color:'#ff5a3c', color2:'#ffb347', title:'Flame Breaker', vibe:'Burn everything in your path.',
     skills:[
       {name:'Ember Slash',   cd:5,  type:'hit',  target:'single', mult:2.6, burn:.3, desc:'A blazing slash for 260% DMG. Burns the target.'},
@@ -146,6 +153,15 @@ const EXAMS = {
   C:{name:'Seiji Valen', title:'B-Rank Examiner', aff:'blood', lv:37, hair:0, gear:3, comps:['oni','specter','fang'], next:'B', line:"Prove you are no longer rankless."},
 };
 
+/* ---------- weapon enchantment (Rift Diamonds) ----------
+   Your blade can carry one element. It changes your skills and colors and stays on every weapon you equip. */
+const ELEMENTS = ['flame','storm','void','blood'];
+const ENCHANT_MAX = 5;
+const ENCHANT_COST = [null, {d:2, g:0}, {d:3, g:1}, {d:6, g:2}, {d:10, g:3}, {d:16, g:4}];   // cost to reach level n (g = x goldFor(level)*15)
+const ENCHANT_SWITCH = {d:3};
+const ENCHANT_SKILL = 12;   // +% skill DMG per enchant level
+function enchantCost(lv){ const c = ENCHANT_COST[lv]; return c ? {diamonds:c.d, gold:Math.round(c.g*goldFor(S.level)*15)} : null; }
+
 /* ---------- item sets (dropped in their gate, Epic or better) ---------- */
 const SETS = {
   tide: {name:'Tidecaller',  gate:'E', color:'#7fd3ff', b2:{hpP:10},  b4:{atkP:15, lifesteal:4}, d2:'+10% HP',            d4:'+15% ATK, +4% Lifesteal'},
@@ -183,10 +199,12 @@ const UNLOCKS = {
           hint:'Collect 12 Soul Shards of one monster', prog:() => Object.keys(S.comps).length ? 1 : Math.max(0, ...Object.keys(S.shards).map(k => (S.shards[k]||0)/shardNeed(k)))},
   arena: {name:'Hunter Arena', icon:'arena',  desc:'Beat hunters and pass the Rank Exam to climb to the next rank.',
           hint:'Defeat the Harbor Warden (Floor 10)', prog:() => (S.gates.E||0)/10},
+  enchant:{name:'Weapon Enchant', icon:'weapon', desc:'Enchant your blade with Flame, Storm, Void or Blood. Each element gives you new skills. Costs Rift Diamonds.',
+          hint:'Clear Floor 5', prog:() => (S.gates.E||0)/5},
   job:   {name:'Job Change',   icon:'hero',   desc:'Choose a specialization for your power: a new passive bonus and a stronger skill.',
           hint:'Reach Rank C', prog:() => RANKS.indexOf(S.rank) >= 2 ? 1 : RANKS.indexOf(S.rank)/2},
 };
-const UNLOCK_ORDER = ['bag','hero','gates','legion','arena','job'];
+const UNLOCK_ORDER = ['bag','hero','gates','enchant','legion','arena','job'];
 
 /* ---------- job change (Rank C) ----------
    stats: added to your champion   skill: changes one skill (index, multiplier factor, extra fields)

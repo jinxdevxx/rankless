@@ -1,12 +1,15 @@
 {
-  "version": "0.10.0",
+  "version": "0.11.0",
   "date": "2026-11-25",
-  "title": "Smoother",
+  "title": "One Hero, Enchanted Blade",
   "notes": [
-    "Deep Floors: after Floor 10 every gate continues forever (Floor 11, 12, ...). Stronger enemies, better loot, a boss every 5 floors. The best place to farm.",
-    "Combat formation: melee enemies step up to your line and ranged ones stay back, so fights are close and punchy instead of long dashes. Smoother attack movement.",
-    "Fairer Arena: hunters are a bit weaker, their recommended Power is shown, and defeats give some Gold and XP.",
-    "Recommended Power numbers are now realistic (based on test playthroughs).",
-    "Easier gear: a green \u25b2 marks items that are better than what you wear, and item details show exactly what changes (ATK +45, HP -20, ...)."
+    "No more class choice at the start: you begin as a Breaker with a plain steel blade and your own skills (Quick Cut, Whirlwind, Second Wind, Blade Storm).",
+    "Weapon Enchant (unlocks at Floor 5): give your blade Flame, Storm, Void or Blood. Each element brings its own skills and colors and stays on every weapon you equip.",
+    "Enchant levels 1 to 5: each level adds +12% Skill DMG. Switching the element later is possible.",
+    "New currency: Rift Diamonds. Earned from first clears of boss and elite floors, Deep Floor bosses, Arena wins, Rank Exams, the Crystal Mine and rare drops.",
+    "Clearer currencies: Gold, Mana Stones and Diamonds are bigger and labelled at the top.",
+    "Upgrades show big cost lines with what you have and what you need. Item details are larger and easier to read.",
+    "Balanced for a longer journey: about 3 to 4 hours to reach Rank B (measured with test playthroughs).",
+    "Older saves keep their chosen power as a level 1 enchantment."
   ]
 }

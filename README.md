@@ -1,6 +1,6 @@
 # Rankless
 
-**From E-Rank to legend.** An anime-style action RPG in the browser. Clear gates floor by floor, fight actively with strikes, parries and skills, hunt loot, bind the monsters you defeat and climb the ranks in the Hunter Arena.
+**From E-Rank to legend.** An anime-style action RPG in the browser. Clear gates floor by floor, fight actively with strikes, parries and skills, enchant your blade, hunt loot, bind the monsters you defeat and climb the ranks in the Hunter Arena. A full run to Rank B takes about 3-4 hours.
 
 **Play:** https://jinxdevxx.github.io/rankless/ (the `/rankless/` at the end is required)
 
@@ -12,6 +12,7 @@
 
 ## Features
 - 3 save slots, save codes for backup and moving between devices
+- One hero; weapon enchantments (Flame, Storm, Void, Blood, levels 1-5) paid with Rift Diamonds
 - Gates E, D, C with 10 floors each plus endless Deep Floors, elites, enraged bosses and reinforcements
 - Daily Gates: Gold Vault, Training Grounds, Crystal Mine
 - Loot: 7 slots, 5 rarities, random bonus stats, enhance to +15, item sets (Tidecaller, Railbreaker, Frostbound)
@@ -23,6 +24,15 @@
 
 ## Changelog
 Every change to the game is listed here. Newest first.
+
+### v0.11.0 – One Hero, Enchanted Blade
+- Character creation is name only; every hero starts with the neutral `steel` skill set (`AFF.steel`).
+- Weapon Enchant (`ELEMENTS`, `ENCHANT_COST`, `enchantCost()`, `syncAff()`): Flame/Storm/Void/Blood, levels 1-5, +12% Skill DMG per level, switchable; unlocks at Floor 5.
+- New currency Rift Diamonds (`S.diamonds`), rewarded in `finishBattle()`.
+- Bigger labelled currency chips; `costLine()` shows have/need for every upgrade; larger item details.
+- Item comparisons and auto-equip now include enchantment and job (`powerWith()`).
+- Toasts sit top-right on wide screens.
+- Balance target: ~3-4 h to Rank B for a human (~100 min for the test bot); old saves migrate their power to a level 1 enchantment (`migrateEnchant()`).
 
 ### v0.10.0 – Smoother
 - Deep Floors: endless floors after Floor 10 in every gate, boss every 5 floors (`isBossFloor()`, `nextFloor()` no longer capped).
@@ -90,7 +100,7 @@ Every change to the game is listed here. Newest first.
 - `version.json` – current version and patch notes (drives the in-game update notice)
 - `404.html` – redirects wrong addresses back to the game
 - `style.css` – UI styles (theme v2 block at the end)
-- `js/data.js` – game data: powers, monsters, gates, sets, daily gates, hunters, unlocks
+- `js/data.js` – game data: skills/elements, enchantments, monsters, gates, sets, daily gates, jobs, hunters, unlocks
 - `js/state.js` – saves and save slots, stats, items, economy curves
 - `js/art.js` – backgrounds, characters, monsters, effects
 - `js/battle.js` – battle engine: strikes, parries, crystals, skills, bosses
