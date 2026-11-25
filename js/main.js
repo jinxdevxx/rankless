@@ -65,21 +65,46 @@ async function checkForUpdate(manual){
     if(!r.ok) throw 0;
     const info = await r.json();
     if(info.version && info.version !== GAME_VERSION){
-      const firstTime = !UPDATE_INFO || UPDATE_INFO.version !== info.version;
+      // an update is already being installed: the server cache is just catching up, stay quiet
+      if(updTarget() === info.version){ scheduleUpdateRetry(); return; }
       showUpdateBanner(info);
-      // pop up once per new version, then keep the banner
-      if(firstTime && !(UI.screen === 'battle' && BT && !BT.over)) showUpdatePopup(info);
-      else if(firstTime) UI.updatePopupPending = true;
+      // the big popup appears only once per version (per browser); the banner stays until you update
+      if(!popupSeen(info.version)){
+        if(!(UI.screen === 'battle' && BT && !BT.over)) showUpdatePopup(info); else UI.updatePopupPending = true;
+      }
     } else if(manual) toast('UP TO DATE', `You are on the newest version (v${GAME_VERSION}).`);
   }catch(e){ if(manual) toast('UPDATE CHECK FAILED', 'Could not reach the server. Try again in a moment.', 'red'); }
 }
+function store(){ try{ return window.localStorage; }catch(e){ return null; } }
+function sess(){ try{ return window.sessionStorage; }catch(e){ return null; } }
+function popupSeen(v){ try{ return store()?.getItem('rk_popup_' + v) === '1'; }catch(e){ return false; } }
+function updTarget(){ try{ return sess()?.getItem('rk_upd_target') || null; }catch(e){ return null; } }
+function scheduleUpdateRetry(){
+  if(UI.updRetry) return;
+  let tries = 0; try{ tries = +(sess()?.getItem('rk_upd_tries') || 0); }catch(e){}
+  if(tries >= 6){ try{ sess()?.removeItem('rk_upd_target'); }catch(e){} return; }   // give up quietly, banner logic takes over later
+  toast('FINISHING UPDATE', 'The new version is still being delivered. Retrying automatically…');
+  UI.updRetry = setTimeout(() => { try{ sess()?.setItem('rk_upd_tries', String(tries + 1)); }catch(e){} reloadFresh(); }, 20000);
+}
+/* reload with a cache-busting query so the browser fetches the newest page */
+function reloadFresh(){ if(S.created) save(); location.replace(location.pathname + '?u=' + Date.now() + location.hash); }
 function showUpdatePopup(info){
   UI.updatePopupPending = false;
+  try{ store()?.setItem('rk_popup_' + info.version, '1'); }catch(e){}
   showModal(`<div class="unlock"><div class="bt">NEW PATCH AVAILABLE</div><div class="uicon">${ICON.gate}</div>
     <h3>v${esc(info.version)}</h3>${patchNotesHtml(info)}
     <div class="row c"><button class="btn" data-a="closeModal">Later</button><button class="btn primary" data-a="doUpdate">Update now</button></div></div>`);
 }
-function doUpdate(){ if(S.created) save(); location.reload(); }
+function doUpdate(){
+  try{ if(UPDATE_INFO){ sess()?.setItem('rk_upd_target', UPDATE_INFO.version); sess()?.setItem('rk_upd_tries', '0'); } }catch(e){}
+  reloadFresh();
+}
+/* after an update reload: done, or the server still serves the old files */
+function finishUpdateCheck(){
+  const tgt = updTarget(); if(!tgt) return;
+  if(window.GAME_VERSION === tgt){ try{ sess()?.removeItem('rk_upd_target'); sess()?.removeItem('rk_upd_tries'); }catch(e){} history.replaceState(null, '', location.pathname + location.hash); }
+  else scheduleUpdateRetry();
+}
 function whatsNew(){
   const info = window.GAME_PATCH;
   if(!info || !S.created || info.version === 'dev') return false;
@@ -103,6 +128,8 @@ function boot(){
   document.addEventListener('visibilitychange', () => { if(document.hidden && S.created) save(); });
   setInterval(() => { checkForUpdate(); if(UI.updatePopupPending && UPDATE_INFO && !(UI.screen === 'battle' && BT && !BT.over) && !$('#modal').classList.contains('on')) showUpdatePopup(UPDATE_INFO); }, 30000);
   document.addEventListener('visibilitychange', () => { if(!document.hidden) checkForUpdate(); });
+  finishUpdateCheck();
+  if(/[?&]u=/.test(location.search) && !updTarget()) history.replaceState(null, '', location.pathname + location.hash);
   setTimeout(checkForUpdate, 5000);
   // tap the battlefield to strike
   cv.addEventListener('pointerdown', e => { if(UI.screen === 'battle' && BT && !BT.over && !UI.menuOpen && !$('#modal').classList.contains('on')){ heroAction(); } });

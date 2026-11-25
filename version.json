@@ -1,11 +1,11 @@
 {
-  "version": "0.8.1",
+  "version": "0.8.2",
   "date": "2026-11-25",
-  "title": "Impact",
+  "title": "Smooth Updates",
   "notes": [
-    "Hits feel heavier: short hit-stop and a camera punch on crits and skill hits.",
-    "Multi-kills: DOUBLE KILL, TRIPLE KILL and MASSACRE when enemies fall close together.",
-    "Finisher moment: slow motion and a big K.O. when the last enemy drops.",
-    "Boss phases: below 50% HP gate bosses become ENRAGED (faster, stronger, red aura). Below 30% they call reinforcements."
+    "Update now reloads with fresh files, so the new version really loads.",
+    "If the server still delivers the old version for a moment, the game retries quietly instead of popping up again.",
+    "The big update popup appears only once per version. The banner stays until you update.",
+    "Wrong addresses inside the game's site now lead back to the game instead of a 404 page."
   ]
 }
