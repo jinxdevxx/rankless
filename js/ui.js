@@ -295,7 +295,7 @@ function sheetGates(){
     const unlocked = rankAtLeast(g.rank), cl = S.gates[g.id]||0, T = THEMES[g.theme];
     let floors = '';
     for(let f=1; f<=FLOORS; f++){
-      const L = g.baseLv + f - 1, rp = recPower(g.id, f), open = unlocked && f <= cl+1;
+      const L = Math.round(g.baseLv + (f - 1)*(g.fstep || 1)), rp = recPower(g.id, f), open = unlocked && f <= cl+1;
       const cls = !open ? 'lock' : f <= cl ? 'done' : 'next';
       floors += `<button class="floor ${cls} ${f===10?'boss':''} ${f===5||f===8||f===9?'elite':''}" data-a="startGate" data-g="${g.id}" data-f="${f}" ${open?'':'disabled'}>
         <b>${f===10 ? '☠' : f}</b><small class="${tp >= rp ? 'ok' : 'hard'}">${fmtPow(rp)}</small></button>`;

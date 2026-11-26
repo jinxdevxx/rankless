@@ -191,7 +191,7 @@ function floorPower(L){ return Math.round(330 * Math.pow(1.148, L-1)); }
 /* recommended power, calibrated per gate with the balance bot (power at which floors are usually won) */
 const REC_MULT = {E:1.2, D:1.5, C:1.0, B:.6, A:.55, S:.36, SS:.25, M:.45};   // v0.25.1: S/S+ were 1.4x/1.9x too high (bot first clears at 0.72/0.54 of rec)
 /* region gates: recommended on the Paragon scale (v0.27) – Yomi circle 1 ≈ Paragon 30, each circle +6, Takamagahara from ≈ Paragon 75 */
-function regionEqParagon(g, floor){ return g.region === 2 ? 28 + (g.circle - 1)*6 + floor*.6 : 72 + (g.circle - 1)*8 + floor*.8; }
+function regionEqParagon(g, floor){ return g.region === 2 ? 26 + (g.circle - 1)*9 + floor*.8 : 72 + (g.circle - 1)*8 + floor*.8; }
 function recPower(gateId, floor){ const g = findGate(gateId); if(g && g.region) return recParagon(regionEqParagon(g, floor)); return Math.round(floorPower(g.baseLv + floor - 1 + (isBossFloor(floor) ? 2 : 0)) * (REC_MULT[gateId] ?? g.recMult ?? 1)); }
 
 /* ---------- inventory helpers ---------- */
@@ -390,7 +390,7 @@ function rollUnique(src, ilvl, noGod){
 /* recommended power, measured from real wins (v0.25.1). Arena hunters are much weaker than a gate floor of the same level. */
 const ARENA_REC = .4;   // bot passed every exam at 0.31-0.5 of the old gate-style value
 function recMaster(lv){ return Math.round(8.5e6*Math.pow(1.066, lv - 1)); }   // fitted: power at which the bot wins Master Lv (M1 9M, M50 130M, M99 4.7B)
-function recParagon(p){ return Math.round(recMaster(MASTER_MAX)*Math.pow(1.12, p)); }
+function recParagon(p){ return Math.round(recMaster(MASTER_MAX)*Math.pow(1.12, Math.min(p, 10))*Math.pow(1.055, Math.max(0, p - 10))); }   // v0.27.3: refit on bot wins (para10 15B, para30 76B, para70 371B); 1.12 per level was ~10x too high at para 60+
 function recKami(i){ return Math.round(recParagon(10*(i + 1))*1.5); }
 /* above 1 trillion power the number switches to a God Level that grows slowly (each x10 power = +10 levels), so it never explodes again */
 const GOD_POWER = 1e12;

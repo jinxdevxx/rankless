@@ -69,7 +69,7 @@ const { chromium } = require('playwright');
         if(!w){ for(let k=0;k<2;k++){ manage(); startTower(Math.max(1, (S.tower.best||1))); run(); } manage(); startGate('M', Math.max(1, S.gates.M||1)); run(); }
         continue; }
       if(S.rank === 'M'){ if((S.master.lv||0) >= MASTER_MAX && !window.__PARA){ log.push('MASTER 99 DONE'); break; }
-        if(kamiCleared() >= KAMI_TRIALS.length){ log.push('ALL KAMI DONE'); break; }
+        if(kamiCleared() >= KAMI_TRIALS.length && !(window.__YOMI && ((S.gates.Y9||0) < FLOORS || worldArenaDone(2) < 10))){ log.push('ALL KAMI DONE'); break; }
         if(!window.__snaps) window.__snaps = {}; const mk = 'M' + (S.master.lv||0); if(((S.master.lv||0) % 10 === 0) && !window.__snaps[mk]) window.__snaps[mk] = JSON.stringify(S);
         startMaster(); const w = run(); if(window.__lastU !== JSON.stringify(S.codex)){ window.__lastU = JSON.stringify(S.codex); log.push(`${(simTime/60).toFixed(0)}m UNIQUES ${window.__lastU}`); }
         log.push(`${(simTime/60).toFixed(0)}m MASTER ${S.master.lv}${w ? ' WIN' : ' lose'} lv${S.level} P${teamPower()} G${Math.round(S.gold)} St${S.stones}`);

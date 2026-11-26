@@ -1,3 +1,5 @@
+> PROJECT ON HOLD (2026-11-26) – no work until the player says go. v0.27.4 (Yomi rework) is live but NOT yet bot-measured: measure it first when work resumes.
+
 # Rankless backlog
 
 Open requests from the player come first. Every development round starts here.

@@ -622,9 +622,9 @@ const REGION_MOBS = {2: {husk:'Gaki', wraith:'Yurei', shade:'Kage', specter:'Onr
 const REGION_BOSSES = {2: ['Warden of the Slope','Sanzu Ferry Captain','King of Bones','Lantern Shogun','Oni Empress Ibaraki','Jorogumo Queen','The Weeping Mother','The Nameless God','Izanami, Queen of the Dead']};
 function regionMobName(r, type, u, gate){ if(u.boss && gate && gate.circle && REGION_BOSSES[r]) return REGION_BOSSES[r][gate.circle - 1];
   return (REGION_MOBS[r] && REGION_MOBS[r][type]) || REG[r].prefix + u.name; }
-function yomiLv(i){ return 135 + i*6; }   // v0.27: +6 per circle (+8 made circle 4 a 5-hour wall)   // v0.27: harder (players found Yomi too easy)   // circle i (0-8): base level, +1 per floor
+function yomiLv(i){ return 146 + i*3.5; }   // v0.27.3: bot measured circles 1-4 with 0 losses (hero arrives ~lv 159); start higher, rise 4 per circle like the hero   // v0.27: +6 per circle (+8 made circle 4 a 5-hour wall)   // v0.27: harder (players found Yomi too easy)   // circle i (0-8): base level, +1 per floor
 const YOMI_GATES = YOMI_CIRCLES.map(([name, desc, enemies, elite, boss], i) => ({id:'Y' + (i + 1), region:2, circle:i + 1, rank:'M', name:`Circle ${i + 1} · ${name}`, desc,
-  get baseLv(){ return yomiLv(i); }, mult:1, recMult:.3, theme:'yomi', enemies, elite, boss}));
+  get baseLv(){ return yomiLv(i); }, mult:1, recMult:.3, fstep:.5, hpM:.6, atkM:1.6, theme:'yomi', enemies, elite, boss}));   // v0.27.4: floors +0.5 lv (F10 bosses hit the 240 s limit), less HP / more damage: short dangerous fights instead of 4-minute slogs
 function findGate(id){ return GATES.find(g => g.id === id) || YOMI_GATES.find(g => g.id === id) || (typeof TAKAMA_GATES !== 'undefined' && TAKAMA_GATES.find(g => g.id === id)); }
 function yomiCircleOpen(i){ return regionOpen(2) && (i === 0 || (S.gates['Y' + i]||0) >= FLOORS); }
 /* Shinigami Arts: the Yomi skill tree, paid with Soul Embers (1 per new Yomi floor, 5 per circle boss) */
@@ -692,7 +692,7 @@ const TENGU_TREE = [
   {id:'t_limit',   name:'Sky Limit Break', stat:'atkP', stat2:'hpP', per:.5, max:999, req:70, desc:'+0.5% ATK and HP per Divine Feather, no real limit'},
 ];
 const REG = {
-  2: {key:'yomi',   gates:YOMI_GATES,   tree:YOMI_TREE,  cur:'souls',    curName:'Soul Ember',     curIcon:'🔥', color:'#ff4d6d', dark:'#3a0a16', title:'YOMI', label:'Yomi', towerName:'Yomi Tower',   towerBase:128,
+  2: {key:'yomi',   gates:YOMI_GATES,   tree:YOMI_TREE,  cur:'souls',    curName:'Soul Ember',     curIcon:'🔥', color:'#ff4d6d', dark:'#3a0a16', title:'YOMI', label:'Yomi', towerName:'Yomi Tower',   towerBase:137,
       palette:{body:'#2a0b14', rim:'#ff4d6d', eye:'#ffe0e6', fx:'eclipse'}, prefix:'Yomi ', usrc:'yomi', treeName:'Shinigami Arts', branch:'Shinigami', icon:'⛩',
       intro:'Nine Circles, 10 floors each. Loot drops at your level with high rarity. New floors give <b>Soul Embers</b> (bosses 5) for the <b>Shinigami Arts</b> tree in the Talents tab. Only here: the <b style="color:#e8dfcc">Hollow Bone</b> set (Circles 1-4) and the <b style="color:#ff4d6d">Shinigami</b> set (Circles 5-9). Circle bosses can drop Uniques and Godforged items.'},
   3: {key:'takama', gates:TAKAMA_GATES, tree:TENGU_TREE, cur:'feathers', curName:'Divine Feather', curIcon:'🪶', color:'#ffd27a', dark:'#3a3016', title:'TAKAMAGAHARA', label:'Takamagahara', towerName:'Heaven Tower', towerBase:205,
@@ -716,7 +716,7 @@ const WORLD_ARENA = {
       ["Fujin's Herald",'Carries the bag of winds','storm'],['Raiko the Drummer','Beats the thunder drums','storm'],['Kuzunoha','Nine-tailed fox sage','void'],
       ["Hachiman's Guard",'The war god’s chosen','blood'],['Yumi the Archer','Never misses a star','flame'],['Ame-no-Uzume','Dances the sun back into the sky','flame'],['Omoikane','God of wisdom, last of the arena','void']],
 };
-const WORLD_ARENA_P = {2: i => 31 + i*6, 3: i => 80 + i*8};   // v0.27.1: each opponent is the 'exam' after the matching circle (a bit above its last floor)
+const WORLD_ARENA_P = {2: i => 34 + i*7, 3: i => 80 + i*8};   // v0.27.1: each opponent is the 'exam' after the matching circle (a bit above its last floor)
 const WORLD_ARENA_LINES = {2: ['Pay the toll or swim, living one.','My lanterns burn for the lost. Tonight, for you.','I am hungry. I am always hungry.','Your fists are loud. Mine are silent.',
   'Kneel, and I may let you serve my father.','Step into my web. It is warm here.','I can see you from every corner of this hall.','Your breath freezes before it leaves you.',
   'Leave your clothes. Leave your name. Leave.','You came all this way to fall here.']};

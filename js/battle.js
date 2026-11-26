@@ -53,10 +53,11 @@ function enemyUnit(type, L, slot){
     : BT.mode === 'rift' ? TOWER.ease*.95*(1 + .25*(BT.curse||0))   // Abyss Rift: Blood Pact curses make it harder
     : 1;
   const tm = BT && BT.mode === 'tower' && BT.mod ? BT.mod : null;
-  const hp = enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
+  const gm = BT && BT.gate && (BT.mode === 'gate' || BT.mode === 'tower') ? BT.gate : null;
+  const hp = (gm && gm.hpM || 1)*enemyHp(lv)*t.hp*ease*(t.boss && BT && (BT.mode === 'tower' || BT.mode === 'rift') ? (BT.mode === 'rift' ? .75 : .6) : 1)*(BT && BT.mode === 'gate' && BT.gate.id === 'M' ? .6 : 1)*(tm ? tm.hp : 1), mult = t.boss ? 12 : t.elite ? 3 : 1;
   return {side:'e', kind:'enemy', type, name:t.name, slot, level:lv, boss:!!t.boss, elite:!!t.elite,
     size:UNIT_SIZE[t.style], art:{style:t.style, body:t.pal.body, rim:t.pal.rim, eye:t.pal.eye, blade:t.pal.eye, hair:1, fx:MOB_FX[type]},
-    maxHp:hp, hp, atk:enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
+    maxHp:hp, hp, atk:(gm && gm.atkM || 1)*enemyAtk(lv)*t.atk*(ease > 1 ? Math.pow(ease, ATK_EASE_EXP) : ease), def:2 + lv*1.3, crit:5, critDmg:150, interval:t.spd/(tm ? tm.spd : 1),
     role:t.role, ranged:!!t.ranged, lifesteal:0, xpVal:xpFor(lv)*mult, goldVal:goldFor(lv)*mult};
 }
 /* Master foes: more HP, much less burst; their damage grows slower than their level (v0.22.0, measured: hits were 1-12x hero HP) */
@@ -96,7 +97,7 @@ function floorWaves(gate, f){
 /* ---------- start ---------- */
 function startGate(gateId, floor){
   const gate = findGate(gateId);
-  const L = gate.baseLv + floor - 1;
+  const L = Math.round(gate.baseLv + (floor - 1)*(gate.fstep || 1));
   BT = newBattle({mode:'gate', gate, floor, L, theme:gate.theme, waves:floorWaves(gate, floor)});
   spawnWave();
   enterBattle();

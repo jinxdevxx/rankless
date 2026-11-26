@@ -1,9 +1,11 @@
 {
-  "version": "0.27.3",
-  "date": "2026-11-25",
-  "title": "No More Two-Hit Deaths",
+  "version": "0.27.4",
+  "date": "2026-11-26",
+  "title": "Yomi Rework",
   "notes": [
-    "From Rank S on (level 40+), one enemy hit can take at most 50% of your HP (was 80%). Flame heroes died 38 times in 9 seconds at the Sunken Queen; that wall is gone.",
-    "Ranks E to A keep the 80% cap, so the early game stays the same."
+    "Yomi: shorter, more dangerous fights. Enemies have 40% less HP and deal 60% more damage; floors rise half a level each, circles 3.5 levels (circle 1 starts at Lv 146).",
+    "Yomi Arena fighters are a real exam after their circle.",
+    "Recommended power for Paragon, Yomi circles and the Yomi Arena now matches real wins (it was up to 10x too high).",
+    "Yomi Tower starts at Lv 137."
   ]
 }

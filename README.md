@@ -25,6 +25,11 @@
 ## Changelog
 Every change to the game is listed here. Newest first.
 
+### v0.27.4 – Yomi Rework (not yet measured by the bot; project on hold)
+- Yomi gates: `fstep:.5`, `hpM:.6`, `atkM:1.6`, `yomiLv = 146 + 3.5i`; gate level `Math.round(baseLv + (floor-1)*fstep)`. Previous bot run: circles 1–5 with 0 losses, fight time 15 s → 240 s timeouts on circle 6/7 bosses.
+- `recParagon` refit (1.12/lv up to para 10, then 1.055/lv); `regionEqParagon` 26 + 9·(circle-1) + .8·floor; `WORLD_ARENA_P[2]` 34 + 7i; Yomi Tower base 137.
+- Bot: YOMI mode keeps playing until circle 9 and the arena champion are done.
+
 ### v0.27.3 – No More Two-Hit Deaths
 - Enemy hit cap: 80 % max HP below level 40, 50 % from level 40 and in the endgame. Bot data (flame spamskill): 80 % cap → S boss 38 deaths in ~9 s / SS-F7 20 losses; 65 % → no change (still two hits); 50 % → max 8 losses on any floor (2 flame runs, storm clean). Master League reached at 107–122 bot-min (≈ 36–41 min at x3).
 
